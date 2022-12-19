@@ -1,8 +1,6 @@
 import random
 
-import sympy
-
-from math import sin, cos
+from math import sin, cos, sqrt
 
 
 class Node:
@@ -17,6 +15,7 @@ class Node:
         ty = -_weight * cos(self.angle)
         return tx, ty
 
+
 class Path:
     def __init__(self, uid: int, start_node: Node, end_mode: Node, coeffs: tuple):
         self.uid = uid
@@ -24,6 +23,10 @@ class Path:
         self.end_node = end_mode
         self.vehicles = []
         self.x_coeff, self.y_coeff = coeffs[0], coeffs[1]
+
+    def get_length(self):
+        return sqrt((self.start_node.x - self.end_node.x) ** 2 + (self.start_node.y - self.end_node.y) ** 2)
+
 
 class TrafficLight:
     def __init__(self, path: Path, distance_traveled: float = 0.0, cycle_length: float = 10.0, cycle_red: float = 0.5,

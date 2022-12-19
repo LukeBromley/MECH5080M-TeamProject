@@ -9,7 +9,7 @@ class JunctionVisualiser:
         # Initialise Pygame
         pygame.init()
         pygame.display.set_caption('Junction Visualiser')
-        self._fps = 120
+        self._fps = 60
         self._window_clock = pygame.time.Clock()
         self._window_width, self._window_height = 640, 720
         self.window = pygame.display.set_mode((self._window_width, self._window_height))
@@ -85,8 +85,9 @@ class JunctionVisualiser:
     # Draw paths
     def draw_paths(self, paths):
         for _path in paths:
-            for _i in range(1000):
-                _s = _i/1000
+            _path_length = round(_path.get_length()*1.5) # Changing iteration intervals for improved performance
+            for _i in range(_path_length):
+                _s = _i/_path_length
                 _x = _path.x_coeff[0] + _path.x_coeff[1]*_s + _path.x_coeff[2]*(_s*_s) + _path.x_coeff[3]*(_s*_s*_s)
                 _y = _path.y_coeff[0] + _path.y_coeff[1]*_s + _path.y_coeff[2]*(_s*_s) + _path.y_coeff[3]*(_s*_s*_s)
                 _x = round(_x)
@@ -96,7 +97,7 @@ class JunctionVisualiser:
                 self.window.set_at(self._position_offsetter(_x-1, _y), self._path_colour)
                 self.window.set_at(self._position_offsetter(_x, _y+1), self._path_colour)
                 self.window.set_at(self._position_offsetter(_x, _y-1), self._path_colour)
-                if _i == 500:
+                if _i == round(_path_length / 2):
                     self._draw_text(str(_path.uid), _x + 5, _y + 5)
 
     # Draw text
