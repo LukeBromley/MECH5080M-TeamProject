@@ -4,6 +4,7 @@ from JunctionVisualiser import *
 from Library.infrastructure import Node
 from Library.infrastructure import Path
 from math import pi, sqrt
+import sympy
 
 # List of nodes
 nodes = [
@@ -73,6 +74,9 @@ paths = [
 
 # Find length along spline
 def find_length(path):
+
+    # https://math.libretexts.org/Bookshelves/Calculus/Book%3A_Calculus_(OpenStax)/11%3A_Parametric_Equations_and_Polar_Coordinates/11.02%3A_Calculus_of_Parametric_Curves#:~:text=The%20arc%20length%20of%20a%20parametric%20curve%20can%20be%20calculated,dt)2dt.
+
     a = path.x_coeff[1]
     b = path.x_coeff[2]
     c = path.x_coeff[3]
@@ -123,11 +127,11 @@ def find_length(path):
 
 # Main function
 def main():
-    # point1 = Node(0, 0, 0, 3*pi/4)
-    # point2 = Node(0, 50, 50, 3*pi/4)
-    # path = Path(1, point1, point2, calculate_line_coefficients(point1, point2))
-    # length = find_length(path)
-    # print(length)
+    point1 = Node(0, 0, 0, 3*pi/4)
+    point2 = Node(0, 50, 50, 3*pi/4)
+    path = Path(1, point1, point2, calculate_line_coefficients(point1, point2))
+    length = find_length(path)
+    print(length)
     Visualiser = JunctionVisualiser()
     while True:
         Visualiser.refresh()

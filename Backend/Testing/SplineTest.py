@@ -90,25 +90,25 @@ y_array = []
 #
 # Plot(p1, p2, x_array, y_array)
 #
-# METHOD 4
-# Convert from s-based lines to x-y coordinates
-# This has the limitation that you cannot generate lines that have two y points for each x point
-x_array.clear()
-y_array.clear()
-x_coeff = [p1.x, p1.tx, -3*p1.x+3*p2.x-2*p1.tx+p2.tx, 2*p1.x-2*p2.x+p1.tx-p2.tx]
-y_coeff = [p1.y, p1.ty, -3*p1.y+3*p2.y-2*p1.ty+p2.ty, 2*p1.y-2*p2.y+p1.ty-p2.ty]
-for i in range(100):
-    x = i/100
-    x_array.append(x)
-    s = CalculateCubeRoots(x_coeff[3], x_coeff[2], x_coeff[1], x_coeff[0] - x)
-    y_array.append(y_coeff[0] + y_coeff[1] * s + y_coeff[2] * (s * s) + y_coeff[3] * (s * s * s))
-# Apply FFT to get coefficients
-fourier_coefficients = np.fft.fft(y_array, n=10)
-
-# Use coefficients to regenerate spline
-y_array_fourier = np.fft.ifft(fourier_coefficients)
-
-Plot(p1, p2, x_array, y_array_fourier)
+# # METHOD 4
+# # Convert from s-based lines to x-y coordinates
+# # This has the limitation that you cannot generate lines that have two y points for each x point
+# x_array.clear()
+# y_array.clear()
+# x_coeff = [p1.x, p1.tx, -3*p1.x+3*p2.x-2*p1.tx+p2.tx, 2*p1.x-2*p2.x+p1.tx-p2.tx]
+# y_coeff = [p1.y, p1.ty, -3*p1.y+3*p2.y-2*p1.ty+p2.ty, 2*p1.y-2*p2.y+p1.ty-p2.ty]
+# for i in range(100):
+#     x = i/100
+#     x_array.append(x)
+#     s = CalculateCubeRoots(x_coeff[3], x_coeff[2], x_coeff[1], x_coeff[0] - x)
+#     y_array.append(y_coeff[0] + y_coeff[1] * s + y_coeff[2] * (s * s) + y_coeff[3] * (s * s * s))
+# # Apply FFT to get coefficients
+# fourier_coefficients = np.fft.fft(y_array, n=10)
+#
+# # Use coefficients to regenerate spline
+# y_array_fourier = np.fft.ifft(fourier_coefficients)
+#
+# Plot(p1, p2, x_array, y_array_fourier)
 
 # METHOD 5
 # Pre-compute coefficients (more efficient)
@@ -139,3 +139,37 @@ Plot(p1, p2, x_array, y_array_fourier)
 #     plt.plot(x, (y_coeff[0] + y_coeff[1] * s + y_coeff[2] * (s * s) + y_coeff[3] * (s * s * s)), color='Green', marker=".")
 #
 # plt.show()
+
+# METHOD 6
+# Fitting a polynomial to the line
+x_array.clear()
+y_array.clear()
+x_coeff = [p1.x, p1.tx, -3*p1.x+3*p2.x-2*p1.tx+p2.tx, 2*p1.x-2*p2.x+p1.tx-p2.tx]
+y_coeff = [p1.y, p1.ty, -3*p1.y+3*p2.y-2*p1.ty+p2.ty, 2*p1.y-2*p2.y+p1.ty-p2.ty]
+for i in range(101):
+    s = i/100
+    x_array.append(x_coeff[0] + x_coeff[1]*s + x_coeff[2]*(s*s) + x_coeff[3]*(s*s*s))
+    y_array.append(y_coeff[0] + y_coeff[1]*s + y_coeff[2]*(s*s) + y_coeff[3]*(s*s*s))
+
+
+n_max = 20
+polynomial = np.polyfit(x_array, y_array, n_max)
+coefs = list(polynomial)
+
+x_poly_array = []
+y_poly_array = []
+for i in range(101):
+    x = i/100
+    x_poly_array.append(x)
+    y = 0
+    for n, coef in enumerate(coefs):
+        y += coef * pow(x, n_max - n)
+    y_poly_array.append(y)
+
+# plt.plot(x_array, y_array, color='blue')
+plt.plot(x_poly_array, y_poly_array, color='blue')
+plt.plot([p1.x, p1.x + p1.tx * vector_scale], [p1.y, p1.y + p1.ty * vector_scale], color='red', marker=".")
+plt.plot([p2.x, p2.x + p2.tx * vector_scale], [p2.y, p2.y + p2.ty * vector_scale], color='red', marker=".")
+plt.plot([p1.x], [p1.y], color='green', marker="o")
+plt.plot([p2.x], [p2.y], color='green', marker="o")
+plt.show()
