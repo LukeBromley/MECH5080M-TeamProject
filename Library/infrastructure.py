@@ -1,35 +1,55 @@
-from typing import List
 import random
-import matplotlib.pyplot as plt
-import numpy as np
 
+import sympy
+
+from math import sin, cos
+
+
+class Node:
+    def __init__(self, uid: int, x: float, y: float, angle):
+        self.uid = uid
+        self.x = x
+        self.y = y
+        self.angle = angle
+
+    def get_tangents(self, _weight=None):
+        tx = _weight * sin(self.angle)
+        ty = -_weight * cos(self.angle)
+        return tx, ty
+
+class Path:
+    def __init__(self, uid: int, start_node: Node, end_mode: Node, coeffs: tuple):
+        self.uid = uid
+        self.start_node = start_node
+        self.end_node = end_mode
+        self.vehicles = []
+        self.x_coeff, self.y_coeff = coeffs[0], coeffs[1]
 
 class TrafficLight:
-    def __init__(self, cycle_length: float = 10.0, cycle_red: float = 0.5, cycle_yellow: float = 0.4,
-                 position_longitudinal: float = 0.0, position_lateral: float = 0.0) -> None:
+    def __init__(self, path: Path, distance_traveled: float = 0.0, cycle_length: float = 10.0, cycle_red: float = 0.5,
+                 cycle_yellow: float = 0.4) -> None:
         """
 
-        :param cycle_length: time it takes for the traffic light to complete full light cycle [s]
+        :param cycle_length: time it takes for the traffic light to complete a single light cycle [s]
         :param cycle_red: red state fraction of the cycle length
         :param cycle_yellow: yellow state fraction of the cycle length
-        :param position_longitudinal: longitudinal position of the traffic light along the road [m]
-        :param position_lateral: lateral position of the traffic perpendicular to the road [m]
+        :param distance_traveled: position of the traffic light along the path [m]
         """
 
+        self.path = path
+        self.distance_traveled = distance_traveled
         self.color = "green"
         self.cycle_time = 0.0
         self.cycle_red = cycle_red
         self.cycle_yellow = cycle_yellow
         self.cycle_length = cycle_length
-        self.position_longitudinal = position_longitudinal
 
-    def update(self, time_delta: float = 1.0) -> None:
+    def update(self, time_delta: float = 0.1) -> None:
         """
 
         :rtype: None
         :param time_delta: iteration length [s]
         """
-
 
         self.cycle_time += time_delta
         if self.cycle_time < self.cycle_yellow * self.cycle_length:
@@ -51,4 +71,3 @@ class TrafficLight:
             return True
         elif self.color == "yellow":
             return random.random() > 0.5
-

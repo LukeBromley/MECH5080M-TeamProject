@@ -1,8 +1,8 @@
 import sys
 sys.path.append("..")
 from JunctionVisualiser import *
-from Library.Node import Node
-from Library.Path import Path
+from Library.infrastructure import Node
+from Library.infrastructure import Path
 from math import pi, sqrt
 
 # List of nodes
