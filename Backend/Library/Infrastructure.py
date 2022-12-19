@@ -5,8 +5,7 @@ class Junction:
 
 class Lane:
     def __init__(self, x: float, y: float, angle: float) -> None:
-        self.x, self.y = x, y
-        self.angle = angle
+        pass
 
 
 class Light:
