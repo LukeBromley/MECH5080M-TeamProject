@@ -70,6 +70,7 @@ paths = [
 
 ]
 
+
 # Find length along spline
 def find_length(path):
     a = path.x_coeff[1]
@@ -112,7 +113,9 @@ def find_length(path):
 
         du = du1 + du2 + du3 + du4 + du5 + du6 + du7 + du8 + du9 + du10
 
-        llist.append(pow(u, (3/2)) * (1 / du))
+        ans = (2/3) * pow(u, (3/2)) * (1 / du)
+
+        llist.append(ans)
 
     L = llist[0] - llist[1]
     return L
@@ -120,6 +123,11 @@ def find_length(path):
 
 # Main function
 def main():
+    # point1 = Node(0, 0, 0, 3*pi/4)
+    # point2 = Node(0, 50, 50, 3*pi/4)
+    # path = Path(1, point1, point2, calculate_line_coefficients(point1, point2))
+    # length = find_length(path)
+    # print(length)
     Visualiser = JunctionVisualiser()
     while True:
         Visualiser.refresh()
