@@ -1,112 +1,90 @@
-import pygame
-from pygame.locals import *
 import sys
-from math import sin, cos
+
+from Tabs.PygameGraphics import *
+from Tabs.OpenSaveTab import *
+from Tabs.DesignTab import *
+from Tabs.ViewTab import *
 
 
 class JunctionVisualiser:
     def __init__(self):
-        # Initialise Pygame
-        pygame.init()
-        pygame.display.set_caption('Junction Visualiser')
-        self._fps = 60
-        self._window_clock = pygame.time.Clock()
-        self._window_width, self._window_height = 640, 720
-        self.window = pygame.display.set_mode((self._window_width, self._window_height))
 
-        # Scroll Parameters
-        self._mouse_position_x = 0
-        self._mouse_position_y = 0
-        self._scroll_offset_x = -round(self._window_width / 2)
-        self._scroll_offset_y = -round(self._window_height / 2)
-        self._scroll_offset_x_old = self._scroll_offset_x
-        self._scroll_offset_y_old = self._scroll_offset_y
-        self._scroll = False
-        self._scroll_start_position_x = 0
-        self._scroll_start_position_y = 0
+        self.application = QtWidgets.QApplication(sys.argv)
+        self.main_window = MainWindow()
+        self.main_window.show()
+        self.application.exec_()
 
-        # Node Parameters
-        self._node_diameter = 5
-        self._node_colour = (0, 0, 255)
-        self._tangent_scale = 0.1
 
-        # Path Parameters
-        self._path_colour = (255, 0, 0)
+class MainWindow(QtWidgets.QMainWindow):
+    def __init__(self):
+        super(MainWindow, self).__init__()
 
-    # Create a blank screen, set a center point pixel, check for events and calculate dragging
-    def refresh(self):
-        self.window.fill((255, 255, 255))
-        self.window.set_at(self._position_offsetter(0, 0), (0, 0, 0))
-        self._check_for_event()
-        self._check_drag()
+        self.nodes = []
+        self.paths = []
 
-    # Update the display
-    def update(self):
-        pygame.display.flip()
-        self._window_clock.tick(self._fps)
+        self.setMinimumSize(1280, 720)
 
-    # Calculate view drag calculations
-    def _check_drag(self):
-        if self._scroll:
-            self._scroll_offset_x = self._scroll_start_position_x - self._mouse_position_x + self._scroll_offset_x_old
-            self._scroll_offset_y = self._scroll_start_position_y - self._mouse_position_y + self._scroll_offset_y_old
+        self.main_widget = QtWidgets.QWidget()
+        self.setCentralWidget(self.main_widget)
 
-    # Check for events
-    def _check_for_event(self):
-        for event in pygame.event.get():
-            if event.type == MOUSEMOTION:
-                self._mouse_position_x, self._mouse_position_y = event.pos
-            if event.type == MOUSEBUTTONDOWN:
-                self._scroll = True
-                self._scroll_start_position_x = self._mouse_position_x
-                self._scroll_start_position_y = self._mouse_position_y
-            if event.type == MOUSEBUTTONUP:
-                self._scroll = False
-                self._scroll_offset_x_old = self._scroll_offset_x
-                self._scroll_offset_y_old = self._scroll_offset_y
-            if event.type == QUIT:
-                self._close()
+        self.h_box = HBox(self.main_widget)
 
-    # Close window
-    def _close(self):
-        pygame.quit()
-        sys.exit()
+        self.pygame_graphics = PygameGraphics(self.get_nodes_paths)
+        self.pygame_widget = PyGameWidget(self.main_widget, layout=self.h_box)
+        self.pygame_widget.connect(self.pygame_widget_scroll)
+        self.pygame_widget.setFixedWidth(640)
 
-    # Draw nodes
-    def draw_nodes(self, nodes):
-        for _node in nodes:
-            _center_point = self._position_offsetter(_node.x, _node.y)
-            _node_tangents_x, _node_tangents_y = _node.get_tangents(200)
-            _direction_point = self._position_offsetter(_node.x + round(self._tangent_scale * _node_tangents_x), _node.y + round(self._tangent_scale * _node_tangents_y))
-            pygame.draw.circle(self.window, self._node_colour, _center_point, radius=self._node_diameter, width=0)
-            pygame.draw.line(self.window, self._node_colour, _center_point, _direction_point, width=3)
-            self._draw_text(str(_node.uid), _node.x - (self._node_diameter + 5) * sin(_node.angle), _node.y + (self._node_diameter + 5) * cos(_node.angle))
+        self.tabs = Tabs(self.main_widget, layout=self.h_box)
 
-    # Draw paths
-    def draw_paths(self, paths):
-        for _path in paths:
-            _path_length = round(_path.get_length()*1.5) # Changing iteration intervals for improved performance
-            for _i in range(_path_length):
-                _s = _i/_path_length
-                _x = _path.x_coeff[0] + _path.x_coeff[1]*_s + _path.x_coeff[2]*(_s*_s) + _path.x_coeff[3]*(_s*_s*_s)
-                _y = _path.y_coeff[0] + _path.y_coeff[1]*_s + _path.y_coeff[2]*(_s*_s) + _path.y_coeff[3]*(_s*_s*_s)
-                _x = round(_x)
-                _y = round(_y)
-                self.window.set_at(self._position_offsetter(_x, _y), self._path_colour)
-                self.window.set_at(self._position_offsetter(_x+1, _y), self._path_colour)
-                self.window.set_at(self._position_offsetter(_x-1, _y), self._path_colour)
-                self.window.set_at(self._position_offsetter(_x, _y+1), self._path_colour)
-                self.window.set_at(self._position_offsetter(_x, _y-1), self._path_colour)
-                if _i == round(_path_length / 2):
-                    self._draw_text(str(_path.uid), _x + 5, _y + 5)
+        self.open_save_tab = OpenSaveTab(self.refresh_pygame_widget, self.render_pygame_widget, self.update_nodes_paths, self.get_nodes_paths)
+        self.tabs.addTab(self.open_save_tab, "Open / Save")
 
-    # Draw text
-    def _draw_text(self, text, x, y):
-        _font = pygame.font.Font(pygame.font.get_default_font(), 20)
-        _text = _font.render(text, False, (0, 0, 0))
-        self.window.blit(_text, self._position_offsetter(x - round(_text.get_width() / 2), y))
+        self.design_tab = DesignTab(self.refresh_pygame_widget, self.render_pygame_widget, self.update_nodes_paths, self.get_nodes_paths)
+        self.tabs.addTab(self.design_tab, "Design")
 
-    # Offseting graphics for dragging
-    def _position_offsetter(self, x, y):
-        return x - self._scroll_offset_x, y - self._scroll_offset_y
+        self.view_tab = ViewTab(self.refresh_pygame_widget, self.render_pygame_widget, self.recenter)
+        self.tabs.addTab(self.view_tab, "View")
+
+        self.render_pygame_widget()
+
+    def refresh_pygame_widget(self):
+        self.pygame_graphics.scale = self.view_tab.scale_perc
+        self.pygame_graphics.refresh(
+            _draw_grid=self.view_tab.show_layer_grid,
+            _draw_hermite_paths=self.view_tab.show_layer_hermite_paths,
+            _draw_poly_paths=self.view_tab.show_layer_poly_paths,
+            _draw_nodes=self.view_tab.show_layer_nodes,
+            _draw_node_labels=True if self.view_tab.show_layer_labels and self.view_tab.show_layer_nodes else False,
+            _draw_path_labels=True if self.view_tab.show_layer_labels and (self.view_tab.show_layer_hermite_paths or self.view_tab.show_layer_poly_paths) else False,
+            _draw_curvature=self.view_tab.show_layer_curvature,
+        )
+        self.pygame_widget.refresh(self.pygame_graphics.surface)
+        x, y = self.pygame_graphics.get_click_position()
+        self.design_tab.coords.setText("Mouse Coords: (" + str(x) + ", " + str(y) + ")")
+
+    def render_pygame_widget(self):
+        for path in self.paths:
+            path.recalculate_coefs()
+
+        if len(self.paths) > 0:
+            self.pygame_graphics.render_hermite_paths(self.paths)
+            self.pygame_graphics.render_poly_paths(self.paths)
+        self.refresh_pygame_widget()
+
+    def pygame_widget_scroll(self, event):
+        self.pygame_graphics.calculate_scroll(event)
+        self.refresh_pygame_widget()
+
+    def update_nodes_paths(self, nodes, paths, refresh_widgets=True):
+        self.nodes = nodes
+        self.paths = paths
+        if refresh_widgets:
+            self.design_tab.update_node_path_widgets(self.nodes, self.paths)
+
+    def get_nodes_paths(self):
+        return self.nodes, self.paths
+
+    def recenter(self):
+        self.pygame_graphics.recenter()
+        self.refresh_pygame_widget()
 
