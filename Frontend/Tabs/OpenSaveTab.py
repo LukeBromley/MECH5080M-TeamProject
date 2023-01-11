@@ -44,7 +44,7 @@ class OpenSaveTab(QtWidgets.QWidget):
         Opens the open file dialog box and gets desired file path + file name
         :return: None
         """
-        file_path = QFileDialog.getOpenFileName(self, 'Open Junction', '.', "Junction Files (*.junc)")[0]
+        file_path = QFileDialog.getOpenFileName(self, 'Open Junction', '../Junction_Designs', "Junction Files (*.junc)")[0]
         if len(file_path) > 0:
             self.open_junction(file_path)
 
