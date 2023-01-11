@@ -1,61 +1,4 @@
-import sys
-sys.path.append("..")
 from JunctionVisualiser import *
-
-from Library.infrastructure import Node
-from Library.infrastructure import Path
-from math import pi
-
-from Frontend.JunctionFileManagement import *
-
-# List of nodes
-nodes = [
-    Node(0, -200, -200, pi/2),
-    Node(1, -200, -100, pi/2),
-    Node(2, -200, 0, -pi/2),
-
-    Node(3, 200, -200, pi/2),
-    Node(4, 200, -100, -pi/2),
-    Node(5, 200, 0, -pi/2),
-
-    Node(6, -100, 100, 0),
-    Node(7, 0, 100, 0),
-    Node(8, 100, 100, -pi),
-
-    Node(9, -400, -200, pi/2),
-    Node(10, -400, 0, -pi/2),
-
-    Node(11, 400, -200, pi/2),
-    Node(12, 400, 0, -pi/2),
-
-    Node(13, -100, 300, 0),
-    Node(14, 100, 300, pi),
-]
-
-
-# Calculating coefficients for spline lines
-
-# List of paths
-paths = [
-    Path(1, nodes[0], nodes[3]),
-    Path(2, nodes[1], nodes[8]),
-    Path(3, nodes[4], nodes[2]),
-    Path(4, nodes[5], nodes[8]),
-    Path(5, nodes[7], nodes[3]),
-    Path(6, nodes[6], nodes[2]),
-
-    Path(7, nodes[9], nodes[0]),
-    Path(8, nodes[9], nodes[1]),
-    Path(9, nodes[2], nodes[10]),
-
-    Path(10, nodes[3], nodes[11]),
-    Path(11, nodes[12], nodes[4]),
-    Path(12, nodes[12], nodes[5]),
-
-    Path(13, nodes[8], nodes[14]),
-    Path(14, nodes[13], nodes[6]),
-    Path(15, nodes[13], nodes[7])
-]
 
 
 # Find length along spline
@@ -100,7 +43,7 @@ def find_length(path):
 
         du = du1 + du2 + du3 + du4 + du5 + du6 + du7 + du8 + du9 + du10
 
-        ans = (2/3) * pow(u, (3/2)) * (1 / du)
+        ans = (2 / 3) * pow(u, (3 / 2)) * (1 / du)
 
         llist.append(ans)
 
@@ -109,8 +52,14 @@ def find_length(path):
 
 
 # Main function
-def main():
+def main() -> None:
+    """
+
+    Main function to test and run the junction visualiser
+    :return: None
+    """
     Visualiser = JunctionVisualiser()
+
 
 if __name__ == "__main__":
     main()
