@@ -108,7 +108,7 @@ class Path:
 
 
 class TrafficLight:
-    def __init__(self, path: Path, distance_traveled: float = 0.0, cycle_length: float = 10.0, cycle_red: float = 0.5,
+    def __init__(self, uid, paths: list = None, distance_traveled: float = 0.0, cycle_length: float = 10.0, cycle_red: float = 0.5,
                  cycle_yellow: float = 0.4) -> None:
         """
 
@@ -118,7 +118,8 @@ class TrafficLight:
         :param distance_traveled: position of the traffic light along the path [m]
         """
 
-        self.path = path
+        self.uid = uid
+        self.paths = paths if paths is not None else []
         self.distance_traveled = distance_traveled
         self.color = "green"
         self.cycle_time = 0.0

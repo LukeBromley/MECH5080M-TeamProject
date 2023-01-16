@@ -1,6 +1,5 @@
 import json
-from Library.infrastructure import Node
-from Library.infrastructure import Path
+from Library.infrastructure import Node, Path, TrafficLight
 
 """
 Explanation of File Management
@@ -28,6 +27,10 @@ class JunctionFileManagement:
         :param file_path: file path of .junc file
         :return: nodes, paths: data contained in .junc file
         """
+
+        # Update File To Latest Version
+        self.update_file(file_path)
+
         # Open the file
         with open(file_path, "r") as file:
             file_dict = json.load(file)
@@ -53,19 +56,30 @@ class JunctionFileManagement:
 
             paths.append(Path(int(uid), start_node, end_node, path_data[2]))
 
-        # Return the data
-        return nodes, paths
+        # Load light data
+        lights = []
+        for uid in file_dict["lights"]:
+            path_list = []
+            for path_uid in file_dict["lights"][uid][0]:
+                for path in paths:
+                    if path.uid == int(path_uid):
+                        path_list.append(path)
+            lights.append(TrafficLight(int(uid), path_list))
 
-    def save_to_file(self, file_path, nodes, paths) -> None:
+        # Return the data
+        return nodes, paths, lights
+
+    def save_to_file(self, file_path, nodes: list, paths: list, lights: list) -> None:
         """
 
         :param file_path: file path of where to save .junc file
         :param nodes: list of nodes
         :param paths: list of paths
+        :param lights: list of lights
         :return: None
         """
         # Create dictionary structure
-        file_dict = {"nodes": {}, "paths": {}}
+        file_dict = {"nodes": {}, "paths": {}, "lights": {}}
 
         # Add node data
         for node in nodes:
@@ -78,9 +92,40 @@ class JunctionFileManagement:
                                                  path.poly_order
                                                  ]
 
+        # Add light data
+        for light in lights:
+            file_dict["lights"][str(light.uid)] = [
+                [path.uid for path in light.paths]
+            ]
+
         # Save dictionary as .json
         with open(file_path, "w") as file:
             json.dump(file_dict, file)
+
+    def update_file(self, file_path: str) -> None:
+        """
+
+        :param file_path: Changes any old file that does not contain all dictionary keys and adds the relevant keys
+        :return: None
+        """
+
+        # Open the file
+        with open(file_path, "r") as file:
+            file_dict = json.load(file)
+
+        if "nodes" not in file_dict:
+            file_dict["nodes"] = {}
+
+        if "paths" not in file_dict:
+            file_dict["paths"] = {}
+
+        if "lights" not in file_dict:
+            file_dict["lights"] = {}
+
+        with open(file_path, "w") as file:
+            json.dump(file_dict, file)
+
+
 
 
 

@@ -44,8 +44,7 @@ class PygameGraphics:
 
         # Window Parameters
         self._window_width, self._window_height = window_width, window_height
-        self._surface_width, self._surface_height = round(self._window_width / 2), self._window_height  # 640, 695 # 1280, 1280
-        self.scale = 100
+        self._surface_width, self._surface_height = round(self._window_width / 2), self._window_height
 
         # Scroll Parameters
         self._mouse_position_x = 0
@@ -76,6 +75,7 @@ class PygameGraphics:
 
         # Path Parameters
         self._path_colour = (0, 255, 0)
+        self._path_highlight_colour = (255, 0, 255)
         self._hermite_path_points = []
         self._poly_path_points = []
 
@@ -109,6 +109,20 @@ class PygameGraphics:
         if draw_poly_paths: self._draw_poly_paths(draw_curvature)
         if draw_nodes: self._draw_nodes(nodes)
         self._draw_labels(draw_node_labels, draw_path_labels)
+
+    def highlight_paths(self, paths: list) -> None:
+        """
+
+        Renders and shows just the paths in the list
+        :param paths: list of paths to display
+        :return: None
+        """
+        self.surface.fill((255, 255, 255))
+        self.surface.set_at(self._position_offsetter(0, 0), (0, 0, 0))
+
+        self.render_hermite_paths(paths)
+        self._draw_hermite_paths(False, highlight=True)
+        self._draw_labels(False, True)
 
     # Functions for rendering Hermite paths
     def render_hermite_paths(self, paths: list) -> None:
@@ -193,7 +207,7 @@ class PygameGraphics:
             return None, None
 
     # Functions for drawing both Hermite and Poly paths
-    def _draw_paths(self, paths_points, draw_curvature) -> None:
+    def _draw_paths(self, paths_points, draw_curvature, highlight: bool = False) -> None:
         """
 
         :param paths_points: points to be drawn on the path
@@ -201,16 +215,20 @@ class PygameGraphics:
         :return: None
         """
         for point in paths_points:
-            self.surface.set_at(self._position_offsetter(point.x, point.y),
-                                point.colour if draw_curvature else self._path_colour)
+            point_colour = self._path_colour
+            if highlight:
+                point_colour = self._path_highlight_colour
+            elif draw_curvature:
+                point_colour = point.colour
+            self.surface.set_at(self._position_offsetter(point.x, point.y), point_colour)
 
-    def _draw_hermite_paths(self, draw_curvature: bool) -> None:
+    def _draw_hermite_paths(self, draw_curvature: bool, highlight: bool = False) -> None:
         """
 
         :param draw_curvature: boolean to enable curvature coloring of drawn hermite paths
         :return: None
         """
-        self._draw_paths(self._hermite_path_points, draw_curvature)
+        self._draw_paths(self._hermite_path_points, draw_curvature, highlight)
 
     def _draw_poly_paths(self, draw_curvature: bool) -> None:
         """
