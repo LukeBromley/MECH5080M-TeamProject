@@ -4,6 +4,9 @@ class Car:
         self.UID = UID
         self.position = position
 
+    def get_position(self):
+        return self.position
+
 
 class AutonmousCar(Car):
 
