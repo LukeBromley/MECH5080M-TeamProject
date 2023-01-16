@@ -1,3 +1,8 @@
+from platform import system
+if system() == 'Windows':
+    import sys
+    sys.path.append('./')
+
 from JunctionVisualiser import *
 
 
