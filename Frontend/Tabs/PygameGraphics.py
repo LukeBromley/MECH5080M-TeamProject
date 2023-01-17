@@ -136,8 +136,8 @@ class PygameGraphics:
         self._path_labels.clear()
         upper, lower = self._calculate_hermite_path_curvature(paths)
         for path in paths:
-            if path.get_distance() > 0:
-                path_length = round(path.get_distance() * 1.5)  # Changing iteration intervals for improved performance
+            if path.get_euclidean_distance() > 0:
+                path_length = round(path.get_euclidean_distance() * 1.5)  # Changing iteration intervals for improved performance
                 for i in range(path_length+1):
                     s = i/path_length
                     x = path.x_hermite_cubic_coeff[0] + path.x_hermite_cubic_coeff[1]*s + path.x_hermite_cubic_coeff[2]*(s*s) + path.x_hermite_cubic_coeff[3]*(s*s*s)
@@ -169,7 +169,7 @@ class PygameGraphics:
         self._poly_path_points.clear()
         upper, lower = self._calculate_poly_path_curvature(paths)
         for path in paths:
-            if path.get_distance() > 0:
+            if path.get_euclidean_distance() > 0:
                 if type(path.poly_coeff) is list:
                     for i in range(min(path.start_node.x, path.end_node.x) * 10, max(path.start_node.x, path.end_node.x) * 10):
                         x = i / 10
@@ -193,11 +193,11 @@ class PygameGraphics:
         """
         curvature = []
         for _path in paths:
-            if _path.get_distance() > 0:
+            if _path.get_euclidean_distance() > 0:
                 if type(_path.poly_coeff) is list:
                     for i in range(min(_path.start_node.x, _path.end_node.x) * 10, max(_path.start_node.x, _path.end_node.x) * 10):
                         x = i / 10
-                        curvature.append(_path.calculate_curve_radius(x))
+                        curvature.append(_path.calculate_curvature(x))
         if len(curvature) > 0:
             curvature.sort()
             upper = curvature[round(3 * len(curvature) / 4)]
