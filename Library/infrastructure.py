@@ -1,6 +1,4 @@
 import random
-import time
-
 from math import sin, cos, sqrt, floor
 
 import sympy as sym
@@ -33,6 +31,8 @@ class Path:
         self.poly_coeff = []
         self.curvature = []
 
+        self._x = sym.Symbol('x')
+        self._y = 0
         self.curvature_function = None
         self.arc_length_integrand = None
         self.second_order_diff = None
@@ -47,15 +47,12 @@ class Path:
         self.calculate_curvature_grid()
 
     def calculate_differentials(self):
-        x = sym.Symbol('x')
-        y = 0
-
         for order, coefficient in enumerate(reversed(self.poly_coeff)):
-            y += pow(coefficient * sym.Symbol('x'), order)
+            self._y += pow(coefficient * sym.Symbol('x'), order)
 
-        self.first_order_diff = sym.diff(y, sym.Symbol('x'))
-        self.second_order_diff = sym.diff(sym.diff(y, sym.Symbol('x')), sym.Symbol('x'))
-        self.arc_length_integrand = sym.sqrt(1 + sym.diff(y, sym.Symbol('x')) ** 2)
+        self.first_order_diff = sym.diff(self._y, self._x)
+        self.second_order_diff = sym.diff(sym.diff(self._y, self._x), self._x)
+        self.arc_length_integrand = sym.sqrt(1 + sym.diff(self._y, self._x) ** 2)
         self.curvature_function = abs(self.second_order_diff) / (1 + self.first_order_diff ** 2) ** 3 / 2
 
     def get_euclidean_distance(self):
@@ -83,8 +80,12 @@ class Path:
             path_length = round(self.get_euclidean_distance() * 1.5)
             for i in range(path_length + 1):
                 s = i / path_length
-                x_array.append(self.x_hermite_cubic_coeff[0] + self.x_hermite_cubic_coeff[1] * s + self.x_hermite_cubic_coeff[2] * (s * s) + self.x_hermite_cubic_coeff[3] * (s * s * s))
-                y_array.append(self.y_hermite_cubic_coeff[0] + self.y_hermite_cubic_coeff[1] * s + self.y_hermite_cubic_coeff[2] * (s * s) + self.y_hermite_cubic_coeff[3] * (s * s * s))
+                x_array.append(
+                    self.x_hermite_cubic_coeff[0] + self.x_hermite_cubic_coeff[1] * s + self.x_hermite_cubic_coeff[
+                        2] * (s * s) + self.x_hermite_cubic_coeff[3] * (s * s * s))
+                y_array.append(
+                    self.y_hermite_cubic_coeff[0] + self.y_hermite_cubic_coeff[1] * s + self.y_hermite_cubic_coeff[
+                        2] * (s * s) + self.y_hermite_cubic_coeff[3] * (s * s * s))
             self.poly_coeff = list(polyfit(x_array, y_array, self.poly_order))
 
     def calculate_curvature_grid(self):
@@ -94,7 +95,8 @@ class Path:
                 self.get_euclidean_distance() * 1.5)
             for i in range(path_length + 1):
                 s = i / path_length
-                x = self.x_hermite_cubic_coeff[0] + self.x_hermite_cubic_coeff[1] * s + self.x_hermite_cubic_coeff[2] * (s * s) + self.x_hermite_cubic_coeff[3] * (s * s * s)
+                x = self.x_hermite_cubic_coeff[0] + self.x_hermite_cubic_coeff[1] * s + self.x_hermite_cubic_coeff[
+                    2] * (s * s) + self.x_hermite_cubic_coeff[3] * (s * s * s)
                 curvature.append(self.calculate_curvature(x))
 
         filter_size = 51
@@ -124,7 +126,7 @@ class Path:
         y_ = 0
         for n, coef in enumerate(diff_1_coef):
             y_ += coef * pow(x, n_max - n - 1)
-        return abs(y__) / (pow((1 + (y_**2)), (3/2)))
+        return abs(y__) / (pow((1 + (y_ ** 2)), (3 / 2)))
 
     def calculate_distance_traveled(self, a: float, b: float, n: int = 10):
         x = sym.Symbol('x')
@@ -136,10 +138,29 @@ class Path:
                     4 * self.arc_length_integrand.subs(x, a + (2 * i - 1) * h) +
                     self.arc_length_integrand.subs(x, a + (2 * i) * h)
             )
-        return distance_traveled
+        return h * distance_traveled / 3
+
+    def get_coordinates(self, distance_traveled: float, n: int = 10):
+        # The arc length integral is non-convergent.
+
+        a = self.start_node.x
+        b = self.end_node.x
+        x = sym.Symbol('x')
+        h = (b - a) / n
+        distance = 0
+        for i in range(1, int(n / 2 + 1), 1):
+            distance += (
+                    self.arc_length_integrand.subs(x, a + (2 * i - 2) * h) +
+                    4 * self.arc_length_integrand.subs(x, a + (2 * i - 1) * h) +
+                    self.arc_length_integrand.subs(x, a + (2 * i) * h)
+            )
+            if h * distance / 3 > distance_traveled:
+                x_i = a + i*h
+                return x_i, self._y.subs(x, x_i)
 
 class TrafficLight:
-    def __init__(self, uid, paths: list = None, distance_traveled: float = 0.0, cycle_length: float = 10.0, cycle_red: float = 0.5,
+    def __init__(self, uid, paths: list = None, distance_traveled: float = 0.0, cycle_length: float = 10.0,
+                 cycle_red: float = 0.5,
                  cycle_yellow: float = 0.4) -> None:
         """
 
