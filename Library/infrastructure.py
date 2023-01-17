@@ -1,6 +1,9 @@
 import random
+import time
 
 from math import sin, cos, sqrt, floor
+
+import sympy as sym
 from numpy import polyfit, RankWarning
 import warnings
 
@@ -30,64 +33,82 @@ class Path:
         self.poly_coeff = []
         self.curvature = []
 
+        self.curvature_function = None
+        self.arc_length_integrand = None
+        self.second_order_diff = None
+        self.first_order_diff = None
+
         self.recalculate_coefs()
 
     def recalculate_coefs(self):
         self.calculate_spline_coefficients()
-        self.calculate_poly_coefficients(self.poly_order)
-        self.calculate_curvature()
+        self.calculate_poly_coefficients()
+        self.calculate_differentials()
+        self.calculate_curvature_grid()
 
-    def get_distance(self):
+    def calculate_differentials(self):
+        x = sym.Symbol('x')
+        y = 0
+
+        for order, coefficient in enumerate(reversed(self.poly_coeff)):
+            y += pow(coefficient * sym.Symbol('x'), order)
+
+        self.first_order_diff = sym.diff(y, sym.Symbol('x'))
+        self.second_order_diff = sym.diff(sym.diff(y, sym.Symbol('x')), sym.Symbol('x'))
+        self.arc_length_integrand = sym.sqrt(1 + sym.diff(y, sym.Symbol('x')) ** 2)
+        self.curvature_function = abs(self.second_order_diff) / (1 + self.first_order_diff ** 2) ** 3 / 2
+
+    def get_euclidean_distance(self):
         return sqrt((self.start_node.x - self.end_node.x) ** 2 + (self.start_node.y - self.end_node.y) ** 2)
 
     def calculate_spline_coefficients(self):
-        _p1x = self.start_node.x
-        _p1y = self.start_node.y
-        _p1tx, _p1ty = self.start_node.get_tangents(self.get_distance() * 1.5)
-        _p2x = self.end_node.x
-        _p2y = self.end_node.y
-        _p2tx, _p2ty = self.end_node.get_tangents(self.get_distance() * 1.5)
-        _p2tx = -_p2tx
-        _p2ty = -_p2ty
-        self.x_hermite_cubic_coeff = [_p1x, _p1tx, -3 * _p1x + 3 * _p2x - 2 * _p1tx + _p2tx, 2 * _p1x - 2 * _p2x + _p1tx - _p2tx]
-        self.y_hermite_cubic_coeff = [_p1y, _p1ty, -3 * _p1y + 3 * _p2y - 2 * _p1ty + _p2ty, 2 * _p1y - 2 * _p2y + _p1ty - _p2ty]
+        p1x = self.start_node.x
+        p1y = self.start_node.y
+        p1tx, p1ty = self.start_node.get_tangents(self.get_euclidean_distance() * 1.5)
+        p2x = self.end_node.x
+        p2y = self.end_node.y
+        p2tx, p2ty = self.end_node.get_tangents(self.get_euclidean_distance() * 1.5)
+        p2tx = -p2tx
+        p2ty = -p2ty
+        self.x_hermite_cubic_coeff = [p1x, p1tx, -3 * p1x + 3 * p2x - 2 * p1tx + p2tx, 2 * p1x - 2 * p2x + p1tx - p2tx]
+        self.y_hermite_cubic_coeff = [p1y, p1ty, -3 * p1y + 3 * p2y - 2 * p1ty + p2ty, 2 * p1y - 2 * p2y + p1ty - p2ty]
 
-    def calculate_poly_coefficients(self, _order):
+    def calculate_poly_coefficients(self):
         warnings.simplefilter('ignore', RankWarning)
         if self.start_node.x == self.end_node.x:
-            self.poly_coeff = self.start_node.x
+            self.poly_coeff = [self.start_node.x]
         else:
-            _x_array = []
-            _y_array = []
-            _path_length = round(self.get_distance() * 1.5)  # Changing iteration intervals for improved performance
-            for i in range(_path_length + 1):
-                s = i / _path_length
-                _x_array.append(self.x_hermite_cubic_coeff[0] + self.x_hermite_cubic_coeff[1] * s + self.x_hermite_cubic_coeff[2] * (s * s) + self.x_hermite_cubic_coeff[3] * (s * s * s))
-                _y_array.append(self.y_hermite_cubic_coeff[0] + self.y_hermite_cubic_coeff[1] * s + self.y_hermite_cubic_coeff[2] * (s * s) + self.y_hermite_cubic_coeff[3] * (s * s * s))
-            self.poly_coeff = list(polyfit(_x_array, _y_array, _order))
+            x_array = []
+            y_array = []
+            path_length = round(self.get_euclidean_distance() * 1.5)
+            for i in range(path_length + 1):
+                s = i / path_length
+                x_array.append(self.x_hermite_cubic_coeff[0] + self.x_hermite_cubic_coeff[1] * s + self.x_hermite_cubic_coeff[2] * (s * s) + self.x_hermite_cubic_coeff[3] * (s * s * s))
+                y_array.append(self.y_hermite_cubic_coeff[0] + self.y_hermite_cubic_coeff[1] * s + self.y_hermite_cubic_coeff[2] * (s * s) + self.y_hermite_cubic_coeff[3] * (s * s * s))
+            self.poly_coeff = list(polyfit(x_array, y_array, self.poly_order))
 
-    def calculate_curvature(self):
+    def calculate_curvature_grid(self):
         curvature = []
         if type(self.poly_coeff) is list:
-            _path_length = round(
-                self.get_distance() * 1.5)  # Changing iteration intervals for improved performance
-            for _i in range(_path_length + 1):
-                _s = _i / _path_length
-                _x = self.x_hermite_cubic_coeff[0] + self.x_hermite_cubic_coeff[1] * _s + self.x_hermite_cubic_coeff[2] * (_s * _s) + self.x_hermite_cubic_coeff[3] * (_s * _s * _s)
-                curvature.append(self.calculate_curve_radius(_x))
+            path_length = round(
+                self.get_euclidean_distance() * 1.5)
+            for i in range(path_length + 1):
+                s = i / path_length
+                x = self.x_hermite_cubic_coeff[0] + self.x_hermite_cubic_coeff[1] * s + self.x_hermite_cubic_coeff[2] * (s * s) + self.x_hermite_cubic_coeff[3] * (s * s * s)
+                curvature.append(self.calculate_curvature(x))
 
-        _filter_size = 51
-        _curvature = [0 for i in range(floor(_filter_size / 2))]
-        for _rad_i in range(floor(_filter_size / 2), len(curvature) - floor(_filter_size / 2)):
+        filter_size = 51
+        filtered_curvature = [0 for i in range(floor(filter_size / 2))]
+        for rad_i in range(floor(filter_size / 2), len(curvature) - floor(filter_size / 2)):
             sum = 0
-            for i in range(_filter_size):
-                sum += curvature[_rad_i - floor(_filter_size / 2) + i]
-            sum /= _filter_size
-            _curvature.append(sum)
-        _curvature += [0 for i in range(floor(_filter_size / 2))]
-        self.curvature = _curvature
+            for i in range(filter_size):
+                sum += curvature[rad_i - floor(filter_size / 2) + i]
+            sum /= filter_size
+            filtered_curvature.append(sum)
+        filtered_curvature += [0 for i in range(floor(filter_size / 2))]
+        self.curvature = filtered_curvature
 
-    def calculate_curve_radius(self, x):
+    def calculate_curvature(self, x):
         diff_1_coef = []
         diff_2_coef = []
         n_max = len(self.poly_coeff) - 1
@@ -103,12 +124,22 @@ class Path:
         y_ = 0
         for n, coef in enumerate(diff_1_coef):
             y_ += coef * pow(x, n_max - n - 1)
-        k = abs(y__) / (pow((1 + (y_**2)), (3/2)))
-        return k
+        return abs(y__) / (pow((1 + (y_**2)), (3/2)))
 
+    def calculate_distance_traveled(self, a: float, b: float, n: int = 10):
+        x = sym.Symbol('x')
+        h = (b - a) / n
+        distance_traveled = 0
+        for i in range(1, int(n / 2 + 1), 1):
+            distance_traveled += (
+                    self.arc_length_integrand.subs(x, a + (2 * i - 2) * h) +
+                    4 * self.arc_length_integrand.subs(x, a + (2 * i - 1) * h) +
+                    self.arc_length_integrand.subs(x, a + (2 * i) * h)
+            )
+        return distance_traveled
 
 class TrafficLight:
-    def __init__(self, path: Path, distance_traveled: float = 0.0, cycle_length: float = 10.0, cycle_red: float = 0.5,
+    def __init__(self, uid, paths: list = None, distance_traveled: float = 0.0, cycle_length: float = 10.0, cycle_red: float = 0.5,
                  cycle_yellow: float = 0.4) -> None:
         """
 
@@ -118,7 +149,8 @@ class TrafficLight:
         :param distance_traveled: position of the traffic light along the path [m]
         """
 
-        self.path = path
+        self.uid = uid
+        self.paths = paths if paths is not None else []
         self.distance_traveled = distance_traveled
         self.color = "green"
         self.cycle_time = 0.0

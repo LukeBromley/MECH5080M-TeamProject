@@ -1,9 +1,11 @@
 import sys
+from PyQt5.QtWidgets import QStyleFactory
 
 from Tabs.PygameGraphics import *
 from Tabs.OpenSaveTab import *
 from Tabs.DesignTab import *
 from Tabs.ViewTab import *
+from Tabs.ControlTab import *
 
 
 class JunctionVisualiser:
@@ -15,6 +17,7 @@ class JunctionVisualiser:
         """
         # Create application
         self.application = QtWidgets.QApplication(sys.argv)
+        self.application.setStyle('Windows')  # REQUIRED to show tickable combo boxes!!!!
         # Main window object + display it
         self.main_window = MainWindow()
         self.main_window.show()
@@ -34,6 +37,7 @@ class MainWindow(QtWidgets.QMainWindow):
         # List of all nodes and paths
         self.nodes = []
         self.paths = []
+        self.lights = []
 
         # Set GUI window size
         self.window_width, self.window_height = 1440, 847
@@ -58,7 +62,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.tabs = Tabs(self.main_widget, layout=self.h_box)
 
         # File management tab
-        self.open_save_tab = OpenSaveTab(self.refresh_pygame_widget, self.render_pygame_widget, self.update_nodes_paths, self.get_nodes_paths)
+        self.open_save_tab = OpenSaveTab(self.refresh_pygame_widget, self.render_pygame_widget, self.update_nodes_paths, self.get_nodes_paths, self.update_lights, self.get_lights)
         self.tabs.addTab(self.open_save_tab, "Open / Save")
 
         # Design tab
@@ -68,6 +72,11 @@ class MainWindow(QtWidgets.QMainWindow):
         # View tab
         self.view_tab = ViewTab(self.refresh_pygame_widget, self.render_pygame_widget, self.recenter)
         self.tabs.addTab(self.view_tab, "View")
+
+        # Control tab
+        self.control_tab = ControlTab(self.refresh_pygame_widget, self.render_pygame_widget, self.identify_path, self.update_nodes_paths, self.get_nodes_paths, self.update_lights, self.get_lights)
+        self.tabs.addTab(self.control_tab, "Control")
+        self.timer = None
 
         # Initialise render
         self.render_pygame_widget()
@@ -81,7 +90,6 @@ class MainWindow(QtWidgets.QMainWindow):
         Refresh handles scrolling and scaling.
         :return: None
         """
-        self.pygame_graphics.scale = self.view_tab.scale_perc
         self.pygame_graphics.refresh(
             draw_grid=self.view_tab.show_layer_grid,
             draw_hermite_paths=self.view_tab.show_layer_hermite_paths,
@@ -120,6 +128,17 @@ class MainWindow(QtWidgets.QMainWindow):
         self.pygame_graphics.calculate_scroll(event)
         self.refresh_pygame_widget()
 
+    def identify_path(self, paths: list) -> None:
+        """
+
+        Displays only the listed paths for 0.25s (seems to be more because of rendering time)
+        :param paths: list of paths to highlight
+        :return: None
+        """
+        self.pygame_graphics.highlight_paths(paths)
+        self.pygame_widget.refresh(self.pygame_graphics.surface)
+        self.timer = Timer(250, self.render_pygame_widget)
+
     def update_nodes_paths(self, nodes, paths, refresh_widgets=True):
         """
 
@@ -133,6 +152,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.paths = paths
         if refresh_widgets:
             self.design_tab.update_node_path_widgets(self.nodes, self.paths)
+        self.control_tab.set_add_light_button_state()
 
     def get_nodes_paths(self) -> tuple:
         """
@@ -140,6 +160,24 @@ class MainWindow(QtWidgets.QMainWindow):
         :return: Returns the list of nodes and paths
         """
         return self.nodes, self.paths
+
+    def update_lights(self, lights: list, refresh_widgets: bool = True):
+        """
+
+        :param lights: list of light objects
+        :param refresh_widgets: If lights are changed on the back-end then the widgets (on the front end) need updating
+        :return: None
+        """
+        self.lights = lights
+        if refresh_widgets:
+            self.control_tab.update_light_widgets(self.lights)
+
+    def get_lights(self):
+        """
+
+        :return: Returns the list of lights
+        """
+        return self.lights
 
     def recenter(self) -> None:
         """

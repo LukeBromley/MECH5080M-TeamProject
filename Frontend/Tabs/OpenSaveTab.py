@@ -6,7 +6,7 @@ from Frontend.JunctionFileManagement import *
 
 
 class OpenSaveTab(QtWidgets.QWidget):
-    def __init__(self, refresh_pygame_widget, render_function, update_nodes_paths_function, get_nodes_paths_function) -> None:
+    def __init__(self, refresh_pygame_widget, render_function, update_nodes_paths_function, get_nodes_paths_function, update_lights_function, get_lights_function) -> None:
         """
 
         :param refresh_pygame_widget: function that refreshes the pygame graphics
@@ -21,6 +21,8 @@ class OpenSaveTab(QtWidgets.QWidget):
         self.render_function = render_function
         self.update_nodes_paths_function = update_nodes_paths_function
         self.get_nodes_paths_function = get_nodes_paths_function
+        self.update_lights_function = update_lights_function
+        self.get_lights_function = get_lights_function
 
         # File path
         self.save_file_path = None
@@ -56,8 +58,9 @@ class OpenSaveTab(QtWidgets.QWidget):
         """
         self.save_file_path = file_path
         FileManager = JunctionFileManagement()
-        nodes, paths = FileManager.load_from_file(self.save_file_path)
+        nodes, paths, lights = FileManager.load_from_file(self.save_file_path)
         self.update_nodes_paths_function(nodes, paths)
+        self.update_lights_function(lights)
         self.render_function()
         self.save.setEnabled(True)
         self.new.setEnabled(True)
@@ -84,7 +87,8 @@ class OpenSaveTab(QtWidgets.QWidget):
             self.save_file_path = file_path
             FileManager = JunctionFileManagement()
             nodes, paths = self.get_nodes_paths_function()
-            FileManager.save_to_file(self.save_file_path, nodes, paths)
+            lights = self.get_lights_function()
+            FileManager.save_to_file(self.save_file_path, nodes, paths, lights)
             self.save.setEnabled(True)
             self.new.setEnabled(True)
 

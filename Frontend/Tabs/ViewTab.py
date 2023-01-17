@@ -17,9 +17,6 @@ class ViewTab(QtWidgets.QWidget):
         self.render_function = render_function
         self.recenter_function = recenter_function
 
-        # Scale
-        self.scale_perc = 100
-
         # Widgets + Layouts
         self.v_box = VBox(self, align=Qt.AlignTop)
 
@@ -27,8 +24,6 @@ class ViewTab(QtWidgets.QWidget):
         self.view_box = GroupBox(self, "View", layout=self.v_box)
 
         self.view_h_box = HBox(self, self.view_box.v_box, align=Qt.AlignLeft)
-        self.scale_label = Text(self, "Scale %: ", self.view_h_box)
-        self.scale = SpinBox(self, self.view_h_box, max=200, min=25)
         self.recenter_button = Button(self, "Recenter", layout=self.view_h_box)
 
         #   Layers
@@ -69,7 +64,6 @@ class ViewTab(QtWidgets.QWidget):
         Connect widget callback functions
         :return: None
         """
-        self.scale.valueChanged.connect(self.refresh_function)
         self.recenter_button.pressed.connect(self.recenter_function)
 
         self.layer_grid.stateChanged.connect(self.update_layer_states)
@@ -86,7 +80,6 @@ class ViewTab(QtWidgets.QWidget):
         Update the layer state variables with the state of the tick box widgets
         :return: None
         """
-        self.scale_perc = self.scale.value()
 
         self.show_layer_grid = self.layer_grid.isChecked()
         self.show_layer_hermite_paths = self.layer_hermite_paths.isChecked()
@@ -111,8 +104,6 @@ class ViewTab(QtWidgets.QWidget):
         Set tick box widgets with the state of the layer state variables
         :return: None
         """
-        self.scale.setValue(self.scale_perc)
-
         self.layer_grid.setChecked(self.show_layer_grid)
         self.layer_hermite_paths.setChecked(self.show_layer_hermite_paths)
         self.layer_poly_paths.setChecked(self.show_layer_poly_paths)

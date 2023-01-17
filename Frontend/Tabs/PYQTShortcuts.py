@@ -1,5 +1,6 @@
 from PyQt5 import QtWidgets, QtGui, QtCore
 from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QTransform
 
 """
 
@@ -88,7 +89,6 @@ class PyGameWidget(QtWidgets.QWidget):
         h = surface.get_height()
         data = surface.get_buffer().raw
         self.graphics = QtGui.QImage(data, w, h, QtGui.QImage.Format_RGB32)
-        # self.graphics = self.graphics.scaled(w*0.5, h*0.5)
         self.repaint()
 
     def paintEvent(self,event):
@@ -173,11 +173,52 @@ class TextEdit(QtWidgets.QLineEdit):
 
 
 class TickBox(QtWidgets.QCheckBox):
-    def __init__(self, parent_widget, text, layout=None, ):
+    def __init__(self, parent_widget, text, layout=None):
         super().__init__(parent_widget)
         self.setText(text)
         if layout is not None:
             layout.addWidget(self)
+
+
+class TickableComboBox(QtWidgets.QComboBox):
+    def __init__(self, parent_widget, layout=None):
+        super().__init__(parent_widget)
+        if layout is not None:
+            layout.addWidget(self)
+
+        self.view().pressed.connect(self.handleItemPressed)
+        self.setModel(QtGui.QStandardItemModel(self))
+
+    def handleItemPressed(self, index):
+        item = self.model().itemFromIndex(index)
+        if item.checkState() == QtCore.Qt.Checked:
+            item.setCheckState(QtCore.Qt.Unchecked)
+        else:
+            item.setCheckState(QtCore.Qt.Checked)
+
+    def add_item(self, text, index):
+        self.addItem(str(text))
+        item = self.model().item(index, 0)
+        item.setCheckState(QtCore.Qt.Unchecked)
+
+    def untick_all(self):
+        for index in range(self.count()):
+            item = self.model().item(index, 0)
+            item.setCheckState(QtCore.Qt.Unchecked)
+
+    def set_ticked(self, text):
+        for index in range(self.count()):
+            if self.itemText(index) == text:
+                item = self.model().item(index, 0)
+                item.setCheckState(QtCore.Qt.Checked)
+                break
+
+    def set_tnticked(self, text):
+        for index in range(self.count()):
+            if self.itemText(index) == text:
+                item = self.model().item(index, 0)
+                item.setCheckState(QtCore.Qt.Unchecked)
+                break
 
 
 class VBox(QtWidgets.QVBoxLayout):
@@ -192,14 +233,14 @@ class VBox(QtWidgets.QVBoxLayout):
             self.setAlignment(align)
 
 
-# class FrameTimer(QtCore.QTimer):
-#     def __init__(self, frame_duration, connected_function, _start=True, ):
-#         super().__init__()
-#         # self.setInterval(frame_duration)
-#         self.timeout.connect(connected_function)
-#         self.start(frame_duration)
-#         # if _start:
-#         #     self.start()
+class Timer(QtCore.QTimer):
+    def __init__(self, duration, connected_function, single_shot=True):
+        super().__init__()
+        if single_shot:
+            self.singleShot(duration, connected_function)
+        else:
+            self.timeout.connect(connected_function)
+            self.start(duration)
 
 
 
