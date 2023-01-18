@@ -48,7 +48,7 @@ class Path:
 
     def calculate_differentials(self):
         for order, coefficient in enumerate(reversed(self.poly_coeff)):
-            self._y += pow(coefficient * sym.Symbol('x'), order)
+            self._y += coefficient * pow(sym.Symbol('x'), order)
 
         self.first_order_diff = sym.diff(self._y, self._x)
         self.second_order_diff = sym.diff(sym.diff(self._y, self._x), self._x)
@@ -140,7 +140,7 @@ class Path:
             )
         return h * distance_traveled / 3
 
-    def get_coordinates(self, distance_traveled: float, n: int = 10):
+    def get_coordinates(self, distance_traveled: float, n: int = 100):
         # The arc length integral is non-convergent.
 
         a = self.start_node.x
@@ -155,8 +155,10 @@ class Path:
                     self.arc_length_integrand.subs(x, a + (2 * i) * h)
             )
             if h * distance / 3 > distance_traveled:
-                x_i = a + i*h
+                x_i = a + 2*i*h
                 return x_i, self._y.subs(x, x_i)
+            elif i >= int(n / 2):
+                return self.end_node.x, self.end_node.y
 
 class TrafficLight:
     def __init__(self, uid, paths: list = None, distance_traveled: float = 0.0, cycle_length: float = 10.0,
