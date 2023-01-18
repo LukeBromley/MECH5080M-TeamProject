@@ -6,7 +6,7 @@ from math import sin, cos
 
 
 class Node:
-    def __init__(self, uid: int, x: float, y: float, angle):
+    def __init__(self, uid: int, x: float, y: float, angle=None):
         self.uid = uid
         self.x = x
         self.y = y

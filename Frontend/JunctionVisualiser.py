@@ -76,19 +76,54 @@ class JunctionVisualiser:
     def draw_nodes(self, nodes):
         for _node in nodes:
             _center_point = self._position_offsetter(_node.x, _node.y)
-            _node_tangents_x, _node_tangents_y = _node.get_tangents(200)
-            _direction_point = self._position_offsetter(_node.x + round(self._tangent_scale * _node_tangents_x), _node.y + round(self._tangent_scale * _node_tangents_y))
             pygame.draw.circle(self.window, self._node_colour, _center_point, radius=self._node_diameter, width=0)
-            pygame.draw.line(self.window, self._node_colour, _center_point, _direction_point, width=3)
-            self._draw_text(str(_node.uid), _node.x - (self._node_diameter + 5) * sin(_node.angle), _node.y + (self._node_diameter + 5) * cos(_node.angle))
+            if _node.angle is not None:
+                _node_tangents_x, _node_tangents_y = _node.get_tangents(200)
+                _direction_point = self._position_offsetter(_node.x + round(self._tangent_scale * _node_tangents_x), _node.y + round(self._tangent_scale * _node_tangents_y))
+                pygame.draw.line(self.window, self._node_colour, _center_point, _direction_point, width=3)
+                self._draw_text(str(_node.uid), _node.x - (self._node_diameter + 5) * sin(_node.angle), _node.y + (self._node_diameter + 5) * cos(_node.angle))
+            else:
+                self._draw_text(str(_node.uid), _node.x - 5, _node.y + 5)
 
     # Draw paths
-    def draw_paths(self, paths):
+    def draw_hermite_paths(self, paths):
         for _path in paths:
             for _i in range(1000):
-                _s = _i/1000
-                _x = _path.x_coeff[0] + _path.x_coeff[1]*_s + _path.x_coeff[2]*(_s*_s) + _path.x_coeff[3]*(_s*_s*_s)
-                _y = _path.y_coeff[0] + _path.y_coeff[1]*_s + _path.y_coeff[2]*(_s*_s) + _path.y_coeff[3]*(_s*_s*_s)
+                _t = _i/1000
+                _x = _path.x_coeff[0] + _path.x_coeff[1]*_t + _path.x_coeff[2]*(_t*_t) + _path.x_coeff[3]*(_t*_t*_t)
+                _y = _path.y_coeff[0] + _path.y_coeff[1]*_t + _path.y_coeff[2]*(_t*_t) + _path.y_coeff[3]*(_t*_t*_t)
+                _x = round(_x)
+                _y = round(_y)
+                self.window.set_at(self._position_offsetter(_x, _y), self._path_colour)
+                self.window.set_at(self._position_offsetter(_x+1, _y), self._path_colour)
+                self.window.set_at(self._position_offsetter(_x-1, _y), self._path_colour)
+                self.window.set_at(self._position_offsetter(_x, _y+1), self._path_colour)
+                self.window.set_at(self._position_offsetter(_x, _y-1), self._path_colour)
+                if _i == 500:
+                    self._draw_text(str(_path.uid), _x + 5, _y + 5)
+
+    def draw_bezian_squared_paths(self, paths):
+        for _path in paths:
+            for _i in range(1000):
+                _t = _i/1000
+                _x = _path.x_coeff[0] + _path.x_coeff[1]*_t + _path.x_coeff[2]*(_t*_t)
+                _y = _path.y_coeff[0] + _path.y_coeff[1]*_t + _path.y_coeff[2]*(_t*_t)
+                _x = round(_x)
+                _y = round(_y)
+                self.window.set_at(self._position_offsetter(_x, _y), self._path_colour)
+                self.window.set_at(self._position_offsetter(_x+1, _y), self._path_colour)
+                self.window.set_at(self._position_offsetter(_x-1, _y), self._path_colour)
+                self.window.set_at(self._position_offsetter(_x, _y+1), self._path_colour)
+                self.window.set_at(self._position_offsetter(_x, _y-1), self._path_colour)
+                if _i == 500:
+                    self._draw_text(str(_path.uid), _x + 5, _y + 5)
+
+    def draw_bezian_cubic_paths(self, paths):
+        for _path in paths:
+            for _i in range(1000):
+                _t = _i/1000
+                _x = _path.x_coeff[0] + _path.x_coeff[1]*_t + _path.x_coeff[2]*(_t*_t) + _path.x_coeff[3]*(_t*_t*_t)
+                _y = _path.y_coeff[0] + _path.y_coeff[1]*_t + _path.y_coeff[2]*(_t*_t) + _path.y_coeff[3]*(_t*_t*_t)
                 _x = round(_x)
                 _y = round(_y)
                 self.window.set_at(self._position_offsetter(_x, _y), self._path_colour)

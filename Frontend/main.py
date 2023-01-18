@@ -9,66 +9,50 @@ import sympy
 # List of nodes
 nodes = [
     Node(0, -200, -200, pi/2),
-    Node(1, -200, -100, pi/2),
-    Node(2, -200, 0, -pi/2),
-
-    Node(3, 200, -200, pi/2),
-    Node(4, 200, -100, -pi/2),
-    Node(5, 200, 0, -pi/2),
-
-    Node(6, -100, 100, 0),
-    Node(7, 0, 100, 0),
-    Node(8, 100, 100, -pi),
-
-    Node(9, -400, -200, pi/2),
-    Node(10, -400, 0, -pi/2),
-
-    Node(11, 400, -200, pi/2),
-    Node(12, 400, 0, -pi/2),
-
-    Node(13, -100, 300, 0),
-    Node(14, 100, 300, pi),
+    Node(1, 200, 200, pi),
+    Node(2, 100, -200),
+    Node(3, 200, -100),
 ]
 
+
 # Calculating coefficients for spline lines
-def calculate_line_coefficients(start_node, end_node):
-    l = sqrt((start_node.x - end_node.x)**2 + (start_node.y - end_node.y)**2)
+def calculate_quadratic_bezier(start_node, mid_node, end_node):
+    p0_x = start_node.x
+    p1_x = mid_node.x
+    p2_x = end_node.x
 
-    _p1x = start_node.x
-    _p1y = start_node.y
-    _p1tx, _p1ty = start_node.get_tangents(l*1.5)
-    _p2x = end_node.x
-    _p2y = end_node.y
-    _p2tx, _p2ty = end_node.get_tangents(l*1.5)
-    _p2tx = -_p2tx
-    _p2ty = -_p2ty
+    p0_y = start_node.y
+    p1_y = mid_node.y
+    p2_y = end_node.y
 
-    _x_coeff = [_p1x, _p1tx, -3 * _p1x + 3 * _p2x - 2 * _p1tx + _p2tx, 2 * _p1x - 2 * _p2x + _p1tx - _p2tx]
-    _y_coeff = [_p1y, _p1ty, -3 * _p1y + 3 * _p2y - 2 * _p1ty + _p2ty, 2 * _p1y - 2 * _p2y + _p1ty - _p2ty]
+    _x_coeff = [p0_x, -2 * (p0_x - p1_x), (p0_x + p2_x - 2*p1_x)]
+    _y_coeff = [p0_y, -2 * (p0_y - p1_y), (p0_y + p2_y - 2*p1_y)]
 
     return _x_coeff, _y_coeff
 
+
+def calculate_cubic_bezier(start_node, mid_node_1, mid_node_2, end_node):
+    p0_x = start_node.x
+    p1_x = mid_node_1.x
+    p2_x = mid_node_2.x
+    p3_x = end_node.x
+
+    _x_coeff = [p0_x, (3*p1_x - 3*p0_x), (3*p0_x - 6*p1_x + 3*p2_x), (-p0_x + 3*p1_x - 3*p2_x + p3_x)]
+
+    p0_y = start_node.y
+    p1_y = mid_node_1.y
+    p2_y = mid_node_2.y
+    p3_y = end_node.y
+
+    _y_coeff = [p0_y, (3*p1_y - 3*p0_y), (3*p0_y - 6*p1_y + 3*p2_y), (-p0_y + 3*p1_y - 3*p2_y + p3_y)]
+
+    return _x_coeff, _y_coeff
+
+
+
 # List of paths
 paths = [
-    Path(1, nodes[0], nodes[3], calculate_line_coefficients(nodes[0], nodes[3])),
-    Path(1, nodes[1], nodes[8], calculate_line_coefficients(nodes[1], nodes[8])),
-    Path(1, nodes[4], nodes[2], calculate_line_coefficients(nodes[4], nodes[2])),
-    Path(1, nodes[5], nodes[8], calculate_line_coefficients(nodes[5], nodes[8])),
-    Path(1, nodes[7], nodes[3], calculate_line_coefficients(nodes[7], nodes[3])),
-    Path(1, nodes[6], nodes[2], calculate_line_coefficients(nodes[6], nodes[2])),
-
-    Path(1, nodes[9], nodes[0], calculate_line_coefficients(nodes[9], nodes[0])),
-    Path(1, nodes[9], nodes[1], calculate_line_coefficients(nodes[9], nodes[1])),
-    Path(1, nodes[2], nodes[10], calculate_line_coefficients(nodes[2], nodes[10])),
-
-    Path(1, nodes[3], nodes[11], calculate_line_coefficients(nodes[3], nodes[11])),
-    Path(1, nodes[12], nodes[4], calculate_line_coefficients(nodes[12], nodes[4])),
-    Path(1, nodes[12], nodes[5], calculate_line_coefficients(nodes[12], nodes[5])),
-
-    Path(1, nodes[8], nodes[14], calculate_line_coefficients(nodes[8], nodes[14])),
-    Path(1, nodes[13], nodes[6], calculate_line_coefficients(nodes[13], nodes[6])),
-    Path(1, nodes[13], nodes[7], calculate_line_coefficients(nodes[13], nodes[7])),
-
+    Path(1, nodes[0], nodes[1], calculate_cubic_bezier(nodes[0], nodes[2], nodes[3], nodes[1])),
 ]
 
 
@@ -127,15 +111,10 @@ def find_length(path):
 
 # Main function
 def main():
-    point1 = Node(0, 0, 0, 3*pi/4)
-    point2 = Node(0, 50, 50, 3*pi/4)
-    path = Path(1, point1, point2, calculate_line_coefficients(point1, point2))
-    length = find_length(path)
-    print(length)
     Visualiser = JunctionVisualiser()
     while True:
         Visualiser.refresh()
-        Visualiser.draw_paths(paths)
+        Visualiser.draw_bezian_cubic_paths(paths)
         Visualiser.draw_nodes(nodes)
         Visualiser.update()
 
