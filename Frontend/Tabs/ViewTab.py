@@ -3,7 +3,7 @@ from PyQt5.QtCore import Qt
 
 
 class ViewTab(QtWidgets.QWidget):
-    def __init__(self, refresh_function, render_function, recenter_function) -> None:
+    def __init__(self, refresh_function, render_function, recenter_function, set_scale_function) -> None:
         """
 
         :param refresh_function: function that refreshes the pygame graphics
@@ -16,6 +16,7 @@ class ViewTab(QtWidgets.QWidget):
         self.refresh_function = refresh_function
         self.render_function = render_function
         self.recenter_function = recenter_function
+        self.set_scale_function = set_scale_function
 
         # Widgets + Layouts
         self.v_box = VBox(self, align=Qt.AlignTop)
@@ -24,6 +25,9 @@ class ViewTab(QtWidgets.QWidget):
         self.view_box = GroupBox(self, "View", layout=self.v_box)
 
         self.view_h_box = HBox(self, self.view_box.v_box, align=Qt.AlignLeft)
+        self.scale_label = Text(self, "Scale: ", self.view_h_box)
+        self.scale = SpinBox(self, self.view_h_box, min=25, max=400)
+        self.scale.setValue(100)
         self.recenter_button = Button(self, "Recenter", layout=self.view_h_box)
 
         #   Layers
@@ -65,6 +69,7 @@ class ViewTab(QtWidgets.QWidget):
         :return: None
         """
         self.recenter_button.pressed.connect(self.recenter_function)
+        self.scale.valueChanged.connect(self.set_scale)
 
         self.layer_grid.stateChanged.connect(self.update_layer_states)
         self.layer_hermite_paths.stateChanged.connect(self.update_layer_states)
@@ -111,3 +116,13 @@ class ViewTab(QtWidgets.QWidget):
         self.layer_labels.setChecked(self.show_layer_labels)
         self.layer_curvature.setChecked(self.show_layer_curvature)
         self.layer_cars.setChecked(self.show_layer_cars)
+
+    def set_scale(self) -> None:
+        """
+
+        Sets the scale of the graphics.
+        :return: None
+        """
+        scale = 0.5 * self.scale.value() / 100
+        self.set_scale_function(scale)
+        self.refresh_function()

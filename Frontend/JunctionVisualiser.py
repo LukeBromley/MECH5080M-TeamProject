@@ -70,7 +70,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.tabs.addTab(self.design_tab, "Design")
 
         # View tab
-        self.view_tab = ViewTab(self.refresh_pygame_widget, self.render_pygame_widget, self.recenter)
+        self.view_tab = ViewTab(self.refresh_pygame_widget, self.render_pygame_widget, self.recenter, self.pygame_graphics.set_scale)
         self.tabs.addTab(self.view_tab, "View")
 
         # Control tab

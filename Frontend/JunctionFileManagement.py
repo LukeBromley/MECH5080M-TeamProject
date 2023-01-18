@@ -54,7 +54,7 @@ class JunctionFileManagement:
                 if node.uid == path_data[1]:
                     end_node = node
 
-            paths.append(Path(int(uid), start_node, end_node, path_data[2]))
+            paths.append(Path(int(uid), start_node, end_node))
 
         # Load light data
         lights = []

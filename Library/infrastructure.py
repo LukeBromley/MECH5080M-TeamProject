@@ -74,7 +74,6 @@ class Path:
         self.y_hermite_cubic_coeff = [p1y, p1ty, -3 * p1y + 3 * p2y - 2 * p1ty + p2ty, 2 * p1y - 2 * p2y + p1ty - p2ty]
 
     def calculate_poly_coefficients(self):
-        warnings.simplefilter('ignore', RankWarning)
         if self.start_node.x == self.end_node.x:
             self.poly_coeff = [self.start_node.x]
         else:
@@ -85,7 +84,18 @@ class Path:
                 s = i / path_length
                 x_array.append(self.x_hermite_cubic_coeff[0] + self.x_hermite_cubic_coeff[1] * s + self.x_hermite_cubic_coeff[2] * (s * s) + self.x_hermite_cubic_coeff[3] * (s * s * s))
                 y_array.append(self.y_hermite_cubic_coeff[0] + self.y_hermite_cubic_coeff[1] * s + self.y_hermite_cubic_coeff[2] * (s * s) + self.y_hermite_cubic_coeff[3] * (s * s * s))
-            self.poly_coeff = list(polyfit(x_array, y_array, self.poly_order))
+
+            good_poly_found = False
+            while not good_poly_found and self.poly_order > 3:
+                with warnings.catch_warnings():
+                    warnings.filterwarnings('error')
+                    try:
+                        polynomial = polyfit(x_array, y_array, self.poly_order)
+                        good_poly_found = True
+                    except RankWarning:
+                        self.poly_order -= 1
+
+            self.poly_coeff = list(polynomial)
 
     def calculate_curvature_grid(self):
         curvature = []
@@ -137,6 +147,7 @@ class Path:
                     self.arc_length_integrand.subs(x, a + (2 * i) * h)
             )
         return distance_traveled
+
 
 class TrafficLight:
     def __init__(self, uid, paths: list = None, distance_traveled: float = 0.0, cycle_length: float = 10.0, cycle_red: float = 0.5,
