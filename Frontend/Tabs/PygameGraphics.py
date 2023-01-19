@@ -45,6 +45,7 @@ class PygameGraphics:
         # Window Parameters
         self._window_width, self._window_height = window_width, window_height
         self._surface_width, self._surface_height = round(self._window_width / 2), self._window_height
+        self._scale = 0.5
 
         # Scroll Parameters
         self._mouse_position_x = 0
@@ -265,7 +266,11 @@ class PygameGraphics:
         :param y: y coordinate
         :return: translated coordinates
         """
-        return x - self._scroll_offset_x, y - self._scroll_offset_y
+
+        x = round(x * self._scale) - self._scroll_offset_x
+        y = round(y * self._scale) - self._scroll_offset_y
+
+        return x, y
 
     def _clamp(self, n: Union[int, float], minn: Union[int, float], maxn: Union[int, float]) -> Union[int, float]:
         """
@@ -384,5 +389,14 @@ class PygameGraphics:
         self._scroll_offset_y = -round(self._surface_height / 2)
         self._scroll_offset_x_old = self._scroll_offset_x
         self._scroll_offset_y_old = self._scroll_offset_y
+
+    def set_scale(self, scale: int) -> None:
+        """
+
+        Public function to set scale
+        :param scale:
+        :return: None
+        """
+        self._scale = scale
 
 

@@ -82,7 +82,7 @@ class DesignTab(QtWidgets.QWidget):
         # Re-add all paths
         for index, path in enumerate(reversed(paths)):
             self.path_widgets.append(PathWidget(self.path_box, self.path_box_scroll.v_box))
-            self.path_widgets[-1].set_info(path.uid, path.start_node.uid, path.end_node.uid, nodes)
+            self.path_widgets[-1].set_info(path.uid, path.start_node.uid, path.end_node.uid, nodes, path.poly_order)
             self.path_widgets[-1].connect_delete(partial(self.remove_path, path.uid))
             self.path_widgets[-1].connect_change(partial(self.update_path_data, path.uid, index))
             if path.start_node == path.end_node:
@@ -101,7 +101,6 @@ class DesignTab(QtWidgets.QWidget):
         nodes, paths = self._get_nodes_paths()
         for node in nodes:
             if node.uid == uid:
-                node.uid = self.node_widgets[widget_index].uid_edit.value()
                 node.x = self.node_widgets[widget_index].x_pos.value()
                 node.y = self.node_widgets[widget_index].y_pos.value()
                 node.angle = self.node_widgets[widget_index].angle.value() * ((2 * pi) / 360)
@@ -158,13 +157,10 @@ class DesignTab(QtWidgets.QWidget):
         nodes, paths = self._get_nodes_paths()
         for path in paths:
             if path.uid == uid:
-                path.uid = self.path_widgets[widget_index].uid_edit.value()
-
                 for node in nodes:
                     if node.uid == int(self.path_widgets[widget_index].start_node.currentText()):
                         path.start_node = node
                         break
-
                 for node in nodes:
                     if node.uid == int(self.path_widgets[widget_index].end_node.currentText()):
                         path.end_node = node
@@ -225,7 +221,7 @@ class NodeWidget(QtWidgets.QWidget):
         # Widgets + Layouts
         self.h_box = HBox(self, align=Qt.AlignLeft)
         self.uid_label = Text(self, "Node ID: ", self.h_box)
-        self.uid_edit = SpinBox(self, self.h_box, min=0)
+        self.uid_edit = Text(self, "", self.h_box)
         self.x_label = Text(self, "X: ", self.h_box)
         self.x_pos = SpinBox(self, self.h_box, 1000, -1000)
         self.x_pos.setValue(0)
@@ -246,7 +242,7 @@ class NodeWidget(QtWidgets.QWidget):
         :return: None
 
         """
-        self.uid_edit.setValue(int(uid))
+        self.uid_edit.setText(str(uid))
         self.x_pos.setValue(int(x))
         self.y_pos.setValue(int(y))
         self.angle.setValue(int(ang))
@@ -257,7 +253,6 @@ class NodeWidget(QtWidgets.QWidget):
         :param function: function to trigger when a parameter has been changed by the GUI
         :return: None
         """
-        self.uid_edit.valueChanged.connect(function)
         self.x_pos.valueChanged.connect(function)
         self.y_pos.valueChanged.connect(function)
         self.angle.valueChanged.connect(function)
@@ -287,11 +282,12 @@ class PathWidget(QtWidgets.QWidget):
         # Widgets + Layouts
         self.h_box = HBox(self, align=Qt.AlignLeft)
         self.uid_label = Text(self, "Path ID: ", self.h_box)
-        self.uid_edit = SpinBox(self, self.h_box, min=0)
+        self.uid_edit = Text(self, "", self.h_box)
         self.start_node_label = Text(self, "From: ", self.h_box)
         self.start_node = ComboBox(self, self.h_box)
         self.end_node_label = Text(self, "To: ", self.h_box)
         self.end_node = ComboBox(self, self.h_box)
+        self.order = Text(self, "Order: ", self.h_box)
         self.delete = Button(self, "Delete", self.h_box)
         # self.car_spawner = TickBox(self, "Car")
 
@@ -309,7 +305,7 @@ class PathWidget(QtWidgets.QWidget):
         """
         self.uid_label.setStyleSheet("background: transparent;")
 
-    def set_info(self, uid: int, start_uid: object, end_uid: object, nodes: list) -> None:
+    def set_info(self, uid: int, start_uid: object, end_uid: object, nodes: list, order: int) -> None:
         """
 
         :param uid: set uid info to display
@@ -318,19 +314,19 @@ class PathWidget(QtWidgets.QWidget):
         :param nodes: list of all nodes
         :return: None
         """
-        self.uid_edit.setValue(int(uid))
+        self.uid_edit.setText(str(uid))
         for node in nodes:
             self.start_node.addItem(str(node.uid))
             self.end_node.addItem(str(node.uid))
         self.start_node.setCurrentText(str(start_uid))
         self.end_node.setCurrentText(str(end_uid))
+        self.order.setText(str(order))
 
     def connect_change(self, function) -> None:
         """
         :param function: function to trigger when a parameter has been changed by the GUI
         :return: None
         """
-        self.uid_edit.valueChanged.connect(function)
         self.start_node.currentIndexChanged.connect(function)
         self.end_node.currentIndexChanged.connect(function)
 

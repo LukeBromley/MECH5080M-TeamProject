@@ -70,7 +70,6 @@ class Path:
         self.y_hermite_cubic_coeff = [p1y, p1ty, -3 * p1y + 3 * p2y - 2 * p1ty + p2ty, 2 * p1y - 2 * p2y + p1ty - p2ty]
 
     def calculate_poly_coefficients(self):
-        warnings.simplefilter('ignore', RankWarning)
         if self.start_node.x == self.end_node.x:
             self.poly_coeff = [self.start_node.x]
         else:
@@ -79,14 +78,21 @@ class Path:
             path_length = round(self.get_euclidean_distance() * 1.5)
             for i in range(path_length + 1):
                 s = i / path_length
-                x_array.append(
-                    self.x_hermite_cubic_coeff[0] + self.x_hermite_cubic_coeff[1] * s + self.x_hermite_cubic_coeff[
-                        2] * (s * s) + self.x_hermite_cubic_coeff[3] * (s * s * s))
-                y_array.append(
-                    self.y_hermite_cubic_coeff[0] + self.y_hermite_cubic_coeff[1] * s + self.y_hermite_cubic_coeff[
-                        2] * (s * s) + self.y_hermite_cubic_coeff[3] * (s * s * s))
-            self.poly_coeff = list(polyfit(x_array, y_array, self.poly_order))
+                x_array.append(self.x_hermite_cubic_coeff[0] + self.x_hermite_cubic_coeff[1] * s + self.x_hermite_cubic_coeff[2] * (s * s) + self.x_hermite_cubic_coeff[3] * (s * s * s))
+                y_array.append(self.y_hermite_cubic_coeff[0] + self.y_hermite_cubic_coeff[1] * s + self.y_hermite_cubic_coeff[2] * (s * s) + self.y_hermite_cubic_coeff[3] * (s * s * s))
 
+            good_poly_found = False
+            while not good_poly_found and self.poly_order > 3:
+                with warnings.catch_warnings():
+                    warnings.filterwarnings('error')
+                    try:
+                        polynomial = polyfit(x_array, y_array, self.poly_order)
+                        good_poly_found = True
+                    except RankWarning:
+                        self.poly_order -= 1
+
+            self.poly_coeff = list(polynomial)
+            
     def calculate_curvature_grid(self):
         curvature = []
         if type(self.poly_coeff) is list:
@@ -169,6 +175,7 @@ class Path:
         if greater_distances_traveled:
             closes_distance_traveled = min(greater_distances_traveled)
             return self.vehicles[distances_traveled.index(closes_distance_traveled)]
+
 
 
 class TrafficLight:

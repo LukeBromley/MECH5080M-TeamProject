@@ -178,7 +178,7 @@ class TrafficLightWidget(QtWidgets.QWidget):
         self.h_box = HBox(self, align=Qt.AlignLeft)
 
         self.uid_label = Text(self, "Light ID: ", self.h_box)
-        self.uid_edit = SpinBox(self, self.h_box, min=0)
+        self.uid_edit = Text(self, "", self.h_box)
 
         self.selected_paths_label = Text(self, "Paths: ", self.h_box)
         self.selected_paths = TickableComboBox(self, self.h_box)
@@ -207,7 +207,7 @@ class TrafficLightWidget(QtWidgets.QWidget):
         :param selected_paths: list of all selected paths
         :return:
         """
-        self.uid_edit.setValue(int(uid))
+        self.uid_edit.setText(str(uid))
 
         self.selected_paths.untick_all()
         for path in selected_paths:
@@ -225,7 +225,6 @@ class TrafficLightWidget(QtWidgets.QWidget):
         :param function: callback function
         :return: None
         """
-        self.uid_edit.valueChanged.connect(function)
         self.selected_paths.currentIndexChanged.connect(function)
 
     def connect_identify(self, function) -> None:
