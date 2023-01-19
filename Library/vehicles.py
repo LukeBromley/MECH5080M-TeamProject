@@ -4,7 +4,7 @@ from Library.infrastructure import Path
 class Car:
     def __init__(self, path: Path, velocity: float = 0.0, acceleration: float = 0.0, maximum_acceleration: float = 9.81,
                  maximum_deceleration: float = 6.0, distance_traveled: float = 0.0, preferred_time_gap: float = 2.0,
-                 vehicle_length: float = 4.5) -> None:
+                 vehicle_length: float = 4.5, maximum_velocity: float = 20.0) -> None:
         """
 
         :param velocity: initial velocity of the vehicle [m/s]
@@ -21,16 +21,20 @@ class Car:
         self._maximum_deceleration = maximum_deceleration
         self._distance_traveled = distance_traveled
         self._preferred_time_gap = preferred_time_gap
+        self._maximum_velocity = maximum_velocity
 
-    def update(self, time_delta: float = 0.033, vehicle_ahead: "Car" = None) -> None:
+    def update(self, time_delta: float = 0.033) -> None:
         """
 
         :param vehicle_ahead: Object of the vehicle ahead
         :rtype: None
         :param time_delta: time step size [s]
         """
+
+        vehicle_ahead = self._path.get_vehicle_ahead(self._distance_traveled)
         self._acceleration = self._calculate_acceleration(vehicle_ahead)
         self._velocity += self._acceleration * time_delta
+        self._velocity = min(self._velocity, self._maximum_velocity)
         self._distance_traveled += max(0.0, self._velocity) * time_delta
 
     def _calculate_acceleration(self, vehicle_ahead: "Car") -> float:

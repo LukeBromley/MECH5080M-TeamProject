@@ -5,7 +5,6 @@ import sympy as sym
 from numpy import polyfit, RankWarning
 import warnings
 
-
 class Node:
     def __init__(self, uid: int, x: float, y: float, angle: float):
         self.uid = uid
@@ -159,6 +158,18 @@ class Path:
                 return x_i, self._y.subs(x, x_i)
             elif i >= int(n / 2):
                 return self.end_node.x, self.end_node.y
+
+    def add_vehicle(self, vehicle):
+        self.vehicles.append(vehicle)
+
+    def get_vehicle_ahead(self, distance_traveled: float):
+        distances_traveled = [vehicle.get_distance_traveled() for vehicle in self.vehicles]
+        greater_distances_traveled = [i for i in distances_traveled if distance_traveled < i]
+
+        if greater_distances_traveled:
+            closes_distance_traveled = min(greater_distances_traveled)
+            return self.vehicles[distances_traveled.index(closes_distance_traveled)]
+
 
 class TrafficLight:
     def __init__(self, uid, paths: list = None, distance_traveled: float = 0.0, cycle_length: float = 10.0,
