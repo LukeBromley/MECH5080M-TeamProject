@@ -11,6 +11,7 @@ class Node:
         self.x = x
         self.y = y
         self.angle = angle
+        temp = 1
 
     def get_tangents(self, _weight=None):
         tx = _weight * sin(self.angle)

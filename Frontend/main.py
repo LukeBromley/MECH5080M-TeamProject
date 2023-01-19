@@ -8,10 +8,15 @@ import sympy
 
 # List of nodes
 nodes = [
-    Node(0, -200, -200, pi/2),
-    Node(1, 200, 200, pi),
-    Node(2, 100, -200),
-    Node(3, 200, -100),
+    Node(0, -200, -200, pi / 2),
+    Node(1, 225, -225),
+    Node(2, 200, 200, pi),
+
+    Node(3, -200, -200, pi / 2),
+    Node(4, 100, -200),
+    Node(5, 200, -100),
+    Node(6, 200, 200, pi),
+
 ]
 
 
@@ -52,7 +57,8 @@ def calculate_cubic_bezier(start_node, mid_node_1, mid_node_2, end_node):
 
 # List of paths
 paths = [
-    Path(1, nodes[0], nodes[1], calculate_cubic_bezier(nodes[0], nodes[2], nodes[3], nodes[1])),
+    Path(1, nodes[0], nodes[2], calculate_quadratic_bezier(nodes[0], nodes[1], nodes[2])),
+    Path(2, nodes[3], nodes[6], calculate_cubic_bezier(nodes[3], nodes[4], nodes[5], nodes[6])),
 ]
 
 
@@ -114,7 +120,8 @@ def main():
     Visualiser = JunctionVisualiser()
     while True:
         Visualiser.refresh()
-        Visualiser.draw_bezian_cubic_paths(paths)
+        Visualiser.draw_bezian_squared_paths([paths[0]])
+        Visualiser.draw_bezian_cubic_paths([paths[1]])
         Visualiser.draw_nodes(nodes)
         Visualiser.update()
 
