@@ -8,4 +8,6 @@ MAX_LENGTH = 5
 MIN_WIDTH = 1 
 MAX_WIDTH = 2
 
+TICK = 0.1
+
 MAX_CARS = 4

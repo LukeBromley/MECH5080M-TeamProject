@@ -1,17 +1,20 @@
 from Constants import *
 import random
 import time
+import csv
 
 
 class Car:
-    def __init__(self, random_start_lane, goal_lane, initial_velocity, initial_acceleration, dimensions) -> None:
+    def __init__(self, uid, random_start_lane, goal_lane, initial_velocity, initial_acceleration, dimensions) -> None:
+        self.uid = uid
         self.current_lane = random_start_lane
+        self.position = [0, 0]  # Change to psoition of lane.
         self.goal_lane = goal_lane
         self.velocity = initial_velocity
         self.acceleration = initial_acceleration
         self.dimensions = dimensions
 
-    def display_car(self):
+    def print_car(self):
         print("Current Lane = ", self.current_lane)
         print("Goal Lane = ", self.goal_lane)
         print("Velocity = ", self.velocity)
@@ -19,25 +22,45 @@ class Car:
         print("Dimensions = Length: ",
               self.dimensions[0], ", Width: ", self.dimensions[1])
 
+    def update(self):
+        self.position[0] += self.velocity
+        self.position[1] += self.velocity
+        self.velocity += self.acceleration
+
+    def log(self, sim_time):
+        log_format = [sim_time, self.uid, self.position[0], self.position[1]]
+        return log_format
+
 
 class Simulation:
 
     def __init__(self) -> None:
         self.cars = []
-        self.sim_tick()
+        self.car_uid = 0
+        self.sim_time = 0.0
+        self.log = []
 
-    def sim_tick(self):
-        print("Tick")
+    def sim_begin(self):
+        self.advance_tick()
+
+    def advance_tick(self):
         self.car_spawner()
-        self.run_cars()
-        time.sleep(1)
-        self.sim_tick()
+        self.update_cars()
+        time.sleep(TICK)
+        self.sim_time = round(self.sim_time + TICK, 1)
+        if self.sim_time > 3:
+            self.log_writer()
+            quit()
+        else:
+            self.advance_tick()
 
     def car_spawner(self):
         if len(self.cars) < MAX_CARS:
             self.spawn_car()
 
     def spawn_car(self):
+        uid = self.car_uid
+        self.car_uid += 1
         random_start_lane = random.choice(LANES)
         goal_lane = random.choice(LANES)
         initial_velocity = random.uniform(
@@ -46,18 +69,26 @@ class Simulation:
             MINIMUM_START_ACCELERATION, MAXIMUM_START_ACCELERATION)
         dimensions = [random.uniform(
             MIN_LENGTH, MAX_LENGTH), random.uniform(MIN_WIDTH, MAX_WIDTH)]
-        car = Car(random_start_lane, goal_lane, initial_velocity,
+        car = Car(uid, random_start_lane, goal_lane, initial_velocity,
                   initial_acceleration, dimensions)
         self.cars.append(car)
 
     # runs on tick
-    def run_cars(self):
+    def update_cars(self):
         for car in self.cars:
-            car.display_car()
+            car.update()
+            self.log.append(car.log(self.sim_time))
+
+    def log_writer(self):
+        file = open('Backend/Approach/log.csv', 'w', newline='')
+        writer = csv.writer(file)
+        writer.writerows(self.log)
+        file.close()
 
 
 def main():
     sim = Simulation()
+    sim.sim_begin()
 
 
 main()
