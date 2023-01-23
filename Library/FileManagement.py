@@ -1,5 +1,6 @@
 import json
 from Library.infrastructure import Node, Path, TrafficLight
+from Library.vehicles import Car
 
 """
 Explanation of File Management
@@ -10,12 +11,21 @@ Junction Files
     Both entries contain 2D lists which contain the information about each node / path
 
 """
+
+
 class Configuration:
 
-    def __init__(self, lanes: list, min_start_velocity: float, max_start_velocity: float, min_start_acceleration: float,
-                 max_start_acceleration: float, min_length: int, max_length: int, min_width: int, max_width: int,
-                 max_num_cars: int):
-
+    def __init__(self, lanes: list,
+                 min_start_velocity: float,
+                 max_start_velocity: float,
+                 min_start_acceleration: float,
+                 max_start_acceleration: float,
+                 min_length: int,
+                 max_length: int,
+                 min_width: int,
+                 max_width: int,
+                 max_num_cars: int
+                 ):
         self.lanes = lanes
         self.min_start_velocity = min_start_velocity
         self.max_start_velocity = max_start_velocity
@@ -26,6 +36,8 @@ class Configuration:
         self.min_width = min_width
         self.max_width = max_width
         self.max_num_cars = max_num_cars
+
+
 class FileManagement:
     def __init__(self) -> None:
         """
@@ -34,24 +46,25 @@ class FileManagement:
             save and load simulation results files (TO BE COMPLETED)
         """
         # Configuration identifiers
-        self.lanes_key = "Lanes"
-        self.min_start_velocity_key = "Min Start Velocity"
-        self.max_start_velocity_key = "Max Start Velocity"
-        self.min_start_acceleration_key = "Min Start Acceleration"
-        self.max_start_acceleration_key = "Max Start Acceleration"
-        self.min_length_key = "Min Car Length"
-        self.max_length_key = "Max Car Length"
-        self.min_width_key = "Min Car Width"
-        self.max_width_key = "Max Car Length"
-        self.max_num_cars_key = "Max Number of Cars"
+        self.lanes_key = "lanes"
+        self.min_start_velocity_key = "min_start_velocity"
+        self.max_start_velocity_key = "max_start_velocity"
+        self.min_start_acceleration_key = "min_start_acceleration"
+        self.max_start_acceleration_key = "max_start_acceleration"
+        self.min_length_key = "min_car_length"
+        self.max_length_key = "max_car_length"
+        self.min_width_key = "min_car_width"
+        self.max_width_key = "max_car_length"
+        self.max_num_cars_key = "max_number_of_cars"
 
-        #Junction identifiers
+        # Junction identifiers
         self.nodes_key = "nodes"
         self.paths_key = "paths"
         self.lights_key = "lights"
 
-
-
+        # Car results data identifiers
+        self.start_time_key = "start_time"
+        self.position_data_key = "position_data"
 
     def load_from_junction_file(self, file_path: str) -> tuple:
         """
@@ -120,9 +133,9 @@ class FileManagement:
         # Add path data
         for path in paths:
             file_dict[self.paths_key][str(path.uid)] = [path.start_node.uid,
-                                                 path.end_node.uid,
-                                                 path.poly_order
-                                                 ]
+                                                        path.end_node.uid,
+                                                        path.poly_order
+                                                        ]
 
         # Add light data
         for light in lights:
@@ -157,7 +170,13 @@ class FileManagement:
         with open(file_path, "w") as file:
             json.dump(file_dict, file)
 
-    def save_config_file(self, file_path, config: Configuration):
+    def save_config_file(self, file_path: str, config: Configuration) -> None:
+        """
+
+        :param file_path: where the config file is saved
+        :param config: configuration to be saved
+        :return: None
+        """
 
         # Create dictionary structure
         file_dict = {}
@@ -176,7 +195,12 @@ class FileManagement:
         with open(file_path, "w") as file:
             json.dump(file_dict, file)
 
-    def load_config_file(self, file_path):
+    def load_config_file(self, file_path: str) -> Configuration:
+        """
+
+        :param file_path: where to load configuration from
+        :return: the loaded configuration
+        """
         with open(file_path, "r") as file:
             file_dict = json.load(file)
 
@@ -196,4 +220,39 @@ class FileManagement:
                                       max_num_cars)
 
         return configuration
+
+    def save_results_data_file(self, file_path: str, cars: list) -> None:
+        """
+
+        saving car position data to a file
+        :param file_path: where the results data file is saved
+        :param cars: list of car objects
+        :return: None
+        """
+        file_dict = {}
+
+        for car in cars:
+            file_dict[str(car.uid)] = {}
+            file_dict[str(car.uid)][self.start_time_key] = car.start_time
+            file_dict[str(car.uid)][self.position_data_key] = car.position_data
+
+        with open(file_path, "w") as file:
+            json.dump(file_dict, file)
+
+    def load_results_data_file(self, file_path: str) -> list:
+        """
+
+        :param file_path: where to load the results data from
+        :return: the car results data
+        """
+        with open(file_path, "r") as file:
+            file_dict = json.load(file)
+
+            cars = []
+            for uid in file_dict:
+                start_time = file_dict[uid][self.start_time_key]
+                position_data = file_dict[uid][self.position_data_key]
+                cars.append(Car(int(uid), start_time, None, position_data))
+
+            return cars
 
