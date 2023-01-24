@@ -107,7 +107,6 @@ class PygameGraphics:
 
         if draw_grid: self._draw_grid()
         if draw_hermite_paths: self._draw_hermite_paths(draw_curvature)
-        if draw_poly_paths: self._draw_poly_paths(draw_curvature)
         if draw_nodes: self._draw_nodes(nodes)
         self._draw_labels(draw_node_labels, draw_path_labels)
 
@@ -141,8 +140,7 @@ class PygameGraphics:
                 path_length = round(path.get_euclidean_distance() * 1.5)  # Changing iteration intervals for improved performance
                 for i in range(path_length+1):
                     s = i/path_length
-                    x = path.x_hermite_cubic_coeff[0] + path.x_hermite_cubic_coeff[1]*s + path.x_hermite_cubic_coeff[2]*(s*s) + path.x_hermite_cubic_coeff[3]*(s*s*s)
-                    y = path.y_hermite_cubic_coeff[0] + path.y_hermite_cubic_coeff[1]*s + path.y_hermite_cubic_coeff[2]*(s*s) + path.y_hermite_cubic_coeff[3]*(s*s*s)
+                    x, y = path.get_coords_by_s_terms(s)
                     path_colour = self._calculate_curvature_colour(path, i, lower, upper)
                     x = round(x)
                     y = round(y)
@@ -157,55 +155,6 @@ class PygameGraphics:
         upper = sorted(curvature)[round(3 * len(curvature) / 4)]
         lower = sorted(curvature)[round(1 * len(curvature) / 4)]
         return upper, lower
-
-    # Functions for rendering Poly paths
-    def render_poly_paths(self, paths: list, draw_curvature=False) -> None:
-        """
-
-        Calculates and saves a list of all points that should be drawn for displaying all poly paths
-        :param paths: list of paths
-        :param draw_curvature: boolean to enable curvature coloring of drawn poly paths
-        :return: None
-        """
-        self._poly_path_points.clear()
-        upper, lower = self._calculate_poly_path_curvature(paths)
-        for path in paths:
-            if path.get_euclidean_distance() > 0:
-                if type(path.poly_coeff) is list:
-                    for i in range(min(path.start_node.x, path.end_node.x) * 10, max(path.start_node.x, path.end_node.x) * 10):
-                        x = i / 10
-                        y = 0
-                        for n, coef in enumerate(path.poly_coeff):
-                            y += coef * pow(x, path.poly_order - n)
-                        path_colour = (0, 255, 0)  #self._calculate_curvature_colour(_path, _x, lower, upper)
-                        y = round(y)
-                        x = round(x)
-                        self._poly_path_points.append(VisualPoint(x, y, path_colour))
-                else:
-                    for y in range(min(path.start_node.y, path.end_node.y), max(path.start_node.y, path.end_node.y)):
-                        self._poly_path_points.append(VisualPoint(path.poly_coeff, y, (0, 255, 0)))
-
-    def _calculate_poly_path_curvature(self, paths: list) -> tuple:
-        """
-
-        Calculates the maximum and minimum curve radia across all paths
-        :param paths: list of paths
-        :return: the maximum and minimum curve radia
-        """
-        curvature = []
-        for _path in paths:
-            if _path.get_euclidean_distance() > 0:
-                if type(_path.poly_coeff) is list:
-                    for i in range(min(_path.start_node.x, _path.end_node.x) * 10, max(_path.start_node.x, _path.end_node.x) * 10):
-                        x = i / 10
-                        curvature.append(_path.calculate_curvature(x))
-        if len(curvature) > 0:
-            curvature.sort()
-            upper = curvature[round(3 * len(curvature) / 4)]
-            lower = curvature[round(1 * len(curvature) / 4)]
-            return upper, lower
-        else:
-            return None, None
 
     # Functions for drawing both Hermite and Poly paths
     def _draw_paths(self, paths_points, draw_curvature, highlight: bool = False) -> None:
@@ -230,14 +179,6 @@ class PygameGraphics:
         :return: None
         """
         self._draw_paths(self._hermite_path_points, draw_curvature, highlight)
-
-    def _draw_poly_paths(self, draw_curvature: bool) -> None:
-        """
-
-        :param draw_curvature: boolean to enable curvature coloring of drawn poly paths
-        :return: None
-        """
-        self._draw_paths(self._poly_path_points, draw_curvature)
 
     # Path drawing math functions
     def _calculate_curvature_colour(self, path, i: int, lower: float, upper: float) -> tuple:

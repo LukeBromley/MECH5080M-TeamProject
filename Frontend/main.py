@@ -1,13 +1,72 @@
-from platform import system
-if system() == 'Windows':
-    import sys
-    sys.path.append('./')
-
+import sys
+sys.path.append("..")
 from JunctionVisualiser import *
+from Library.infrastructure import Node
+from Library.infrastructure import Path
+from math import pi, sqrt
+import sympy
+
+# List of nodes
+nodes = [
+    Node(0, -200, -200, pi / 2),
+    Node(1, 225, -225),
+    Node(2, 200, 200, pi),
+
+    Node(3, -200, -200, pi / 2),
+    Node(4, 100, -200),
+    Node(5, 200, -100),
+    Node(6, 200, 200, pi),
+
+]
+
+
+# Calculating coefficients for spline lines
+def calculate_quadratic_bezier(start_node, mid_node, end_node):
+    p0_x = start_node.x
+    p1_x = mid_node.x
+    p2_x = end_node.x
+
+    p0_y = start_node.y
+    p1_y = mid_node.y
+    p2_y = end_node.y
+
+    _x_coeff = [p0_x, -2 * (p0_x - p1_x), (p0_x + p2_x - 2*p1_x)]
+    _y_coeff = [p0_y, -2 * (p0_y - p1_y), (p0_y + p2_y - 2*p1_y)]
+
+    return _x_coeff, _y_coeff
+
+
+def calculate_cubic_bezier(start_node, mid_node_1, mid_node_2, end_node):
+    p0_x = start_node.x
+    p1_x = mid_node_1.x
+    p2_x = mid_node_2.x
+    p3_x = end_node.x
+
+    _x_coeff = [p0_x, (3*p1_x - 3*p0_x), (3*p0_x - 6*p1_x + 3*p2_x), (-p0_x + 3*p1_x - 3*p2_x + p3_x)]
+
+    p0_y = start_node.y
+    p1_y = mid_node_1.y
+    p2_y = mid_node_2.y
+    p3_y = end_node.y
+
+    _y_coeff = [p0_y, (3*p1_y - 3*p0_y), (3*p0_y - 6*p1_y + 3*p2_y), (-p0_y + 3*p1_y - 3*p2_y + p3_y)]
+
+    return _x_coeff, _y_coeff
+
+
+
+# List of paths
+paths = [
+    Path(1, nodes[0], nodes[2], calculate_quadratic_bezier(nodes[0], nodes[1], nodes[2])),
+    Path(2, nodes[3], nodes[6], calculate_cubic_bezier(nodes[3], nodes[4], nodes[5], nodes[6])),
+]
 
 
 # Find length along spline
 def find_length(path):
+
+    # https://math.libretexts.org/Bookshelves/Calculus/Book%3A_Calculus_(OpenStax)/11%3A_Parametric_Equations_and_Polar_Coordinates/11.02%3A_Calculus_of_Parametric_Curves#:~:text=The%20arc%20length%20of%20a%20parametric%20curve%20can%20be%20calculated,dt)2dt.
+
     a = path.x_coeff[1]
     b = path.x_coeff[2]
     c = path.x_coeff[3]
@@ -48,7 +107,7 @@ def find_length(path):
 
         du = du1 + du2 + du3 + du4 + du5 + du6 + du7 + du8 + du9 + du10
 
-        ans = (2 / 3) * pow(u, (3 / 2)) * (1 / du)
+        ans = (2/3) * pow(u, (3/2)) * (1 / du)
 
         llist.append(ans)
 
@@ -57,13 +116,14 @@ def find_length(path):
 
 
 # Main function
-def main() -> None:
-    """
-
-    Main function to test and run the junction visualiser
-    :return: None
-    """
+def main():
     Visualiser = JunctionVisualiser()
+    while True:
+        Visualiser.refresh()
+        Visualiser.draw_bezian_squared_paths([paths[0]])
+        Visualiser.draw_bezian_cubic_paths([paths[1]])
+        Visualiser.draw_nodes(nodes)
+        Visualiser.update()
 
 
 if __name__ == "__main__":

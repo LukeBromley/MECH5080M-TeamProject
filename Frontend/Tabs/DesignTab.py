@@ -82,7 +82,7 @@ class DesignTab(QtWidgets.QWidget):
         # Re-add all paths
         for index, path in enumerate(reversed(paths)):
             self.path_widgets.append(PathWidget(self.path_box, self.path_box_scroll.v_box))
-            self.path_widgets[-1].set_info(path.uid, path.start_node.uid, path.end_node.uid, nodes, path.poly_order)
+            self.path_widgets[-1].set_info(path.uid, path.start_node.uid, path.end_node.uid, nodes)
             self.path_widgets[-1].connect_delete(partial(self.remove_path, path.uid))
             self.path_widgets[-1].connect_change(partial(self.update_path_data, path.uid, index))
             if path.start_node == path.end_node:

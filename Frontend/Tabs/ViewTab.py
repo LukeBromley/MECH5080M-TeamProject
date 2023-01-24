@@ -43,7 +43,6 @@ class ViewTab(QtWidgets.QWidget):
 
         self.layer_grid = TickBox(self, "Grid", layout=self.layers_box.v_box)
         self.layer_hermite_paths = TickBox(self, "Hermite Paths", layout=self.layers_box.v_box)
-        self.layer_poly_paths = TickBox(self, "Poly Paths", layout=self.layers_box.v_box)
         self.layer_nodes = TickBox(self, "Nodes", layout=self.layers_box.v_box)
         self.layer_labels = TickBox(self, "Labels", layout=self.layers_box.v_box)
         self.layer_curvature = TickBox(self, "Curvature", layout=self.layers_box.v_box)
@@ -73,7 +72,6 @@ class ViewTab(QtWidgets.QWidget):
 
         self.layer_grid.stateChanged.connect(self.update_layer_states)
         self.layer_hermite_paths.stateChanged.connect(self.update_layer_states)
-        self.layer_poly_paths.stateChanged.connect(self.update_layer_states)
         self.layer_nodes.stateChanged.connect(self.update_layer_states)
         self.layer_labels.stateChanged.connect(self.update_layer_states)
         self.layer_curvature.stateChanged.connect(self.update_layer_states)
@@ -88,7 +86,6 @@ class ViewTab(QtWidgets.QWidget):
 
         self.show_layer_grid = self.layer_grid.isChecked()
         self.show_layer_hermite_paths = self.layer_hermite_paths.isChecked()
-        self.show_layer_poly_paths = self.layer_poly_paths.isChecked()
 
         if self.layer_hermite_paths.isChecked():
             self.layer_curvature.setEnabled(True)
@@ -111,7 +108,6 @@ class ViewTab(QtWidgets.QWidget):
         """
         self.layer_grid.setChecked(self.show_layer_grid)
         self.layer_hermite_paths.setChecked(self.show_layer_hermite_paths)
-        self.layer_poly_paths.setChecked(self.show_layer_poly_paths)
         self.layer_nodes.setChecked(self.show_layer_nodes)
         self.layer_labels.setChecked(self.show_layer_labels)
         self.layer_curvature.setChecked(self.show_layer_curvature)
