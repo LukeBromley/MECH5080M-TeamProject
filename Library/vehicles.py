@@ -2,17 +2,23 @@ from Library.infrastructure import Path
 
 
 class Car:
-    def __init__(self, path: Path, velocity: float = 0.0, acceleration: float = 0.0, maximum_acceleration: float = 9.81,
+    def __init__(self, uid, start_time, path: Path, position_data, velocity: float = 0.0, acceleration: float = 0.0, maximum_acceleration: float = 9.81,
                  maximum_deceleration: float = 6.0, distance_traveled: float = 0.0, preferred_time_gap: float = 2.0,
                  vehicle_length: float = 4.5, maximum_velocity: float = 20.0) -> None:
         """
 
+        :param uid:
+        :param start_time:
+        :param path: (UNSURE)
+        :param position_data:
         :param velocity: initial velocity of the vehicle [m/s]
         :param acceleration: initial acceleration of the vehicle [m/s**2]
         :param maximum_acceleration: maximum acceleration of the vehicle [m/s**2]
         :param distance_traveled: distance traveled along a Path [m]
         """
-
+        self.uid = uid
+        self.start_time = start_time
+        self.position_data = position_data if position_data is not None else []
         self._path = path
         self._velocity = velocity
         self._acceleration = acceleration
