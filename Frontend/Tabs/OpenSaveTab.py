@@ -74,7 +74,8 @@ class OpenSaveTab(QtWidgets.QWidget):
         if self.save_file_path is not None:
             FileManager = FileManagement()
             nodes, paths = self.get_nodes_paths_function()
-            FileManager.save_to_file(self.save_file_path, nodes, paths)
+            lights = self.get_lights_function()
+            FileManager.save_to_junction_file(self.save_file_path, nodes, paths, lights)
 
     def save_as_junction(self) -> None:
         """
@@ -88,7 +89,7 @@ class OpenSaveTab(QtWidgets.QWidget):
             FileManager = FileManagement()
             nodes, paths = self.get_nodes_paths_function()
             lights = self.get_lights_function()
-            FileManager.save_to_file(self.save_file_path, nodes, paths, lights)
+            FileManager.save_to_junction_file(self.save_file_path, nodes, paths, lights)
             self.save.setEnabled(True)
             self.new.setEnabled(True)
 
