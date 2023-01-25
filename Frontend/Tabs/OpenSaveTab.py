@@ -2,7 +2,7 @@ from Frontend.Tabs.PYQTShortcuts import *
 from PyQt5.QtWidgets import QFileDialog
 from PyQt5.QtCore import Qt
 
-from Frontend.JunctionFileManagement import *
+from Library.FileManagement import *
 
 
 class OpenSaveTab(QtWidgets.QWidget):
@@ -57,8 +57,8 @@ class OpenSaveTab(QtWidgets.QWidget):
         :return: None
         """
         self.save_file_path = file_path
-        FileManager = JunctionFileManagement()
-        nodes, paths, lights = FileManager.load_from_file(self.save_file_path)
+        FileManager = FileManagement()
+        nodes, paths, lights = FileManager.load_from_junction_file(self.save_file_path)
         self.update_nodes_paths_function(nodes, paths)
         self.update_lights_function(lights)
         self.render_function()
@@ -72,7 +72,7 @@ class OpenSaveTab(QtWidgets.QWidget):
         :return: None
         """
         if self.save_file_path is not None:
-            FileManager = JunctionFileManagement()
+            FileManager = FileManagement()
             nodes, paths = self.get_nodes_paths_function()
             FileManager.save_to_file(self.save_file_path, nodes, paths)
 
@@ -85,7 +85,7 @@ class OpenSaveTab(QtWidgets.QWidget):
         file_path = QFileDialog.getSaveFileName(self, 'Save Junction', '.', "Junction Files (*.junc)")[0]
         if len(file_path) > 0:
             self.save_file_path = file_path
-            FileManager = JunctionFileManagement()
+            FileManager = FileManagement()
             nodes, paths = self.get_nodes_paths_function()
             lights = self.get_lights_function()
             FileManager.save_to_file(self.save_file_path, nodes, paths, lights)
