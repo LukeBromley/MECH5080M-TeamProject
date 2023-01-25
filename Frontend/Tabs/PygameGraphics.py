@@ -31,16 +31,16 @@ class VisualLabel:
 
 
 class PygameGraphics:
-    def __init__(self, window_width, window_height, get_nodes_paths_function) -> None:
+    def __init__(self, window_width, window_height, get_data_function) -> None:
         """
 
         :param window_width: GUI window width for calculating surface size
         :param window_height: GUI window heigh for calculating surface size
-        :param get_nodes_paths_function: method of JuctionVisualiser for retrieving current nodes and current paths
+        :param get_data_function: method of JuctionVisualiser for retrieving current nodes and current paths
         """
 
         # Functions
-        self.get_nodes_paths_function = get_nodes_paths_function
+        self.get_data_function = get_data_function
 
         # Window Parameters
         self._window_width, self._window_height = window_width, window_height
@@ -86,7 +86,7 @@ class PygameGraphics:
         self._path_label_colour = (0, 255, 0)
 
     # Main function for drawing paths (from renders), nodes, labels, grid etc.
-    def refresh(self, draw_grid=False, draw_hermite_paths=False, draw_nodes=False, draw_node_labels=False, draw_path_labels=False, draw_curvature=False) -> None:
+    def refresh(self, draw_grid=False, draw_hermite_paths=False, draw_nodes=False, draw_cars=False, draw_node_labels=False, draw_path_labels=False, draw_curvature=False) -> None:
         """
 
         This function manages what "layers" are displayed on the pygame surface.
@@ -102,11 +102,12 @@ class PygameGraphics:
         self.surface.fill((255, 255, 255))
         self.surface.set_at(self._position_offsetter(0, 0), (0, 0, 0))
 
-        nodes, paths = self.get_nodes_paths_function()
+        nodes, paths, cars = self.get_data_function()
 
         if draw_grid: self._draw_grid()
         if draw_hermite_paths: self._draw_hermite_paths(draw_curvature)
         if draw_nodes: self._draw_nodes(nodes)
+        if draw_cars: self._draw_cars(cars)
         self._draw_labels(draw_node_labels, draw_path_labels)
 
     def highlight_paths(self, paths: list) -> None:
@@ -340,5 +341,9 @@ class PygameGraphics:
         :return: None
         """
         self._scale = scale
+
+    def _draw_cars(self, cars):
+        for car in cars:
+            pass
 
 
