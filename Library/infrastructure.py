@@ -57,9 +57,29 @@ class Path:
             dy = self.points_data[length + 1][1] - self.points_data[length - 1][1]
             angle = atan(dy / dx)
             return angle
+        elif length == 0:
+            dx = self.points_data[3][0] - self.points_data[0][0]
+            dy = self.points_data[3][1] - self.points_data[0][1]
+            angle = atan(dy / dx)
+            return angle
+        elif length == len(self.points_data) - 1:
+            dx = self.points_data[len(self.points_data) - 1][0] - self.points_data[len(self.points_data) - 3][0]
+            dy = self.points_data[len(self.points_data) - 1][1] - self.points_data[len(self.points_data) - 3][1]
+            angle = atan(dy / dx)
+            return angle
 
-    def get_curvature_from_arc_length(self, length):
-        pass
+    def get_curvature_from_arc_length(self, length: int):
+        """
+
+        Curvature = dθ/ds = 2π/2πR
+        :param length:
+        :return:
+        """
+        if 0 < length < len(self.points_data):
+            dx = self.points_data[length][0] - self.points_data[length - 1][0]
+            dy = self.points_data[length][1] - self.points_data[length - 1][1]
+            curvature = atan(dy / dx)
+            return curvature
 
     # Calculations
     def recalculate_coefs(self):
@@ -95,6 +115,7 @@ class Path:
             distance_delta = self.length_unit_size - distance
             if abs(distance_delta) < self.length_unit_error:
                 self.points_data.append([x1, y1])
+
 
     # def calculate_differentials(self):
     #     for order, coefficient in enumerate(reversed(self.poly_coeff)):
