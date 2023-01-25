@@ -78,7 +78,6 @@ class PygameGraphics:
         self._path_colour = (0, 255, 0)
         self._path_highlight_colour = (255, 0, 255)
         self._hermite_path_points = []
-        self._poly_path_points = []
 
         # Label parameters
         self._node_labels = []
@@ -87,7 +86,7 @@ class PygameGraphics:
         self._path_label_colour = (0, 255, 0)
 
     # Main function for drawing paths (from renders), nodes, labels, grid etc.
-    def refresh(self, draw_grid=False, draw_hermite_paths=False, draw_poly_paths=False, draw_nodes=False, draw_node_labels=False, draw_path_labels=False, draw_curvature=False) -> None:
+    def refresh(self, draw_grid=False, draw_hermite_paths=False, draw_nodes=False, draw_node_labels=False, draw_path_labels=False, draw_curvature=False) -> None:
         """
 
         This function manages what "layers" are displayed on the pygame surface.
@@ -107,7 +106,6 @@ class PygameGraphics:
 
         if draw_grid: self._draw_grid()
         if draw_hermite_paths: self._draw_hermite_paths(draw_curvature)
-        if draw_poly_paths: self._draw_poly_paths(draw_curvature)
         if draw_nodes: self._draw_nodes(nodes)
         self._draw_labels(draw_node_labels, draw_path_labels)
 
@@ -192,13 +190,14 @@ class PygameGraphics:
         :param upper: highest path curve radius
         :return: colour based on curve radius at path curvature array index
         """
-        if type(path.poly_coeff) is list:
-            try:
-                colour_mag = round((self._clamp(path.curvature[i], lower, upper) - lower) * (255 / (upper - lower)))
-            except ValueError:
-                colour_mag = 0
-        else:
-            colour_mag = 0
+        # if type(path.poly_coeff) is list:
+        #     try:
+        #         colour_mag = round((self._clamp(path.curvature[i], lower, upper) - lower) * (255 / (upper - lower)))
+        #     except ValueError:
+        #         colour_mag = 0
+        # else:
+        #     colour_mag = 0
+        colour_mag = 0
         return colour_mag, 255 - colour_mag, 0
 
     def _position_offsetter(self, x: int, y: int) -> tuple:

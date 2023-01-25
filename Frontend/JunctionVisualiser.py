@@ -95,7 +95,7 @@ class MainWindow(QtWidgets.QMainWindow):
             draw_hermite_paths=self.view_tab.show_layer_hermite_paths,
             draw_nodes=self.view_tab.show_layer_nodes,
             draw_node_labels=True if self.view_tab.show_layer_labels and self.view_tab.show_layer_nodes else False,
-            draw_path_labels=True if self.view_tab.show_layer_labels and (self.view_tab.show_layer_hermite_paths or self.view_tab.show_layer_poly_paths) else False,
+            draw_path_labels=True if self.view_tab.show_layer_labels and self.view_tab.show_layer_hermite_paths else False,
             draw_curvature=self.view_tab.show_layer_curvature,
         )
         self.pygame_widget.refresh(self.pygame_graphics.surface)
