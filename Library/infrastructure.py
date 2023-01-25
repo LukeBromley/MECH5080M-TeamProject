@@ -96,74 +96,22 @@ class Path:
     def calculate_curvature_grid(self):
         curvature = []
         if type(self.poly_coeff) is list:
-            path_length = round(
-                self.get_euclidean_distance() * 1.5)
+            path_length = round(self.get_euclidean_distance() * 1.5)
             for i in range(path_length + 1):
                 s = i / path_length
-                x = self.x_hermite_cubic_coeff[0] + self.x_hermite_cubic_coeff[1] * s + self.x_hermite_cubic_coeff[
-                    2] * (s * s) + self.x_hermite_cubic_coeff[3] * (s * s * s)
-                curvature.append(self.calculate_curvature(x))
+                curvature.append(self.calculate_curvature(s))
+        self.curvature = curvature
 
-        filter_size = 51
-        filtered_curvature = [0 for i in range(floor(filter_size / 2))]
-        for rad_i in range(floor(filter_size / 2), len(curvature) - floor(filter_size / 2)):
-            sum = 0
-            for i in range(filter_size):
-                sum += curvature[rad_i - floor(filter_size / 2) + i]
-            sum /= filter_size
-            filtered_curvature.append(sum)
-        filtered_curvature += [0 for i in range(floor(filter_size / 2))]
-        self.curvature = filtered_curvature
+    def calculate_curvature(self, s: float):
+        dy_ds = (3 * self.y_hermite_cubic_coeff[3] * s ** 2 + 2 * self.y_hermite_cubic_coeff[2] * s + self.y_hermite_cubic_coeff[1])
+        dx_ds = (3 * self.x_hermite_cubic_coeff[3] * s ** 2 + 2 * self.x_hermite_cubic_coeff[2] * s + self.x_hermite_cubic_coeff[1]) + 0.00001
+        y_ = dy_ds / dx_ds
 
-    def calculate_curvature(self, x):
-        diff_1_coef = []
-        diff_2_coef = []
-        n_max = len(self.poly_coeff) - 1
-        for n, coef in enumerate(self.poly_coeff):
-            if n != n_max:
-                diff_1_coef.append(coef * (n_max - n))
-        for n, coef in enumerate(diff_1_coef):
-            if n != n_max - 1:
-                diff_2_coef.append(coef * (n_max - n - 1))
-        y__ = 0
-        for n, coef in enumerate(diff_2_coef):
-            y__ += coef * pow(x, n_max - n - 2)
-        y_ = 0
-        for n, coef in enumerate(diff_1_coef):
-            y_ += coef * pow(x, n_max - n - 1)
+        d2y_ds2 = (6 * self.y_hermite_cubic_coeff[3] * s + 2 * self.y_hermite_cubic_coeff[2])
+        d2x_ds2 = (6 * self.x_hermite_cubic_coeff[3] * s + 2 * self.x_hermite_cubic_coeff[2]) + 0.00001
+        y__ = d2y_ds2 / d2x_ds2
+
         return abs(y__) / (pow((1 + (y_ ** 2)), (3 / 2)))
-
-    def calculate_distance_traveled(self, a: float, b: float, n: int = 10):
-        x = sym.Symbol('x')
-        h = (b - a) / n
-        distance_traveled = 0
-        for i in range(1, int(n / 2 + 1), 1):
-            distance_traveled += (
-                    self.arc_length_integrand.subs(x, a + (2 * i - 2) * h) +
-                    4 * self.arc_length_integrand.subs(x, a + (2 * i - 1) * h) +
-                    self.arc_length_integrand.subs(x, a + (2 * i) * h)
-            )
-        return h * distance_traveled / 3
-
-    def get_coordinates(self, distance_traveled: float, n: int = 100):
-        # The arc length integral is non-convergent.
-
-        a = self.start_node.x
-        b = self.end_node.x
-        x = sym.Symbol('x')
-        h = (b - a) / n
-        distance = 0
-        for i in range(1, int(n / 2 + 1), 1):
-            distance += (
-                    self.arc_length_integrand.subs(x, a + (2 * i - 2) * h) +
-                    4 * self.arc_length_integrand.subs(x, a + (2 * i - 1) * h) +
-                    self.arc_length_integrand.subs(x, a + (2 * i) * h)
-            )
-            if h * distance / 3 > distance_traveled:
-                x_i = a + 2*i*h
-                return x_i, self._y.subs(x, x_i)
-            elif i >= int(n / 2):
-                return self.end_node.x, self.end_node.y
 
     def add_vehicle(self, vehicle):
         self.vehicles.append(vehicle)
@@ -171,11 +119,9 @@ class Path:
     def get_vehicle_ahead(self, distance_traveled: float):
         distances_traveled = [vehicle.get_distance_traveled() for vehicle in self.vehicles]
         greater_distances_traveled = [i for i in distances_traveled if distance_traveled < i]
-
         if greater_distances_traveled:
             closes_distance_traveled = min(greater_distances_traveled)
             return self.vehicles[distances_traveled.index(closes_distance_traveled)]
-
 
 
 class TrafficLight:

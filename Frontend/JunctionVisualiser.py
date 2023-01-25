@@ -93,7 +93,6 @@ class MainWindow(QtWidgets.QMainWindow):
         self.pygame_graphics.refresh(
             draw_grid=self.view_tab.show_layer_grid,
             draw_hermite_paths=self.view_tab.show_layer_hermite_paths,
-            draw_poly_paths=self.view_tab.show_layer_poly_paths,
             draw_nodes=self.view_tab.show_layer_nodes,
             draw_node_labels=True if self.view_tab.show_layer_labels and self.view_tab.show_layer_nodes else False,
             draw_path_labels=True if self.view_tab.show_layer_labels and (self.view_tab.show_layer_hermite_paths or self.view_tab.show_layer_poly_paths) else False,
@@ -115,7 +114,6 @@ class MainWindow(QtWidgets.QMainWindow):
 
         if len(self.paths) > 0:
             self.pygame_graphics.render_hermite_paths(self.paths)
-            self.pygame_graphics.render_poly_paths(self.paths)
         self.refresh_pygame_widget()
 
     def pygame_widget_scroll(self, event) -> None:
