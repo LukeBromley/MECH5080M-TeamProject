@@ -5,6 +5,9 @@ import sympy as sym
 from numpy import polyfit, RankWarning
 import warnings
 
+from Library.maths import Vector, calculate_cross_product, calculate_vector_magnitude
+
+
 class Node:
     def __init__(self, uid: int, x: float, y: float, angle: float):
         self.uid = uid
@@ -103,15 +106,18 @@ class Path:
         self.curvature = curvature
 
     def calculate_curvature(self, s: float):
-        dy_ds = (3 * self.y_hermite_cubic_coeff[3] * s ** 2 + 2 * self.y_hermite_cubic_coeff[2] * s + self.y_hermite_cubic_coeff[1])
-        dx_ds = (3 * self.x_hermite_cubic_coeff[3] * s ** 2 + 2 * self.x_hermite_cubic_coeff[2] * s + self.x_hermite_cubic_coeff[1]) + 0.00001
-        y_ = dy_ds / dx_ds
+        ## Source: https://math.libretexts.org/Bookshelves/Calculus/Supplemental_Modules_(Calculus)/Vector_Calculus/2%3A_Vector-Valued_Functions_and_Motion_in_Space/2.3%3A_Curvature_and_Normal_Vectors_of_a_Curve
 
-        d2y_ds2 = (6 * self.y_hermite_cubic_coeff[3] * s + 2 * self.y_hermite_cubic_coeff[2])
-        d2x_ds2 = (6 * self.x_hermite_cubic_coeff[3] * s + 2 * self.x_hermite_cubic_coeff[2]) + 0.00001
-        y__ = d2y_ds2 / d2x_ds2
+        dy_ds = self.y_hermite_cubic_coeff[1] + 2 * self.y_hermite_cubic_coeff[2] * s + 3 * self.y_hermite_cubic_coeff[3] * s * s
+        dy2_ds2 = 2 * self.y_hermite_cubic_coeff[2] + 6 * self.y_hermite_cubic_coeff[3] * s
 
-        return abs(y__) / (pow((1 + (y_ ** 2)), (3 / 2)))
+        dx_ds = self.x_hermite_cubic_coeff[1] + 2 * self.x_hermite_cubic_coeff[2] * s + 3 * self.x_hermite_cubic_coeff[3] * (s * s)
+        dx2_ds2 = 2 * self.x_hermite_cubic_coeff[2] + 6 * self.x_hermite_cubic_coeff[3] * s
+
+        dR_ds = Vector(dx_ds, dy_ds, 0)
+        dR2_ds2 = Vector(dx2_ds2, dy2_ds2, 0)
+
+        return calculate_vector_magnitude(calculate_cross_product(dR_ds, dR2_ds2)) / (calculate_vector_magnitude(dR_ds)**3)
 
     def add_vehicle(self, vehicle):
         self.vehicles.append(vehicle)
