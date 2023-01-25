@@ -1,6 +1,6 @@
 import sys
-from Tabs.PygameGraphics import *
-from Tabs.ControlTab import *
+from .Tabs.PygameGraphics import *
+from .Tabs.ControlTab import *
 from PyQt5.QtCore import QThread, QObject, pyqtSignal
 from Library.FileManagement import *
 from Library.maths import clamp

@@ -1,11 +1,11 @@
 import sys
 from PyQt5.QtWidgets import QStyleFactory
 
-from Tabs.PygameGraphics import *
-from Tabs.OpenSaveTab import *
-from Tabs.DesignTab import *
-from Tabs.ViewTab import *
-from Tabs.ControlTab import *
+from .Tabs.PygameGraphics import *
+from .Tabs.OpenSaveTab import *
+from .Tabs.DesignTab import *
+from .Tabs.ViewTab import *
+from .Tabs.ControlTab import *
 
 import threading
 
@@ -47,7 +47,7 @@ class DesignerMainWindow(QtWidgets.QMainWindow):
         self.setMinimumSize(self.window_width, self.window_height)
 
         # Pygame graphics renderer
-        self.pygame_graphics = PygameGraphics(self.window_width, self.window_height, self.get_nodes_paths)
+        self.pygame_graphics = PygameGraphics(self.window_width, self.window_height, self.get_data)
 
         # Set central widgets
         self.main_widget = QtWidgets.QWidget()
@@ -161,6 +161,13 @@ class DesignerMainWindow(QtWidgets.QMainWindow):
         :return: Returns the list of nodes and paths
         """
         return self.nodes, self.paths, self.cars
+
+    def get_nodes_paths(self) -> tuple:
+        """
+
+        :return: Returns the list of nodes and paths
+        """
+        return self.nodes, self.paths
 
     def update_lights(self, lights: list, refresh_widgets: bool = True):
         """
