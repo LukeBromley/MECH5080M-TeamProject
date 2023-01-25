@@ -101,7 +101,7 @@ class Path:
         self.y_hermite_cubic_coeff = [p1y, p1ty, -3 * p1y + 3 * p2y - 2 * p1ty + p2ty, 2 * p1y - 2 * p2y + p1ty - p2ty]
             
     def calculate_arc_length_points(self):
-        number_of_iterations = 10000000
+        number_of_iterations = 10000
 
         x_start, y_start = self.get_coords_by_s_terms(0)
         self.points_data = [[x_start, y_start]]

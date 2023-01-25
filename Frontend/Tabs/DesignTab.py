@@ -287,7 +287,6 @@ class PathWidget(QtWidgets.QWidget):
         self.start_node = ComboBox(self, self.h_box)
         self.end_node_label = Text(self, "To: ", self.h_box)
         self.end_node = ComboBox(self, self.h_box)
-        self.order = Text(self, "Order: ", self.h_box)
         self.delete = Button(self, "Delete", self.h_box)
         # self.car_spawner = TickBox(self, "Car")
 
@@ -305,7 +304,7 @@ class PathWidget(QtWidgets.QWidget):
         """
         self.uid_label.setStyleSheet("background: transparent;")
 
-    def set_info(self, uid: int, start_uid: object, end_uid: object, nodes: list, order: int) -> None:
+    def set_info(self, uid: int, start_uid: object, end_uid: object, nodes: list) -> None:
         """
 
         :param uid: set uid info to display
@@ -320,7 +319,6 @@ class PathWidget(QtWidgets.QWidget):
             self.end_node.addItem(str(node.uid))
         self.start_node.setCurrentText(str(start_uid))
         self.end_node.setCurrentText(str(end_uid))
-        self.order.setText(str(order))
 
     def connect_change(self, function) -> None:
         """
