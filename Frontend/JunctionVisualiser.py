@@ -3,6 +3,7 @@ from Tabs.PygameGraphics import *
 from Tabs.ControlTab import *
 from PyQt5.QtCore import QThread, QObject, pyqtSignal
 from Library.FileManagement import *
+from Library.maths import clamp
 
 
 class JunctionVisualiser:
@@ -44,6 +45,11 @@ class JunctionVisualiser:
     def update_car_positions(self, car_positions: list) -> None:
         self.viewer_window.cars = car_positions
 
+    def set_scale(self, scale):
+        scale = clamp(scale, 25, 200)
+        scale = scale / 100
+        self.viewer_window.pygame_graphics.set_scale(scale)
+
 
 class Run_Time_Function(QObject):
     finished = pyqtSignal()
@@ -78,7 +84,7 @@ class ViewerMainWindow(QtWidgets.QMainWindow):
         self.setMinimumSize(round(self.window_width / 2), self.window_height)
 
         # Pygame graphics renderer
-        self.pygame_graphics = PygameGraphics(self.window_width, self.window_height, self.get_nodes_paths)
+        self.pygame_graphics = PygameGraphics(self.window_width, self.window_height, self.get_data)
 
         # Junction view widget
         self.pygame_widget = PyGameWidget(None)
@@ -88,6 +94,8 @@ class ViewerMainWindow(QtWidgets.QMainWindow):
 
         # Initialise render
         self.render_pygame_widget()
+
+        self.timer = Timer(0.01, self.refresh_pygame_widget, single_shot=False)
 
     def refresh_pygame_widget(self) -> None:
         """
@@ -148,9 +156,9 @@ class ViewerMainWindow(QtWidgets.QMainWindow):
             self.design_tab.update_node_path_widgets(self.nodes, self.paths)
         self.control_tab.set_add_light_button_state()
 
-    def get_nodes_paths(self) -> tuple:
+    def get_data(self) -> tuple:
         """
 
         :return: Returns the list of nodes and paths
         """
-        return self.nodes, self.paths
+        return self.nodes, self.paths, self.cars

@@ -1,20 +1,7 @@
 import pygame
 from math import sin, cos
 from PyQt5 import QtCore
-from typing import Union
-
-
-class VisualPoint:
-    def __init__(self, x: int, y: int, colour: tuple) -> None:
-        """
-
-        :param x: x coordinate of plotted point
-        :param y: y coordinate of plotted point
-        :param colour: colour of plotted point
-        """
-        self.x = x
-        self.y = y
-        self.colour = colour
+from Library.maths import clamp, VisualPoint
 
 
 class VisualLabel:
@@ -215,17 +202,6 @@ class PygameGraphics:
 
         return x, y
 
-    def _clamp(self, n: Union[int, float], minn: Union[int, float], maxn: Union[int, float]) -> Union[int, float]:
-        """
-
-        Limit a value, n, between minimum and maximum
-        :param n: value to be limited
-        :param minn: min that n can be
-        :param maxn: max that n can be
-        :return: limited value
-        """
-        return max(min(maxn, n), minn)
-
     # Other drawing functions
 
     def _draw_nodes(self, nodes: list) -> None:
@@ -344,6 +320,7 @@ class PygameGraphics:
 
     def _draw_cars(self, cars):
         for car in cars:
-            pass
+            x, y = self._position_offsetter(car[0], car[1])
+            pygame.draw.circle(self.surface, (255, 130, 0), (x, y), 5)
 
 
