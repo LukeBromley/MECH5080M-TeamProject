@@ -90,6 +90,9 @@ class DesignTab(QtWidgets.QWidget):
             else:
                 self.path_widgets[-1].unhighlight_error()
 
+        # Enable / Disable paths
+        self.add_path_button.setEnabled(True if len(nodes) > 1 else False)
+
     def update_node_data(self, uid: int, widget_index: int) -> None:
         """
 
