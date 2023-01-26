@@ -29,8 +29,8 @@ class Path:
         self.x_hermite_cubic_coeff = []
         self.y_hermite_cubic_coeff = []
 
-        self.discrete_length_increment_size = 10
-        self.discrete_iteration_qty = 1000
+        self.discrete_length_increment_size = 1
+        self.discrete_iteration_qty = 100000
         self.discrete_path = []
 
         self.curvature = []
