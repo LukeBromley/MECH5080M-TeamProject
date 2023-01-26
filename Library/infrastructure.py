@@ -29,8 +29,8 @@ class Path:
         self.x_hermite_cubic_coeff = []
         self.y_hermite_cubic_coeff = []
 
-        self.discrete_length_increment_size = 10
-        self.discrete_iteration_qty = 1000
+        self.discrete_length_increment_size = 1
+        self.discrete_iteration_qty = 100000
         self.discrete_path = []
 
         self.curvature = []
@@ -47,7 +47,10 @@ class Path:
 
     def get_coords(self, arc_length: float):
         arc_length = round(arc_length)
-        return self.discrete_path[arc_length][1], self.discrete_path[arc_length][2]
+        if arc_length >= len(self.discrete_path):
+            return None
+        else:
+            return self.discrete_path[arc_length][1], self.discrete_path[arc_length][2]
 
     def get_direction(self, arc_length: float):
         arc_length = round(arc_length)

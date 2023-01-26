@@ -37,7 +37,7 @@ class Car:
         :param time_delta: time step size [s]
         """
 
-        vehicle_ahead = self._path.get_vehicle_ahead(self._distance_traveled)
+        vehicle_ahead = None
         self._acceleration = self._calculate_acceleration(vehicle_ahead)
         self._velocity += self._acceleration * time_delta
         self._velocity = min(self._velocity, self._maximum_velocity)
@@ -70,7 +70,7 @@ class Car:
         return min(acceleration, self._maximum_acceleration)
 
     def get_cartesian_position(self):
-        return self._path.get_coordinates(self._distance_traveled)
+        return self._path.get_coords(100*self._distance_traveled)
 
     def get_distance_traveled(self) -> float:
         return self._distance_traveled
