@@ -1,11 +1,9 @@
 import sys
-from PyQt5.QtWidgets import QStyleFactory
-
-from Tabs.PygameGraphics import *
-from Tabs.OpenSaveTab import *
-from Tabs.DesignTab import *
-from Tabs.ViewTab import *
-from Tabs.ControlTab import *
+from .Tabs.PygameGraphics import *
+from .Tabs.ControlTab import *
+from PyQt5.QtCore import QThread, QObject, pyqtSignal
+from Library.FileManagement import *
+from Library.maths import clamp
 
 
 class JunctionVisualiser:
@@ -19,67 +17,85 @@ class JunctionVisualiser:
         self.application = QtWidgets.QApplication(sys.argv)
         self.application.setStyle('Windows')  # REQUIRED to show tickable combo boxes!!!!
         # Main window object + display it
-        self.main_window = MainWindow()
-        self.main_window.show()
-        # Execute application
+        self.viewer_window = ViewerMainWindow()
+        # Main Thread
+        self.thread = QThread()
+        self.worker = Run_Time_Function()
+        self.worker.moveToThread(self.thread)
+        self.thread.started.connect(self.worker.run)
+        self.worker.finished.connect(self.thread.quit)
+        self.worker.finished.connect(self.worker.deleteLater)
+        self.thread.finished.connect(self.thread.deleteLater)
+
+    def load_junction(self, junction_file_path):
+        file_manager = FileManagement()
+        nodes, paths, lights = file_manager.load_from_junction_file(junction_file_path)
+        self.viewer_window.nodes = nodes
+        self.viewer_window.paths = paths
+        self.viewer_window.render_pygame_widget()
+
+    def define_main(self, function):
+        self.worker.set_main_function(function)
+
+    def open(self):
+        self.thread.start()
+        self.viewer_window.show()
         self.application.exec_()
 
+    def update_car_positions(self, car_positions: list) -> None:
+        self.viewer_window.cars = car_positions
 
-class MainWindow(QtWidgets.QMainWindow):
+    def set_scale(self, scale):
+        scale = clamp(scale, 25, 200)
+        scale = scale / 100
+        self.viewer_window.pygame_graphics.set_scale(scale)
+
+
+class Run_Time_Function(QObject):
+    finished = pyqtSignal()
+    def __init__(self):
+        super().__init__()
+        self.function = None
+
+    def run(self):
+        self.function()
+        self.finished.emit()
+
+    def set_main_function(self, function):
+        self.function = function
+
+
+class ViewerMainWindow(QtWidgets.QMainWindow):
     def __init__(self) -> None:
         """
 
         Main GUI window.
         Contains all subwidgets
         """
-        super(MainWindow, self).__init__()
+        super(ViewerMainWindow, self).__init__()
 
         # List of all nodes and paths
         self.nodes = []
         self.paths = []
-        self.lights = []
+        self.cars = []
 
         # Set GUI window size
         self.window_width, self.window_height = 1440, 847
-        self.setMinimumSize(self.window_width, self.window_height)
+        self.setMinimumSize(round(self.window_width / 2), self.window_height)
 
         # Pygame graphics renderer
-        self.pygame_graphics = PygameGraphics(self.window_width, self.window_height, self.get_nodes_paths)
-
-        # Set central widgets
-        self.main_widget = QtWidgets.QWidget()
-        self.setCentralWidget(self.main_widget)
-
-        # Widgets + Layouts
-        self.h_box = HBox(self.main_widget)
+        self.pygame_graphics = PygameGraphics(self.window_width, self.window_height, self.get_data)
 
         # Junction view widget
-        self.pygame_widget = PyGameWidget(self.main_widget, layout=self.h_box)
+        self.pygame_widget = PyGameWidget(None)
+        self.setCentralWidget(self.pygame_widget)
         self.pygame_widget.connect(self.pygame_widget_scroll)
         self.pygame_widget.setFixedWidth(round(self.window_width / 2))
 
-        # Tabs widget
-        self.tabs = Tabs(self.main_widget, layout=self.h_box)
-
-        # File management tab
-        self.open_save_tab = OpenSaveTab(self.refresh_pygame_widget, self.render_pygame_widget, self.update_nodes_paths, self.get_nodes_paths, self.update_lights, self.get_lights)
-        self.tabs.addTab(self.open_save_tab, "Open / Save")
-
-        # Design tab
-        self.design_tab = DesignTab(self.refresh_pygame_widget, self.render_pygame_widget, self.update_nodes_paths, self.get_nodes_paths)
-        self.tabs.addTab(self.design_tab, "Design")
-
-        # View tab
-        self.view_tab = ViewTab(self.refresh_pygame_widget, self.render_pygame_widget, self.recenter, self.pygame_graphics.set_scale)
-        self.tabs.addTab(self.view_tab, "View")
-
-        # Control tab
-        self.control_tab = ControlTab(self.refresh_pygame_widget, self.render_pygame_widget, self.identify_path, self.update_nodes_paths, self.get_nodes_paths, self.update_lights, self.get_lights)
-        self.tabs.addTab(self.control_tab, "Control")
-        self.timer = None
-
         # Initialise render
         self.render_pygame_widget()
+
+        self.timer = Timer(0.01, self.refresh_pygame_widget, single_shot=False)
 
     def refresh_pygame_widget(self) -> None:
         """
@@ -91,17 +107,15 @@ class MainWindow(QtWidgets.QMainWindow):
         :return: None
         """
         self.pygame_graphics.refresh(
-            draw_grid=self.view_tab.show_layer_grid,
-            draw_hermite_paths=self.view_tab.show_layer_hermite_paths,
-            draw_poly_paths=self.view_tab.show_layer_poly_paths,
-            draw_nodes=self.view_tab.show_layer_nodes,
-            draw_node_labels=True if self.view_tab.show_layer_labels and self.view_tab.show_layer_nodes else False,
-            draw_path_labels=True if self.view_tab.show_layer_labels and (self.view_tab.show_layer_hermite_paths or self.view_tab.show_layer_poly_paths) else False,
-            draw_curvature=self.view_tab.show_layer_curvature,
+            draw_grid=True,
+            draw_hermite_paths=True,
+            draw_nodes=True,
+            draw_cars=True,
+            draw_node_labels=False,
+            draw_path_labels=False,
+            draw_curvature=False,
         )
         self.pygame_widget.refresh(self.pygame_graphics.surface)
-        x, y = self.pygame_graphics.get_click_position()
-        self.design_tab.coords.setText("Mouse Coords: (" + str(x) + ", " + str(y) + ")")
 
     def render_pygame_widget(self) -> None:
         """
@@ -111,11 +125,10 @@ class MainWindow(QtWidgets.QMainWindow):
         :return: None
         """
         for path in self.paths:
-            path.recalculate_coefs()
+            path.calculate_all()
 
         if len(self.paths) > 0:
             self.pygame_graphics.render_hermite_paths(self.paths)
-            self.pygame_graphics.render_poly_paths(self.paths)
         self.refresh_pygame_widget()
 
     def pygame_widget_scroll(self, event) -> None:
@@ -127,17 +140,6 @@ class MainWindow(QtWidgets.QMainWindow):
         """
         self.pygame_graphics.calculate_scroll(event)
         self.refresh_pygame_widget()
-
-    def identify_path(self, paths: list) -> None:
-        """
-
-        Displays only the listed paths for 0.25s (seems to be more because of rendering time)
-        :param paths: list of paths to highlight
-        :return: None
-        """
-        self.pygame_graphics.highlight_paths(paths)
-        self.pygame_widget.refresh(self.pygame_graphics.surface)
-        self.timer = Timer(250, self.render_pygame_widget)
 
     def update_nodes_paths(self, nodes, paths, refresh_widgets=True):
         """
@@ -154,37 +156,9 @@ class MainWindow(QtWidgets.QMainWindow):
             self.design_tab.update_node_path_widgets(self.nodes, self.paths)
         self.control_tab.set_add_light_button_state()
 
-    def get_nodes_paths(self) -> tuple:
+    def get_data(self) -> tuple:
         """
 
         :return: Returns the list of nodes and paths
         """
-        return self.nodes, self.paths
-
-    def update_lights(self, lights: list, refresh_widgets: bool = True):
-        """
-
-        :param lights: list of light objects
-        :param refresh_widgets: If lights are changed on the back-end then the widgets (on the front end) need updating
-        :return: None
-        """
-        self.lights = lights
-        if refresh_widgets:
-            self.control_tab.update_light_widgets(self.lights)
-
-    def get_lights(self):
-        """
-
-        :return: Returns the list of lights
-        """
-        return self.lights
-
-    def recenter(self) -> None:
-        """
-
-        Re-center scrolling.
-        :return: None
-        """
-        self.pygame_graphics.recenter()
-        self.refresh_pygame_widget()
-
+        return self.nodes, self.paths, self.cars

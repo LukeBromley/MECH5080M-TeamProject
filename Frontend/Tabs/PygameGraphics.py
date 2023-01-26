@@ -1,20 +1,9 @@
 import pygame
 from math import sin, cos
+from statistics import mean, median, quantiles
+
 from PyQt5 import QtCore
-from typing import Union
-
-
-class VisualPoint:
-    def __init__(self, x: int, y: int, colour: tuple) -> None:
-        """
-
-        :param x: x coordinate of plotted point
-        :param y: y coordinate of plotted point
-        :param colour: colour of plotted point
-        """
-        self.x = x
-        self.y = y
-        self.colour = colour
+from Library.maths import clamp, VisualPoint
 
 
 class VisualLabel:
@@ -31,16 +20,16 @@ class VisualLabel:
 
 
 class PygameGraphics:
-    def __init__(self, window_width, window_height, get_nodes_paths_function) -> None:
+    def __init__(self, window_width, window_height, get_data_function) -> None:
         """
 
         :param window_width: GUI window width for calculating surface size
         :param window_height: GUI window heigh for calculating surface size
-        :param get_nodes_paths_function: method of JuctionVisualiser for retrieving current nodes and current paths
+        :param get_data_function: method of JuctionVisualiser for retrieving current nodes and current paths
         """
 
         # Functions
-        self.get_nodes_paths_function = get_nodes_paths_function
+        self.get_data_function = get_data_function
 
         # Window Parameters
         self._window_width, self._window_height = window_width, window_height
@@ -62,7 +51,6 @@ class PygameGraphics:
         pygame.init()
         window = pygame.display.set_mode(flags=pygame.HIDDEN)
         self.surface = pygame.Surface((self._surface_width, self._surface_height))
-        # self.surface = pygame.Surface((self._surface_width / 2, self._surface_height / 2))
 
         # Grid Parameters
         self._grid_colour = (230, 230, 230)
@@ -78,7 +66,6 @@ class PygameGraphics:
         self._path_colour = (0, 255, 0)
         self._path_highlight_colour = (255, 0, 255)
         self._hermite_path_points = []
-        self._poly_path_points = []
 
         # Label parameters
         self._node_labels = []
@@ -87,7 +74,7 @@ class PygameGraphics:
         self._path_label_colour = (0, 255, 0)
 
     # Main function for drawing paths (from renders), nodes, labels, grid etc.
-    def refresh(self, draw_grid=False, draw_hermite_paths=False, draw_poly_paths=False, draw_nodes=False, draw_node_labels=False, draw_path_labels=False, draw_curvature=False) -> None:
+    def refresh(self, draw_grid=False, draw_hermite_paths=False, draw_nodes=False, draw_cars=False, draw_node_labels=False, draw_path_labels=False, draw_curvature=False) -> None:
         """
 
         This function manages what "layers" are displayed on the pygame surface.
@@ -103,12 +90,12 @@ class PygameGraphics:
         self.surface.fill((255, 255, 255))
         self.surface.set_at(self._position_offsetter(0, 0), (0, 0, 0))
 
-        nodes, paths = self.get_nodes_paths_function()
+        nodes, paths, cars = self.get_data_function()
 
         if draw_grid: self._draw_grid()
         if draw_hermite_paths: self._draw_hermite_paths(draw_curvature)
-        if draw_poly_paths: self._draw_poly_paths(draw_curvature)
         if draw_nodes: self._draw_nodes(nodes)
+        if draw_cars: self._draw_cars(cars)
         self._draw_labels(draw_node_labels, draw_path_labels)
 
     def highlight_paths(self, paths: list) -> None:
@@ -141,9 +128,8 @@ class PygameGraphics:
                 path_length = round(path.get_euclidean_distance() * 1.5)  # Changing iteration intervals for improved performance
                 for i in range(path_length+1):
                     s = i/path_length
-                    x = path.x_hermite_cubic_coeff[0] + path.x_hermite_cubic_coeff[1]*s + path.x_hermite_cubic_coeff[2]*(s*s) + path.x_hermite_cubic_coeff[3]*(s*s*s)
-                    y = path.y_hermite_cubic_coeff[0] + path.y_hermite_cubic_coeff[1]*s + path.y_hermite_cubic_coeff[2]*(s*s) + path.y_hermite_cubic_coeff[3]*(s*s*s)
-                    path_colour = self._calculate_curvature_colour(path, i, lower, upper)
+                    x, y = path.calculate_coords(s)
+                    path_colour = self._calculate_curvature_colour(path, s, lower, upper)
                     x = round(x)
                     y = round(y)
                     self._hermite_path_points.append(VisualPoint(x, y, path_colour))
@@ -153,59 +139,10 @@ class PygameGraphics:
     def _calculate_hermite_path_curvature(self, paths: list) -> tuple:
         curvature = []
         for path in paths:
-            curvature += path.curvature
+            curvature += path.get_all_curvature()
         upper = sorted(curvature)[round(3 * len(curvature) / 4)]
         lower = sorted(curvature)[round(1 * len(curvature) / 4)]
         return upper, lower
-
-    # Functions for rendering Poly paths
-    def render_poly_paths(self, paths: list, draw_curvature=False) -> None:
-        """
-
-        Calculates and saves a list of all points that should be drawn for displaying all poly paths
-        :param paths: list of paths
-        :param draw_curvature: boolean to enable curvature coloring of drawn poly paths
-        :return: None
-        """
-        self._poly_path_points.clear()
-        upper, lower = self._calculate_poly_path_curvature(paths)
-        for path in paths:
-            if path.get_euclidean_distance() > 0:
-                if type(path.poly_coeff) is list:
-                    for i in range(min(path.start_node.x, path.end_node.x) * 10, max(path.start_node.x, path.end_node.x) * 10):
-                        x = i / 10
-                        y = 0
-                        for n, coef in enumerate(path.poly_coeff):
-                            y += coef * pow(x, path.poly_order - n)
-                        path_colour = (0, 255, 0)  #self._calculate_curvature_colour(_path, _x, lower, upper)
-                        y = round(y)
-                        x = round(x)
-                        self._poly_path_points.append(VisualPoint(x, y, path_colour))
-                else:
-                    for y in range(min(path.start_node.y, path.end_node.y), max(path.start_node.y, path.end_node.y)):
-                        self._poly_path_points.append(VisualPoint(path.poly_coeff, y, (0, 255, 0)))
-
-    def _calculate_poly_path_curvature(self, paths: list) -> tuple:
-        """
-
-        Calculates the maximum and minimum curve radia across all paths
-        :param paths: list of paths
-        :return: the maximum and minimum curve radia
-        """
-        curvature = []
-        for _path in paths:
-            if _path.get_euclidean_distance() > 0:
-                if type(_path.poly_coeff) is list:
-                    for i in range(min(_path.start_node.x, _path.end_node.x) * 10, max(_path.start_node.x, _path.end_node.x) * 10):
-                        x = i / 10
-                        curvature.append(_path.calculate_curvature(x))
-        if len(curvature) > 0:
-            curvature.sort()
-            upper = curvature[round(3 * len(curvature) / 4)]
-            lower = curvature[round(1 * len(curvature) / 4)]
-            return upper, lower
-        else:
-            return None, None
 
     # Functions for drawing both Hermite and Poly paths
     def _draw_paths(self, paths_points, draw_curvature, highlight: bool = False) -> None:
@@ -231,30 +168,19 @@ class PygameGraphics:
         """
         self._draw_paths(self._hermite_path_points, draw_curvature, highlight)
 
-    def _draw_poly_paths(self, draw_curvature: bool) -> None:
-        """
-
-        :param draw_curvature: boolean to enable curvature coloring of drawn poly paths
-        :return: None
-        """
-        self._draw_paths(self._poly_path_points, draw_curvature)
-
     # Path drawing math functions
-    def _calculate_curvature_colour(self, path, i: int, lower: float, upper: float) -> tuple:
+    def _calculate_curvature_colour(self, path, s: float, lower: float, upper: float) -> tuple:
         """
 
         :param path: singular path object
-        :param i: curvature array index in path object
+        :param s: s term
         :param lower: lowest path curve radius
         :param upper: highest path curve radius
         :return: colour based on curve radius at path curvature array index
         """
-        if type(path.poly_coeff) is list:
-            try:
-                colour_mag = round((self._clamp(path.curvature[i], lower, upper) - lower) * (255 / (upper - lower)))
-            except ValueError:
-                colour_mag = 0
-        else:
+        try:
+            colour_mag = round((clamp(path.calculate_curvature(s), lower, upper) - lower) * (255 / (upper - lower)))
+        except ValueError:
             colour_mag = 0
         return colour_mag, 255 - colour_mag, 0
 
@@ -271,17 +197,6 @@ class PygameGraphics:
         y = round(y * self._scale) - self._scroll_offset_y
 
         return x, y
-
-    def _clamp(self, n: Union[int, float], minn: Union[int, float], maxn: Union[int, float]) -> Union[int, float]:
-        """
-
-        Limit a value, n, between minimum and maximum
-        :param n: value to be limited
-        :param minn: min that n can be
-        :param maxn: max that n can be
-        :return: limited value
-        """
-        return max(min(maxn, n), minn)
 
     # Other drawing functions
 
@@ -398,5 +313,10 @@ class PygameGraphics:
         :return: None
         """
         self._scale = scale
+
+    def _draw_cars(self, cars):
+        for car in cars:
+            x, y = self._position_offsetter(car[0], car[1])
+            pygame.draw.circle(self.surface, (255, 130, 0), (x, y), 5)
 
 

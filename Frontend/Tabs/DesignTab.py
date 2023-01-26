@@ -82,13 +82,16 @@ class DesignTab(QtWidgets.QWidget):
         # Re-add all paths
         for index, path in enumerate(reversed(paths)):
             self.path_widgets.append(PathWidget(self.path_box, self.path_box_scroll.v_box))
-            self.path_widgets[-1].set_info(path.uid, path.start_node.uid, path.end_node.uid, nodes, path.poly_order)
+            self.path_widgets[-1].set_info(path.uid, path.start_node.uid, path.end_node.uid, nodes)
             self.path_widgets[-1].connect_delete(partial(self.remove_path, path.uid))
             self.path_widgets[-1].connect_change(partial(self.update_path_data, path.uid, index))
             if path.start_node == path.end_node:
                 self.path_widgets[-1].highlight_error()
             else:
                 self.path_widgets[-1].unhighlight_error()
+
+        # Enable / Disable paths
+        self.add_path_button.setEnabled(True if len(nodes) > 1 else False)
 
     def update_node_data(self, uid: int, widget_index: int) -> None:
         """
@@ -183,7 +186,7 @@ class DesignTab(QtWidgets.QWidget):
         path_uid = 1
         if len(paths) > 0:
             path_uid = max([path.uid for path in paths]) + 1
-        paths.append(Path(path_uid, nodes[-1], nodes[-1]))
+        paths.append(Path(path_uid, nodes[-1], nodes[-2]))
 
         self._update_nodes_paths(nodes, paths)
         self.update_node_path_widgets(nodes, paths)
@@ -287,7 +290,6 @@ class PathWidget(QtWidgets.QWidget):
         self.start_node = ComboBox(self, self.h_box)
         self.end_node_label = Text(self, "To: ", self.h_box)
         self.end_node = ComboBox(self, self.h_box)
-        self.order = Text(self, "Order: ", self.h_box)
         self.delete = Button(self, "Delete", self.h_box)
         # self.car_spawner = TickBox(self, "Car")
 
@@ -305,7 +307,7 @@ class PathWidget(QtWidgets.QWidget):
         """
         self.uid_label.setStyleSheet("background: transparent;")
 
-    def set_info(self, uid: int, start_uid: object, end_uid: object, nodes: list, order: int) -> None:
+    def set_info(self, uid: int, start_uid: object, end_uid: object, nodes: list) -> None:
         """
 
         :param uid: set uid info to display
@@ -320,7 +322,6 @@ class PathWidget(QtWidgets.QWidget):
             self.end_node.addItem(str(node.uid))
         self.start_node.setCurrentText(str(start_uid))
         self.end_node.setCurrentText(str(end_uid))
-        self.order.setText(str(order))
 
     def connect_change(self, function) -> None:
         """

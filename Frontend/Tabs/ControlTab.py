@@ -98,8 +98,6 @@ class ControlTab(QtWidgets.QWidget):
         lights = self._get_lights()
         for light in lights:
             if light.uid == uid:
-                light.uid = self.light_widgets[widget_index].uid_edit.value()
-
                 light.paths.clear()
                 all_items = [self.light_widgets[widget_index].selected_paths.model().item(i, 0) for i in range(self.light_widgets[widget_index].selected_paths.count())]
                 for item in all_items:

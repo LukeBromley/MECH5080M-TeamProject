@@ -1,6 +1,7 @@
 from Frontend.Tabs.PYQTShortcuts import *
 from PyQt5.QtWidgets import QFileDialog
 from PyQt5.QtCore import Qt
+import os
 
 from Library.FileManagement import *
 
@@ -59,6 +60,10 @@ class OpenSaveTab(QtWidgets.QWidget):
         self.save_file_path = file_path
         FileManager = FileManagement()
         nodes, paths, lights = FileManager.load_from_junction_file(self.save_file_path)
+        for path in paths:
+            path.discrete_length_increment_size = 10
+            path.discrete_iteration_qty = 10000
+            path.calculate_all()
         self.update_nodes_paths_function(nodes, paths)
         self.update_lights_function(lights)
         self.render_function()
@@ -83,7 +88,8 @@ class OpenSaveTab(QtWidgets.QWidget):
         Opens the file dialog box and gets desired file path + file name to save the file to.
         :return: None
         """
-        file_path = QFileDialog.getSaveFileName(self, 'Save Junction', '.', "Junction Files (*.junc)")[0]
+        path = os.path.join(os.path.dirname(__file__), ".../Junction_Designs")
+        file_path = QFileDialog.getSaveFileName(self, 'Save Junction', path, "Junction Files (*.junc)")[0]
         if len(file_path) > 0:
             self.save_file_path = file_path
             FileManager = FileManagement()
@@ -113,7 +119,8 @@ class OpenSaveTab(QtWidgets.QWidget):
         Opens the example junction
         :return: None
         """
-        self.open_junction("example_junction.junc")
+
+        self.open_junction(os.path.join(os.path.dirname(__file__), "../example_junction.junc"))
         self.save.setDisabled(True)
 
     def connect(self) -> None:
