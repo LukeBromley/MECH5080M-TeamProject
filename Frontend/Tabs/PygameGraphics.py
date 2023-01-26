@@ -180,10 +180,10 @@ class PygameGraphics:
         :param upper: highest path curve radius
         :return: colour based on curve radius at path curvature array index
         """
-        try:
-            colour_mag = round((clamp(path.calculate_curvature(s), lower, upper) - lower) * (255 / (upper - lower)))
-        except ValueError:
+        if upper == lower:
             colour_mag = 0
+        else:
+            colour_mag = round((clamp(path.calculate_curvature(s), lower, upper) - lower) * (255 / (upper - lower)))
         return colour_mag, 255 - colour_mag, 0
 
     def _position_offsetter(self, x: int, y: int) -> tuple:
