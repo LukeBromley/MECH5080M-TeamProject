@@ -20,7 +20,7 @@ class Simulation:
                     start_time=0,
                     position_data=None,
                     path=path,
-                    velocity=20.0,
+                    velocity=0.0,
                     acceleration=0.0,
                     maximum_acceleration=5.0,
                     maximum_deceleration=4.0,
@@ -37,14 +37,13 @@ class Simulation:
         self.visualiser.set_scale(50)
 
     def main(self):
-        dt = 0.1
+        dt = 0.01
         for x in range(1000):
             coordinates = []
             self.vehicles = [vehicle for vehicle in self.vehicles if vehicle.get_cartesian_position() is not None]
             for index, vehicle in enumerate(self.vehicles):
                 vehicle.update(dt)
                 coordinates.append(vehicle.get_cartesian_position())
-
             self.visualiser.update_car_positions(coordinates)
             time.sleep(0.01)
 
@@ -53,6 +52,6 @@ class Simulation:
 
 
 if __name__ == "__main__":
-    sim = Simulation(os.path.join(ROOT_DIR, "Junction_Designs", "Example_Junction_With_Lights.junc"))
+    sim = Simulation(os.path.join(ROOT_DIR, "Junction_Designs", "test.junc"))
     sim.run()
 

@@ -319,7 +319,7 @@ class PygameGraphics:
 
     def _draw_cars(self, cars):
         for car in cars:
-            x, y = self._position_offsetter(car[0], car[1])
+            x, y = self._position_offsetter(car[0] * 100, car[1] * 100)
             pygame.draw.circle(self.surface, (255, 130, 0), (x, y), 5)
 
 

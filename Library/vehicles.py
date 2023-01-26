@@ -70,7 +70,7 @@ class Car:
         return min(acceleration, self._maximum_acceleration)
 
     def get_cartesian_position(self):
-        return self._path.get_coords(100*self._distance_traveled)
+        return self._path.get_coords(self._distance_traveled)
 
     def get_distance_traveled(self) -> float:
         return self._distance_traveled

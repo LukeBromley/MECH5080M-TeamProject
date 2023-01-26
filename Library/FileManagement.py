@@ -99,9 +99,9 @@ class FileManagement:
                 if node.uid == path_data[1]:
                     end_node = node
             if quick_load:
-                paths.append(Path(int(uid), start_node, end_node))
-            else:
                 paths.append(Path(int(uid), start_node, end_node, discrete_length_increment_size=0.1, discrete_iteration_qty=1000))
+            else:
+                paths.append(Path(int(uid), start_node, end_node))
 
         # Load light data
         lights = []

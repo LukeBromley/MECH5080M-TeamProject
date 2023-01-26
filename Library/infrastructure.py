@@ -32,7 +32,6 @@ class Path:
         self.discrete_length_increment_size = discrete_length_increment_size
         self.discrete_iteration_qty = discrete_iteration_qty
         self.discrete_path = []
-
         self.curvature = []
 
         self.calculate_all()
@@ -46,15 +45,18 @@ class Path:
         return self.discrete_path[arc_length][0]
 
     def get_coords(self, arc_length: float):
-        arc_length = round(arc_length * (1 / self.discrete_length_increment_size))
-        return self.discrete_path[arc_length][1], self.discrete_path[arc_length][2]
+        arc_length = round(arc_length / self.discrete_length_increment_size)
+        if arc_length >= len(self.discrete_path):
+            return None
+        else:
+            return self.discrete_path[arc_length][1], self.discrete_path[arc_length][2]
 
     def get_direction(self, arc_length: float):
-        arc_length = round(arc_length * (1 / self.discrete_length_increment_size))
+        arc_length = round(arc_length / self.discrete_length_increment_size)
         return self.discrete_path[arc_length][3]
 
     def get_curvature(self, arc_length: float):
-        arc_length = round(arc_length * (1 / self.discrete_length_increment_size))
+        arc_length = round(arc_length / self.discrete_length_increment_size)
         return self.discrete_path[arc_length][4]
 
     def get_all_s(self):
@@ -97,8 +99,7 @@ class Path:
             x1, y1 = self.calculate_coords(s)
             x0, y0 = self.discrete_path[-1][1], self.discrete_path[-1][2]
             distance = sqrt((y1-y0)**2 + (x1-x0)**2)
-            distance_delta = self.discrete_length_increment_size - distance
-            if abs(distance_delta) >= self.discrete_length_increment_size:
+            if abs(distance) >= self.discrete_length_increment_size:
                 self.discrete_path.append([s, x1, y1])
 
     def calculate_discrete_direction_points(self):
