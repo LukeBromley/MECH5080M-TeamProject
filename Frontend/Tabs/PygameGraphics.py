@@ -54,8 +54,8 @@ class PygameGraphics:
 
         # Grid Parameters
         self._grid_colour = (230, 230, 230)
-        self._grid_range_x, self._grid_range_y = 10000, 10000
-        self._grid_size = 100
+        self._grid_range_x, self._grid_range_y = 100, 100
+        self._grid_size = 1
 
         # Node Parameters
         self._node_diameter = 5
@@ -125,10 +125,12 @@ class PygameGraphics:
         upper, lower = self._calculate_hermite_path_curvature(paths)
         for path in paths:
             if path.get_euclidean_distance() > 0:
-                path_length = round(path.get_euclidean_distance() * 1.5)  # Changing iteration intervals for improved performance
+                path_length = round(path.get_euclidean_distance() * 150)  # Changing iteration intervals for improved performance
                 for i in range(path_length+1):
                     s = i/path_length
                     x, y = path.calculate_coords(s)
+                    x *= 100
+                    y *= 100
                     path_colour = self._calculate_curvature_colour(path, s, lower, upper)
                     x = round(x)
                     y = round(y)
@@ -208,14 +210,15 @@ class PygameGraphics:
         """
         self._node_labels.clear()
         for node in nodes:
-            center_point = self._position_offsetter(node.x, node.y)
+            x = node.x * 100
+            y = node.y * 100
+
+            center_point = self._position_offsetter(x, y)
             node_tangents_x, _node_tangents_y = node.get_tangents(200)
-            direction_point = self._position_offsetter(node.x + round(self._tangent_scale * node_tangents_x),
-                                                       node.y + round(self._tangent_scale * _node_tangents_y))
+            direction_point = self._position_offsetter(x + round(self._tangent_scale * node_tangents_x), y + round(self._tangent_scale * _node_tangents_y))
             pygame.draw.circle(self.surface, self._node_colour, center_point, radius=self._node_diameter, width=0)
             pygame.draw.line(self.surface, self._node_colour, center_point, direction_point, width=3)
-            self._node_labels.append(VisualLabel(str(node.uid), node.x - (self._node_diameter + 5) * sin(node.angle),
-                                                 node.y + (self._node_diameter + 5) * cos(node.angle)))
+            self._node_labels.append(VisualLabel(str(node.uid), x - (self._node_diameter + 5) * sin(node.angle), y + (self._node_diameter + 5) * cos(node.angle)))
 
     def _draw_labels(self, draw_node_labels=True, draw_path_labels=True) -> None:
         """
@@ -253,12 +256,12 @@ class PygameGraphics:
         :return: None
         """
         for x in range(0, self._grid_range_x, self._grid_size):
-            pygame.draw.line(self.surface, self._grid_colour, self._position_offsetter(x, -self._grid_range_y), self._position_offsetter(x, self._grid_range_y))
-            pygame.draw.line(self.surface, self._grid_colour, self._position_offsetter(-x, -self._grid_range_y), self._position_offsetter(-x, self._grid_range_y))
+            pygame.draw.line(self.surface, self._grid_colour, self._position_offsetter(x * 100, -self._grid_range_y * 100), self._position_offsetter(x * 100, self._grid_range_y * 100))
+            pygame.draw.line(self.surface, self._grid_colour, self._position_offsetter(-x * 100, -self._grid_range_y * 100), self._position_offsetter(-x * 100, self._grid_range_y * 100))
 
         for y in range(0, self._grid_range_y, self._grid_size):
-            pygame.draw.line(self.surface, self._grid_colour, self._position_offsetter(-self._grid_range_x, y), self._position_offsetter(self._grid_range_x, y))
-            pygame.draw.line(self.surface, self._grid_colour, self._position_offsetter(-self._grid_range_x, -y), self._position_offsetter(self._grid_range_x, -y))
+            pygame.draw.line(self.surface, self._grid_colour, self._position_offsetter(-self._grid_range_x * 100, y * 100), self._position_offsetter(self._grid_range_x * 100, y * 100))
+            pygame.draw.line(self.surface, self._grid_colour, self._position_offsetter(-self._grid_range_x * 100, -y * 100), self._position_offsetter(self._grid_range_x * 100, -y * 100))
 
     # Mouse actions
 

@@ -95,7 +95,7 @@ class ViewerMainWindow(QtWidgets.QMainWindow):
         # Initialise render
         self.render_pygame_widget()
 
-        self.timer = Timer(0.01, self.refresh_pygame_widget, single_shot=False)
+        self.timer = Timer(10, self.refresh_pygame_widget, single_shot=False)
 
     def refresh_pygame_widget(self) -> None:
         """
