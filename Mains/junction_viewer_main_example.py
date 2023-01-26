@@ -12,26 +12,26 @@ Visualiser = JunctionVisualiser()
 
 def main():
     y = 0
-    x = 50
-    y_change = 1
-    x_change = 2
+    x = 0
+    y_change = 0.01
+    x_change = 0.02
     while(True):
         y = y + y_change
         x = x + x_change
 
-        if y > 100:
-            y_change = -1
-            y = 100
-        elif y < -100:
-            y_change = 1
-            y = -100
+        if y > 1:
+            y_change = -0.01
+            y = 1
+        elif y < -1:
+            y_change = 0.01
+            y = -1
 
-        if x > 100:
-            x_change = -2
-            x = 100
-        elif x < -100:
-            x_change = 2
-            x = -100
+        if x > 1:
+            x_change = -0.02
+            x = 1
+        elif x < -1:
+            x_change = 0.02
+            x = -1
 
         sleep(0.01)
 
