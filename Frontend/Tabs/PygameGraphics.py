@@ -1,5 +1,7 @@
 import pygame
 from math import sin, cos
+from statistics import mean, median, quantiles
+
 from PyQt5 import QtCore
 from Library.maths import clamp, VisualPoint
 
@@ -49,7 +51,6 @@ class PygameGraphics:
         pygame.init()
         window = pygame.display.set_mode(flags=pygame.HIDDEN)
         self.surface = pygame.Surface((self._surface_width, self._surface_height))
-        # self.surface = pygame.Surface((self._surface_width / 2, self._surface_height / 2))
 
         # Grid Parameters
         self._grid_colour = (230, 230, 230)
@@ -127,8 +128,7 @@ class PygameGraphics:
                 path_length = round(path.get_euclidean_distance() * 1.5)  # Changing iteration intervals for improved performance
                 for i in range(path_length+1):
                     s = i/path_length
-                    x = path.x_hermite_cubic_coeff[0] + path.x_hermite_cubic_coeff[1]*s + path.x_hermite_cubic_coeff[2]*(s*s) + path.x_hermite_cubic_coeff[3]*(s*s*s)
-                    y = path.y_hermite_cubic_coeff[0] + path.y_hermite_cubic_coeff[1]*s + path.y_hermite_cubic_coeff[2]*(s*s) + path.y_hermite_cubic_coeff[3]*(s*s*s)
+                    x, y = path.calculate_coords(s)
                     path_colour = self._calculate_curvature_colour(path, i, lower, upper)
                     x = round(x)
                     y = round(y)
@@ -139,9 +139,17 @@ class PygameGraphics:
     def _calculate_hermite_path_curvature(self, paths: list) -> tuple:
         curvature = []
         for path in paths:
-            curvature += path.curvature
-        upper = sorted(curvature)[round(3 * len(curvature) / 4)]
-        lower = sorted(curvature)[round(1 * len(curvature) / 4)]
+            curvature += path.get_all_curvature()
+        maximum = max(curvature)
+        minimum = min(curvature)
+        avg = mean(curvature)
+        med = median(curvature)
+        q = quantiles(curvature)
+        # upper = sorted(curvature)[round(1.02 * len(curvature) / 2)]
+        # lower = sorted(curvature)[round(0.98 * len(curvature) / 2)]
+        upper = q[0]
+        lower = q[2]
+        print(maximum, minimum, avg, med, q)
         return upper, lower
 
     # Functions for drawing both Hermite and Poly paths
@@ -169,23 +177,21 @@ class PygameGraphics:
         self._draw_paths(self._hermite_path_points, draw_curvature, highlight)
 
     # Path drawing math functions
-    def _calculate_curvature_colour(self, path, i: int, lower: float, upper: float) -> tuple:
+    def _calculate_curvature_colour(self, path, s: float, lower: float, upper: float) -> tuple:
         """
 
         :param path: singular path object
-        :param i: curvature array index in path object
+        :param s: s term
         :param lower: lowest path curve radius
         :param upper: highest path curve radius
         :return: colour based on curve radius at path curvature array index
         """
-        # if type(path.poly_coeff) is list:
-        #     try:
-        #         colour_mag = round((self._clamp(path.curvature[i], lower, upper) - lower) * (255 / (upper - lower)))
-        #     except ValueError:
-        #         colour_mag = 0
-        # else:
-        #     colour_mag = 0
-        colour_mag = 0
+        curve = path.calculate_curvature(s)
+        curve_pre_clamp = ((curve - lower) / (upper - lower)) * 255
+        print(curve_pre_clamp)
+        curve_post_clamp = clamp(curve_pre_clamp, 0, 255)
+        colour_mag = round(curve_post_clamp)
+        # print(curve_pre_clamp, curve_post_clamp)
         return colour_mag, 255 - colour_mag, 0
 
     def _position_offsetter(self, x: int, y: int) -> tuple:

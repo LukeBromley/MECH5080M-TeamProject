@@ -125,7 +125,7 @@ class ViewerMainWindow(QtWidgets.QMainWindow):
         :return: None
         """
         for path in self.paths:
-            path.recalculate_coefs()
+            path.calculate_all()
 
         if len(self.paths) > 0:
             self.pygame_graphics.render_hermite_paths(self.paths)

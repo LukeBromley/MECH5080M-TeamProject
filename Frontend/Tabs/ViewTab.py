@@ -37,7 +37,7 @@ class ViewTab(QtWidgets.QWidget):
         self.show_layer_hermite_paths = True
         self.show_layer_nodes = True
         self.show_layer_labels = True
-        self.show_layer_curvature = False
+        self.show_layer_curvature = True
         self.show_layer_cars = False
 
         self.layer_grid = TickBox(self, "Grid", layout=self.layers_box.v_box)

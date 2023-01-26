@@ -97,6 +97,7 @@ class DesignerMainWindow(QtWidgets.QMainWindow):
             draw_grid=self.view_tab.show_layer_grid,
             draw_hermite_paths=self.view_tab.show_layer_hermite_paths,
             draw_nodes=self.view_tab.show_layer_nodes,
+            draw_cars=False,
             draw_node_labels=True if self.view_tab.show_layer_labels and self.view_tab.show_layer_nodes else False,
             draw_path_labels=True if self.view_tab.show_layer_labels and self.view_tab.show_layer_hermite_paths else False,
             draw_curvature=self.view_tab.show_layer_curvature,
@@ -113,7 +114,7 @@ class DesignerMainWindow(QtWidgets.QMainWindow):
         :return: None
         """
         for path in self.paths:
-            path.recalculate_coefs()
+            path.calculate_all()
 
         if len(self.paths) > 0:
             self.pygame_graphics.render_hermite_paths(self.paths)
