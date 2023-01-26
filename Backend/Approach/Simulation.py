@@ -1,10 +1,10 @@
 from Constants import *
+from Library.vehicles import Car
 import random
 import time
 import csv
 
-
-class Car:
+class Car2:
     def __init__(self, uid, random_start_lane, goal_lane, initial_velocity, initial_acceleration, dimensions) -> None:
         self.uid = uid
         self.current_lane = random_start_lane
@@ -30,7 +30,6 @@ class Car:
     def log(self, sim_time):
         log_format = [sim_time, self.uid, self.position[0], self.position[1]]
         return log_format
-
 
 class Simulation:
 
