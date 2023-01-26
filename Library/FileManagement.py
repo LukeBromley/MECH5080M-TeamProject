@@ -66,7 +66,7 @@ class FileManagement:
         self.start_time_key = "start_time"
         self.position_data_key = "position_data"
 
-    def load_from_junction_file(self, file_path: str) -> tuple:
+    def load_from_junction_file(self, file_path: str, quick_load=False) -> tuple:
         """
 
         :param file_path: file path of .junc file
@@ -98,8 +98,10 @@ class FileManagement:
                     start_node = node
                 if node.uid == path_data[1]:
                     end_node = node
-
-            paths.append(Path(int(uid), start_node, end_node))
+            if quick_load:
+                paths.append(Path(int(uid), start_node, end_node))
+            else:
+                paths.append(Path(int(uid), start_node, end_node, discrete_length_increment_size=0.1, discrete_iteration_qty=1000))
 
         # Load light data
         lights = []
@@ -133,9 +135,7 @@ class FileManagement:
         # Add path data
         for path in paths:
             file_dict[self.paths_key][str(path.uid)] = [path.start_node.uid,
-                                                        path.end_node.uid,
-                                                        path.poly_order
-                                                        ]
+                                                        path.end_node.uid]
 
         # Add light data
         for light in lights:
