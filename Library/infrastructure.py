@@ -31,6 +31,7 @@ class Path:
 
         self.discrete_length_increment_size = discrete_length_increment_size
         self.discrete_iteration_qty = discrete_iteration_qty
+
         self.discrete_path = []
 
         self.curvature = []

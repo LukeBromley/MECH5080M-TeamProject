@@ -252,7 +252,7 @@ class FileManagement:
             for uid in file_dict:
                 start_time = file_dict[uid][self.start_time_key]
                 position_data = file_dict[uid][self.position_data_key]
-                cars.append(Car(int(uid), start_time, None, position_data))
+                cars.append(str(uid), start_time, position_data)
 
             return cars
 
