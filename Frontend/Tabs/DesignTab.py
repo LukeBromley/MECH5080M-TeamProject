@@ -6,7 +6,7 @@ from math import pi
 
 
 class DesignTab(QtWidgets.QWidget):
-    def __init__(self, refresh_function, render_function, update_nodes_paths, get_nodes_paths):
+    def __init__(self, gui, model):
         """
 
         :param refresh_function: function that refreshes the pygame graphics
@@ -16,11 +16,8 @@ class DesignTab(QtWidgets.QWidget):
         """
         super(DesignTab, self).__init__()
 
-        # Functions
-        self._refresh_function = refresh_function
-        self._render_function = render_function
-        self._update_nodes_paths = update_nodes_paths
-        self._get_nodes_paths = get_nodes_paths
+        self.gui = gui
+        self.model = model
 
         # Widgets + Layouts
         self.v_box = VBox(self, align=Qt.AlignTop)
@@ -50,11 +47,11 @@ class DesignTab(QtWidgets.QWidget):
         Connects the call back functions of buttons
         :return: None
         """
-        self.refresh_button.pressed.connect(self._render_function)
+        self.refresh_button.pressed.connect(self.gui.render_pygame_widget)
         self.add_node_button.pressed.connect(self.add_node)
         self.add_path_button.pressed.connect(self.add_path)
 
-    def update_node_path_widgets(self, nodes: list, paths: list) -> None:
+    def update_node_path_widgets(self) -> None:
         """
 
         Updates the widgets for the list of nodes and paths with current node and path information
@@ -73,16 +70,16 @@ class DesignTab(QtWidgets.QWidget):
         self.path_widgets.clear()
 
         # Re-add all nodes
-        for index, node in enumerate(reversed(nodes)):
+        for index, node in enumerate(reversed(self.model.nodes)):
             self.node_widgets.append(NodeWidget(self.node_box, self.node_box_scroll.v_box))
             self.node_widgets[-1].set_info(node.uid, node.x, node.y, node.angle * (360 / (2 * pi)))
             self.node_widgets[-1].connect_delete(partial(self.remove_node, node.uid))
             self.node_widgets[-1].connect_change(partial(self.update_node_data, node.uid, index))
 
         # Re-add all paths
-        for index, path in enumerate(reversed(paths)):
+        for index, path in enumerate(reversed(self.model.paths)):
             self.path_widgets.append(PathWidget(self.path_box, self.path_box_scroll.v_box))
-            self.path_widgets[-1].set_info(path.uid, path.start_node.uid, path.end_node.uid, nodes)
+            self.path_widgets[-1].set_info(path.uid, path.start_node, path.end_node, self.model.nodes)
             self.path_widgets[-1].connect_delete(partial(self.remove_path, path.uid))
             self.path_widgets[-1].connect_change(partial(self.update_path_data, path.uid, index))
             if path.start_node == path.end_node:
@@ -91,7 +88,7 @@ class DesignTab(QtWidgets.QWidget):
                 self.path_widgets[-1].unhighlight_error()
 
         # Enable / Disable paths
-        self.add_path_button.setEnabled(True if len(nodes) > 1 else False)
+        self.add_path_button.setEnabled(True if len(self.model.nodes) > 1 else False)
 
     def update_node_data(self, uid: int, widget_index: int) -> None:
         """
@@ -101,13 +98,13 @@ class DesignTab(QtWidgets.QWidget):
         :param widget_index: index of widget in node widget list which represents the node
         :return: None
         """
-        nodes, paths = self._get_nodes_paths()
+        nodes, paths = self.model.nodes, self.model.paths
         for node in nodes:
             if node.uid == uid:
                 node.x = self.node_widgets[widget_index].x_pos.value()
                 node.y = self.node_widgets[widget_index].y_pos.value()
                 node.angle = self.node_widgets[widget_index].angle.value() * ((2 * pi) / 360)
-        self._update_nodes_paths(nodes, paths, refresh_widgets=False)
+        self.gui.update_nodes_paths(nodes, paths)
 
     def add_node(self) -> None:
         """
@@ -115,13 +112,13 @@ class DesignTab(QtWidgets.QWidget):
         Adds a new node to the list of nodes and updates widgets
         :return: None
         """
-        nodes, paths = self._get_nodes_paths()
+        nodes, paths = self.model.nodes, self.model.paths
         node_uid = 1
         if len(nodes) > 0:
             node_uid = max([node.uid for node in nodes]) + 1
         nodes.append(Node(node_uid, 0, 0, 0))
-        self._update_nodes_paths(nodes, paths)
-        self.update_node_path_widgets(nodes, paths)
+        self.gui.update_nodes_paths(nodes, paths)
+        self.update_node_path_widgets()
         self.node_box_scroll.verticalScrollBar().setSliderPosition(0)
 
     def remove_node(self, uid: int) -> None:
@@ -131,11 +128,11 @@ class DesignTab(QtWidgets.QWidget):
         :param uid: uid of node to be removed
         :return: None
         """
-        nodes, paths = self._get_nodes_paths()
+        nodes, paths = self.model.nodes, self.model.paths
 
         path_uids_to_remove = []
         for path in paths:
-            if path.start_node.uid == uid or path.end_node.uid == uid:
+            if path.start_node == uid or path.end_node == uid:
                 path_uids_to_remove.append(path.uid)
 
         for path_uid in path_uids_to_remove:
@@ -146,8 +143,8 @@ class DesignTab(QtWidgets.QWidget):
                 nodes.pop(index)
                 break
 
-        self._update_nodes_paths(nodes, paths)
-        self.update_node_path_widgets(nodes, paths)
+        self.gui.update_nodes_paths(nodes, paths)
+        self.update_node_path_widgets()
 
     def update_path_data(self, uid: int, widget_index: int) -> None:
         """
@@ -157,24 +154,17 @@ class DesignTab(QtWidgets.QWidget):
         :param widget_index: index of widget in path widget list which represents the path
         :return:
         """
-        nodes, paths = self._get_nodes_paths()
-        for path in paths:
-            if path.uid == uid:
-                for node in nodes:
-                    if node.uid == int(self.path_widgets[widget_index].start_node.currentText()):
-                        path.start_node = node
-                        break
-                for node in nodes:
-                    if node.uid == int(self.path_widgets[widget_index].end_node.currentText()):
-                        path.end_node = node
-                        break
+        nodes, paths = self.model.nodes, self.model.paths
 
+
+        for path in paths:
+            path.start_node = int(self.path_widgets[widget_index].start_node.currentText())
+            path.end_node = int(self.path_widgets[widget_index].end_node.currentText())
             if path.start_node == path.end_node:
                 self.path_widgets[widget_index].highlight_error()
             else:
                 self.path_widgets[widget_index].unhighlight_error()
-
-        self._update_nodes_paths(nodes, paths, refresh_widgets=False)
+        self.gui.update_nodes_paths(nodes, paths)
 
     def add_path(self) -> None:
         """
@@ -182,14 +172,14 @@ class DesignTab(QtWidgets.QWidget):
         Adds a new path to the list of paths and updates widgets
         :return: None
         """
-        nodes, paths = self._get_nodes_paths()
+        nodes, paths = self.model.nodes, self.model.paths
         path_uid = 1
         if len(paths) > 0:
             path_uid = max([path.uid for path in paths]) + 1
-        paths.append(Path(path_uid, nodes[-1], nodes[-2]))
+        paths.append(Path(path_uid, nodes[-1].uid, nodes[-2].uid))
 
-        self._update_nodes_paths(nodes, paths)
-        self.update_node_path_widgets(nodes, paths)
+        self.gui.update_nodes_paths(nodes, paths)
+        self.update_node_path_widgets()
 
     def remove_path(self, uid: int) -> None:
         """
@@ -198,15 +188,15 @@ class DesignTab(QtWidgets.QWidget):
         :param uid: uid of path to be removed
         :return: None
         """
-        nodes, paths = self._get_nodes_paths()
+        nodes, paths = self.model.nodes, self.model.paths
 
         for index, path in enumerate(paths):
             if path.uid == uid:
                 paths.pop(index)
                 break
 
-        self._update_nodes_paths(nodes, paths)
-        self.update_node_path_widgets(nodes, paths)
+        self.gui.update_nodes_paths(nodes, paths)
+        self.update_node_path_widgets()
 
 
 class NodeWidget(QtWidgets.QWidget):

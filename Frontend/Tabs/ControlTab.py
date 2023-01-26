@@ -6,7 +6,7 @@ from math import pi
 
 
 class ControlTab(QtWidgets.QWidget):
-    def __init__(self, refresh_function, render_function, identify_light_function, update_node_paths, get_node_paths, update_lights, get_lights):
+    def __init__(self, gui, model):
         """
 
         :param refresh_function: pygame graphics refresh function
@@ -20,14 +20,8 @@ class ControlTab(QtWidgets.QWidget):
         super(ControlTab, self).__init__()
 
         # Functions
-        self._refresh_function = refresh_function
-        self._render_function = render_function
-        self._identify_light_function = identify_light_function
-
-        self._update_node_paths = update_node_paths
-        self._get_node_paths = get_node_paths
-        self._update_lights = update_lights
-        self._get_lights = get_lights
+        self.gui = gui
+        self.model = model
 
         # Widgets + Layouts
         self.v_box = VBox(self, align=Qt.AlignTop)
@@ -48,7 +42,7 @@ class ControlTab(QtWidgets.QWidget):
         Checks if the add traffic light button should be enabled or not based on if there are any paths
         :return: None
         """
-        nodes, paths = self._get_node_paths()
+        nodes, paths = self.model.nodes, self.model.paths
         if len(paths) > 0:
             self.add_light_button.setEnabled(True)
         else:
@@ -77,7 +71,7 @@ class ControlTab(QtWidgets.QWidget):
         self.light_widgets.clear()
 
         # Re-add all lights
-        node, paths = self._get_node_paths()
+        nodes, paths = self.model.nodes, self.model.paths
         for index, light in enumerate(reversed(lights)):
             self.light_widgets.append(TrafficLightWidget(self.light_box, self.light_box_scroll.v_box))
             self.light_widgets[-1].set_options(paths)
@@ -94,8 +88,8 @@ class ControlTab(QtWidgets.QWidget):
         :param widget_index: Index of traffic light widget with updated info
         :return: None
         """
-        nodes, paths = self._get_node_paths()
-        lights = self._get_lights()
+        nodes, paths = self.model.nodes, self.model.paths
+        lights = self.model.lights
         for light in lights:
             if light.uid == uid:
                 light.paths.clear()
@@ -112,7 +106,7 @@ class ControlTab(QtWidgets.QWidget):
                 else:
                     self.light_widgets[widget_index].identify.setDisabled(True)
 
-        self._update_lights(lights, refresh_widgets=False)
+        self.set_add_light_button_state()
 
     def add_light(self) -> None:
         """
@@ -120,12 +114,12 @@ class ControlTab(QtWidgets.QWidget):
         Adds a light to the model and updates the view
         :return: None
         """
-        lights = self._get_lights()
+        lights = self.model.lights
         light_uid = 1
         if len(lights) > 0:
             light_uid = max([light.uid for light in lights]) + 1
         lights.append(TrafficLight(light_uid, None))
-        self._update_lights(lights)
+        self.gui.update_control_tab()
         self.update_light_widgets(lights)
         self.light_box_scroll.verticalScrollBar().setSliderPosition(0)
 
@@ -136,14 +130,14 @@ class ControlTab(QtWidgets.QWidget):
         :param uid: UID of light to delete
         :return: None
         """
-        lights = self._get_lights()
+        lights = self.model.lights
 
         for index, light in enumerate(lights):
             if light.uid == uid:
                 lights.pop(index)
                 break
 
-        self._update_lights(lights)
+        self.gui.update_control_tab(lights)
         self.update_light_widgets(lights)
 
     def identify_light(self, uid: int) -> None:
@@ -153,10 +147,10 @@ class ControlTab(QtWidgets.QWidget):
         :param uid: UID of light that we want to identify the paths of
         :return: None
         """
-        lights = self._get_lights()
+        lights = self.model.lights
         for light in lights:
             if light.uid == uid:
-                self._identify_light_function(light.paths)
+                self.gui.identify_path(light.paths)
                 break
 
 

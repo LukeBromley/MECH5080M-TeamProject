@@ -1,6 +1,8 @@
 import sys
 from PyQt5.QtWidgets import QStyleFactory
 
+from Library.model import Model
+
 from .Tabs.PygameGraphics import *
 from .Tabs.OpenSaveTab import *
 from .Tabs.DesignTab import *
@@ -37,17 +39,14 @@ class DesignerMainWindow(QtWidgets.QMainWindow):
         super(DesignerMainWindow, self).__init__()
 
         # List of all nodes and paths
-        self.nodes = []
-        self.paths = []
-        self.lights = []
-        self.cars = []
+        self.model = Model()
 
         # Set GUI window size
         self.window_width, self.window_height = 1440, 847
         self.setMinimumSize(self.window_width, self.window_height)
 
         # Pygame graphics renderer
-        self.pygame_graphics = PygameGraphics(self.window_width, self.window_height, self.get_data)
+        self.pygame_graphics = PygameGraphics(self.window_width, self.window_height, self.model)
 
         # Set central widgets
         self.main_widget = QtWidgets.QWidget()
@@ -65,19 +64,19 @@ class DesignerMainWindow(QtWidgets.QMainWindow):
         self.tabs = Tabs(self.main_widget, layout=self.h_box)
 
         # File management tab
-        self.open_save_tab = OpenSaveTab(self.refresh_pygame_widget, self.render_pygame_widget, self.update_nodes_paths, self.get_nodes_paths, self.update_lights, self.get_lights)
+        self.open_save_tab = OpenSaveTab(self, self.model)
         self.tabs.addTab(self.open_save_tab, "Open / Save")
 
         # Design tab
-        self.design_tab = DesignTab(self.refresh_pygame_widget, self.render_pygame_widget, self.update_nodes_paths, self.get_nodes_paths)
+        self.design_tab = DesignTab(self, self.model)
         self.tabs.addTab(self.design_tab, "Design")
 
         # View tab
-        self.view_tab = ViewTab(self.refresh_pygame_widget, self.render_pygame_widget, self.recenter, self.pygame_graphics.set_scale)
+        self.view_tab = ViewTab(self, self.pygame_graphics.set_scale)
         self.tabs.addTab(self.view_tab, "View")
 
         # Control tab
-        self.control_tab = ControlTab(self.refresh_pygame_widget, self.render_pygame_widget, self.identify_path, self.update_nodes_paths, self.get_nodes_paths, self.update_lights, self.get_lights)
+        self.control_tab = ControlTab(self, self.model)
         self.tabs.addTab(self.control_tab, "Control")
         self.timer = None
 
@@ -113,11 +112,11 @@ class DesignerMainWindow(QtWidgets.QMainWindow):
         Paths are pre-rendered because it is computationally intensive and does not need to happen on every refresh.
         :return: None
         """
-        for path in self.paths:
-            path.calculate_all()
+        for path in self.model.paths:
+            path.calculate_all(self.model)
 
-        if len(self.paths) > 0:
-            self.pygame_graphics.render_hermite_paths(self.paths)
+        if len(self.model.paths) > 0:
+            self.pygame_graphics.render_hermite_paths(self.model.paths)
         self.refresh_pygame_widget()
 
     def pygame_widget_scroll(self, event) -> None:
@@ -141,7 +140,7 @@ class DesignerMainWindow(QtWidgets.QMainWindow):
         self.pygame_widget.refresh(self.pygame_graphics.surface)
         self.timer = Timer(250, self.render_pygame_widget)
 
-    def update_nodes_paths(self, nodes, paths, refresh_widgets=True):
+    def update_nodes_paths(self, nodes, paths):
         """
 
         Updates the list of nodes and paths
@@ -150,25 +149,14 @@ class DesignerMainWindow(QtWidgets.QMainWindow):
         :param refresh_widgets: If nodes are changed on the back-end then the widgets (on the front end) need updating
         :return:
         """
-        self.nodes = nodes
-        self.paths = paths
-        if refresh_widgets:
-            self.design_tab.update_node_path_widgets(self.nodes, self.paths)
+        self.model.nodes = nodes
+        self.model.paths = paths
+
+    def update_design_tab(self):
+        self.design_tab.update_node_path_widgets()
+
+    def update_control_tab(self):
         self.control_tab.set_add_light_button_state()
-
-    def get_data(self) -> tuple:
-        """
-
-        :return: Returns the list of nodes and paths
-        """
-        return self.nodes, self.paths, self.cars
-
-    def get_nodes_paths(self) -> tuple:
-        """
-
-        :return: Returns the list of nodes and paths
-        """
-        return self.nodes, self.paths
 
     def update_lights(self, lights: list, refresh_widgets: bool = True):
         """
@@ -177,16 +165,7 @@ class DesignerMainWindow(QtWidgets.QMainWindow):
         :param refresh_widgets: If lights are changed on the back-end then the widgets (on the front end) need updating
         :return: None
         """
-        self.lights = lights
-        if refresh_widgets:
-            self.control_tab.update_light_widgets(self.lights)
-
-    def get_lights(self):
-        """
-
-        :return: Returns the list of lights
-        """
-        return self.lights
+        self.model.lights = lights
 
     def recenter(self) -> None:
         """

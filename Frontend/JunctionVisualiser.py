@@ -4,6 +4,7 @@ from .Tabs.ControlTab import *
 from PyQt5.QtCore import QThread, QObject, pyqtSignal
 from Library.FileManagement import *
 from Library.maths import clamp
+from Library.model import Model
 
 
 class JunctionVisualiser:
@@ -27,11 +28,8 @@ class JunctionVisualiser:
         self.worker.finished.connect(self.worker.deleteLater)
         self.thread.finished.connect(self.thread.deleteLater)
 
-    def load_junction(self, junction_file_path):
-        file_manager = FileManagement()
-        nodes, paths, lights = file_manager.load_from_junction_file(junction_file_path)
-        self.viewer_window.nodes = nodes
-        self.viewer_window.paths = paths
+    def load_junction(self, junction_file_path, ):
+        self.viewer_window.model.load_junction(junction_file_path, quick_load=True)
         self.viewer_window.render_pygame_widget()
 
     def define_main(self, function):
@@ -43,7 +41,7 @@ class JunctionVisualiser:
         self.application.exec_()
 
     def update_car_positions(self, car_positions: list) -> None:
-        self.viewer_window.cars = car_positions
+        self.viewer_window.model.cars = car_positions
 
     def set_scale(self, scale):
         scale = clamp(scale, 25, 200)
@@ -75,16 +73,14 @@ class ViewerMainWindow(QtWidgets.QMainWindow):
         super(ViewerMainWindow, self).__init__()
 
         # List of all nodes and paths
-        self.nodes = []
-        self.paths = []
-        self.cars = []
+        self.model = Model()
 
         # Set GUI window size
         self.window_width, self.window_height = 1440, 847
         self.setMinimumSize(round(self.window_width / 2), self.window_height)
 
         # Pygame graphics renderer
-        self.pygame_graphics = PygameGraphics(self.window_width, self.window_height, self.get_data)
+        self.pygame_graphics = PygameGraphics(self.window_width, self.window_height, self.model)
 
         # Junction view widget
         self.pygame_widget = PyGameWidget(None)
@@ -124,11 +120,11 @@ class ViewerMainWindow(QtWidgets.QMainWindow):
         Paths are pre-rendered because it is computationally intensive and does not need to happen on every refresh.
         :return: None
         """
-        for path in self.paths:
-            path.calculate_all()
+        for path in self.model.paths:
+            path.calculate_all(self.model)
 
-        if len(self.paths) > 0:
-            self.pygame_graphics.render_hermite_paths(self.paths)
+        if len(self.model.paths) > 0:
+            self.pygame_graphics.render_hermite_paths(self.model.paths)
         self.refresh_pygame_widget()
 
     def pygame_widget_scroll(self, event) -> None:
@@ -150,10 +146,10 @@ class ViewerMainWindow(QtWidgets.QMainWindow):
         :param refresh_widgets: If nodes are changed on the back-end then the widgets (on the front end) need updating
         :return:
         """
-        self.nodes = nodes
-        self.paths = paths
+        self.model.nodes = nodes
+        self.model.paths = paths
         if refresh_widgets:
-            self.design_tab.update_node_path_widgets(self.nodes, self.paths)
+            self.design_tab.update_node_path_widgets(self.model.nodes, self.model.paths)
         self.control_tab.set_add_light_button_state()
 
     def get_data(self) -> tuple:
@@ -161,4 +157,4 @@ class ViewerMainWindow(QtWidgets.QMainWindow):
 
         :return: Returns the list of nodes and paths
         """
-        return self.nodes, self.paths, self.cars
+        return self.model.nodes, self.model.paths, self.model.cars
