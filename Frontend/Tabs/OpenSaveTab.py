@@ -59,11 +59,7 @@ class OpenSaveTab(QtWidgets.QWidget):
         """
         self.save_file_path = file_path
         FileManager = FileManagement()
-        nodes, paths, lights = FileManager.load_from_junction_file(self.save_file_path)
-        for path in paths:
-            path.discrete_length_increment_size = 10
-            path.discrete_iteration_qty = 10000
-            path.calculate_all()
+        nodes, paths, lights = FileManager.load_from_junction_file(self.save_file_path, quick_load=True)
         self.update_nodes_paths_function(nodes, paths)
         self.update_lights_function(lights)
         self.render_function()
