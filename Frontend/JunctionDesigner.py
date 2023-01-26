@@ -158,7 +158,7 @@ class DesignerMainWindow(QtWidgets.QMainWindow):
     def update_control_tab(self):
         self.control_tab.set_add_light_button_state()
 
-    def update_lights(self, lights: list, refresh_widgets: bool = True):
+    def update_lights(self, lights: list):
         """
 
         :param lights: list of light objects

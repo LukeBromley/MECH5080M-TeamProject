@@ -113,6 +113,6 @@ class ViewTab(QtWidgets.QWidget):
         Sets the scale of the graphics.
         :return: None
         """
-        scale = 0.5 * self.scale.value() / 100
+        scale = 0.2 * self.scale.value() / 100
         self.set_scale_function(scale)
         self.gui.refresh_pygame_widget()
