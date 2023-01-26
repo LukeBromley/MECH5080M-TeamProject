@@ -33,6 +33,8 @@ class Path:
         self.discrete_iteration_qty = 1000
         self.discrete_path = []
 
+        self.curvature = []
+
         self.calculate_all()
 
     # Gets
@@ -65,10 +67,7 @@ class Path:
         return [point[3] for point in self.discrete_path]
 
     def get_all_curvature(self):
-        curvature = []
-        for point in self.discrete_path:
-            curvature.append(point[4])
-        return curvature
+        return [point[4] for point in self.discrete_path]
 
     # Discrete Calculations
 
@@ -77,6 +76,8 @@ class Path:
         self.calculate_discrete_arc_length_points()
         self.calculate_discrete_direction_points()
         self.calculate_discrete_curvature_points()
+
+        self.temp_calculate_curvature_grid()
 
     def calculate_hermite_spline_coefficients(self):
         p1x = self.start_node.x
@@ -146,6 +147,14 @@ class Path:
 
         c = calculate_vector_magnitude(calculate_cross_product(dR_ds, dR2_ds2)) / (calculate_vector_magnitude(dR_ds)**3)
         return c
+
+    def temp_calculate_curvature_grid(self):
+        curvature = []
+        path_length = round(self.get_euclidean_distance() * 1.5)
+        for i in range(path_length + 1):
+            s = i / path_length
+            curvature.append(self.calculate_curvature(s))
+        self.curvature = curvature
 
 
 class TrafficLight:

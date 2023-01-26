@@ -129,7 +129,7 @@ class PygameGraphics:
                 for i in range(path_length+1):
                     s = i/path_length
                     x, y = path.calculate_coords(s)
-                    path_colour = self._calculate_curvature_colour(path, i, lower, upper)
+                    path_colour = self._calculate_curvature_colour(path, s, lower, upper)
                     x = round(x)
                     y = round(y)
                     self._hermite_path_points.append(VisualPoint(x, y, path_colour))
@@ -140,16 +140,8 @@ class PygameGraphics:
         curvature = []
         for path in paths:
             curvature += path.get_all_curvature()
-        maximum = max(curvature)
-        minimum = min(curvature)
-        avg = mean(curvature)
-        med = median(curvature)
-        q = quantiles(curvature)
-        # upper = sorted(curvature)[round(1.02 * len(curvature) / 2)]
-        # lower = sorted(curvature)[round(0.98 * len(curvature) / 2)]
-        upper = q[0]
-        lower = q[2]
-        print(maximum, minimum, avg, med, q)
+        upper = sorted(curvature)[round(3 * len(curvature) / 4)]
+        lower = sorted(curvature)[round(1 * len(curvature) / 4)]
         return upper, lower
 
     # Functions for drawing both Hermite and Poly paths
@@ -186,12 +178,10 @@ class PygameGraphics:
         :param upper: highest path curve radius
         :return: colour based on curve radius at path curvature array index
         """
-        curve = path.calculate_curvature(s)
-        curve_pre_clamp = ((curve - lower) / (upper - lower)) * 255
-        print(curve_pre_clamp)
-        curve_post_clamp = clamp(curve_pre_clamp, 0, 255)
-        colour_mag = round(curve_post_clamp)
-        # print(curve_pre_clamp, curve_post_clamp)
+        try:
+            colour_mag = round((clamp(path.calculate_curvature(s), lower, upper) - lower) * (255 / (upper - lower)))
+        except ValueError:
+            colour_mag = 0
         return colour_mag, 255 - colour_mag, 0
 
     def _position_offsetter(self, x: int, y: int) -> tuple:
