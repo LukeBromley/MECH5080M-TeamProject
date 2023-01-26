@@ -2,6 +2,7 @@ import time
 
 from Frontend.JunctionVisualiser import JunctionVisualiser
 from Library.FileManagement import FileManagement
+from Library.model import Model
 from Library.vehicles import Car
 from config import ROOT_DIR
 import os
@@ -9,26 +10,22 @@ import os
 
 class Simulation:
     def __init__(self, file_path: str):
-        self.file_path = file_path
-        self.nodes, self.paths, self.lights = FileManagement().load_from_junction_file(file_path)
-        self.vehicles = []
-
-        for path in self.paths:
-            self.vehicles.append(
-                Car(
-                    uid=0,
-                    start_time=0,
-                    path=path,
-                    velocity=0.0,
-                    acceleration=0.0,
-                    maximum_acceleration=3.0,
-                    maximum_deceleration=6.0,
-                    preferred_time_gap=2.0,
-                    vehicle_length=4.0,
-                    maximum_velocity=30.0
-                )
+        self.model = Model()
+        self.model.load_junction(file_path)
+        self.model.add_vehicle(
+            Car(
+                uid=0,
+                start_time=0,
+                path=self.model.get_path(1),
+                velocity=0.0,
+                acceleration=0.0,
+                maximum_acceleration=3.0,
+                maximum_deceleration=6.0,
+                preferred_time_gap=2.0,
+                vehicle_length=4.0,
+                maximum_velocity=30.0
             )
-            break
+        )
 
         self.visualiser = JunctionVisualiser()
         self.visualiser.define_main(self.main)
@@ -39,10 +36,10 @@ class Simulation:
         dt = 0.01
         for x in range(1000):
             coordinates = []
-            self.vehicles = [vehicle for vehicle in self.vehicles if vehicle.get_position() is not None]
-            for index, vehicle in enumerate(self.vehicles):
+            vehicles = [vehicle for vehicle in self.model.vehicles if vehicle.get_position() is not None]
+            for index, vehicle in enumerate(vehicles):
                 coordinates.append(vehicle.get_position())
-                vehicle.update(dt, self.vehicles)
+                vehicle.update(dt, self.model.vehicles)
             self.visualiser.update_car_positions(coordinates)
             time.sleep(0.01)
 

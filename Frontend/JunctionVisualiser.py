@@ -41,7 +41,7 @@ class JunctionVisualiser:
         self.application.exec_()
 
     def update_car_positions(self, car_positions: list) -> None:
-        self.viewer_window.model.cars = car_positions
+        self.viewer_window.model.vehicles = car_positions
 
     def set_scale(self, scale):
         scale = clamp(scale, 25, 200)
@@ -157,4 +157,4 @@ class ViewerMainWindow(QtWidgets.QMainWindow):
 
         :return: Returns the list of nodes and paths
         """
-        return self.model.nodes, self.model.paths, self.model.cars
+        return self.model.nodes, self.model.paths, self.model.vehicles

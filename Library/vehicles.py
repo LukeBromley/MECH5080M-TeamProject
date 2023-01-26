@@ -59,7 +59,7 @@ class Car:
             (self._velocity + (self._acceleration * time_delta)), self._minimum_velocity, self._maximum_velocity)
         self._distance_travelled += self._velocity * time_delta
         self.position_data.append(self.get_position)
-        print(self._velocity)
+
 
     def _calculate_acceleration(self, vehicle_ahead: "Car") -> float:
         """
