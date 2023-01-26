@@ -16,20 +16,19 @@ class Simulation:
         for path in self.paths:
             self.vehicles.append(
                 Car(
-                    uid="uid",
+                    uid=0,
                     start_time=0,
-                    position_data=None,
                     path=path,
                     velocity=0.0,
                     acceleration=0.0,
-                    maximum_acceleration=5.0,
-                    maximum_deceleration=4.0,
-                    distance_traveled=0,
+                    maximum_acceleration=3.0,
+                    maximum_deceleration=6.0,
                     preferred_time_gap=2.0,
                     vehicle_length=4.0,
                     maximum_velocity=30.0
                 )
             )
+            break
 
         self.visualiser = JunctionVisualiser()
         self.visualiser.define_main(self.main)
@@ -40,10 +39,10 @@ class Simulation:
         dt = 0.01
         for x in range(1000):
             coordinates = []
-            self.vehicles = [vehicle for vehicle in self.vehicles if vehicle.get_cartesian_position() is not None]
+            self.vehicles = [vehicle for vehicle in self.vehicles if vehicle.get_position() is not None]
             for index, vehicle in enumerate(self.vehicles):
-                vehicle.update(dt)
-                coordinates.append(vehicle.get_cartesian_position())
+                coordinates.append(vehicle.get_position())
+                vehicle.update(dt, self.vehicles)
             self.visualiser.update_car_positions(coordinates)
             time.sleep(0.01)
 

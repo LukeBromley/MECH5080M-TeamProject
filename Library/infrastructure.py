@@ -45,7 +45,7 @@ class Path:
         arc_length = round(arc_length * (1 / self.discrete_length_increment_size))
         return self.discrete_path[arc_length][0]
 
-    def get_coords(self, arc_length: float):
+    def get_coordinates(self, arc_length: float):
         arc_length = round(arc_length / self.discrete_length_increment_size)
         if arc_length >= len(self.discrete_path):
             return None
