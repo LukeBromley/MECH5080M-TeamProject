@@ -91,9 +91,9 @@ class FileManagement:
         for uid in file_dict[self.paths_key]:
             path_data = file_dict[self.paths_key][uid]
             if quick_load:
-                paths.append(Path(int(uid), path_data[0], path_data[1]))
-            else:
                 paths.append(Path(int(uid), path_data[0], path_data[1], discrete_length_increment_size=0.1, discrete_iteration_qty=1000))
+            else:
+                paths.append(Path(int(uid), path_data[0], path_data[1]))
 
         # Load light data
         lights = []

@@ -88,7 +88,7 @@ class PygameGraphics:
         self.surface.fill((255, 255, 255))
         self.surface.set_at(self._position_offsetter(0, 0), (0, 0, 0))
 
-        nodes, paths, cars = self.model.nodes, self.model.paths, self.model.cars
+        nodes, paths, cars = self.model.nodes, self.model.paths, self.model.vehicles
 
         if draw_grid: self._draw_grid()
         if draw_hermite_paths: self._draw_hermite_paths(draw_curvature)
@@ -178,10 +178,10 @@ class PygameGraphics:
         :param upper: highest path curve radius
         :return: colour based on curve radius at path curvature array index
         """
-        try:
-            colour_mag = round((clamp(path.calculate_curvature(s), lower, upper) - lower) * (255 / (upper - lower)))
-        except ValueError or ZeroDivisionError:
+        if upper == lower:
             colour_mag = 0
+        else:
+            colour_mag = round((clamp(path.calculate_curvature(s), lower, upper) - lower) * (255 / (upper - lower)))
         return colour_mag, 255 - colour_mag, 0
 
     def _position_offsetter(self, x: int, y: int) -> tuple:

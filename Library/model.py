@@ -8,7 +8,7 @@ class Model:
         self.nodes = []
         self.paths = []
         self.lights = []
-        self.cars = []
+        self.vehicles = []
 
     def load_junction(self, junction_file_location, quick_load=False):
         self.nodes, self.paths, self.lights = self.file_manager.load_from_junction_file(junction_file_location, quick_load=quick_load)
@@ -36,4 +36,7 @@ class Model:
         for light in self.lights:
             if light.uid == light_uid:
                 return light
+
+    def add_vehicle(self, vehicle):
+        self.vehicles.append(vehicle)
 
