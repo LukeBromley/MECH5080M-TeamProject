@@ -3,19 +3,14 @@ from PyQt5.QtCore import Qt
 
 
 class ViewTab(QtWidgets.QWidget):
-    def __init__(self, refresh_function, render_function, recenter_function, set_scale_function) -> None:
+    def __init__(self, gui, set_scale_function) -> None:
         """
 
-        :param refresh_function: function that refreshes the pygame graphics
-        :param render_function: function that renders the pygame graphics
-        :param recenter_function: function to recenter junction scrolling
         """
         super(ViewTab, self).__init__()
 
         # Functions
-        self.refresh_function = refresh_function
-        self.render_function = render_function
-        self.recenter_function = recenter_function
+        self.gui = gui
         self.set_scale_function = set_scale_function
 
         # Widgets + Layouts
@@ -66,7 +61,7 @@ class ViewTab(QtWidgets.QWidget):
         Connect widget callback functions
         :return: None
         """
-        self.recenter_button.pressed.connect(self.recenter_function)
+        self.recenter_button.pressed.connect(self.gui.recenter)
         self.scale.valueChanged.connect(self.set_scale)
 
         self.layer_grid.stateChanged.connect(self.update_layer_states)
@@ -97,7 +92,7 @@ class ViewTab(QtWidgets.QWidget):
         self.show_layer_curvature = self.layer_curvature.isChecked()
         self.show_layer_cars = self.layer_cars.isChecked()
 
-        self.refresh_function()
+        self.gui.refresh_pygame_widget()
 
     def set_layer_states(self) -> None:
         """
@@ -120,4 +115,4 @@ class ViewTab(QtWidgets.QWidget):
         """
         scale = 0.5 * self.scale.value() / 100
         self.set_scale_function(scale)
-        self.refresh_function()
+        self.gui.refresh_pygame_widget()

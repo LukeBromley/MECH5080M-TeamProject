@@ -1,7 +1,5 @@
 import pygame
 from math import sin, cos
-from statistics import mean, median, quantiles
-
 from PyQt5 import QtCore
 from Library.maths import clamp, VisualPoint
 
@@ -20,7 +18,7 @@ class VisualLabel:
 
 
 class PygameGraphics:
-    def __init__(self, window_width, window_height, get_data_function) -> None:
+    def __init__(self, window_width, window_height, model) -> None:
         """
 
         :param window_width: GUI window width for calculating surface size
@@ -29,7 +27,7 @@ class PygameGraphics:
         """
 
         # Functions
-        self.get_data_function = get_data_function
+        self.model = model
 
         # Window Parameters
         self._window_width, self._window_height = window_width, window_height
@@ -90,7 +88,7 @@ class PygameGraphics:
         self.surface.fill((255, 255, 255))
         self.surface.set_at(self._position_offsetter(0, 0), (0, 0, 0))
 
-        nodes, paths, cars = self.get_data_function()
+        nodes, paths, cars = self.model.nodes, self.model.paths, self.model.cars
 
         if draw_grid: self._draw_grid()
         if draw_hermite_paths: self._draw_hermite_paths(draw_curvature)
@@ -124,8 +122,8 @@ class PygameGraphics:
         self._path_labels.clear()
         upper, lower = self._calculate_hermite_path_curvature(paths)
         for path in paths:
-            if path.get_euclidean_distance() > 0:
-                path_length = round(path.get_euclidean_distance() * 150)  # Changing iteration intervals for improved performance
+            if path.get_euclidean_distance(self.model) > 0:
+                path_length = round(path.get_euclidean_distance(self.model) * 150)  # Changing iteration intervals for improved performance
                 for i in range(path_length+1):
                     s = i/path_length
                     x, y = path.calculate_coords(s)
@@ -182,7 +180,7 @@ class PygameGraphics:
         """
         try:
             colour_mag = round((clamp(path.calculate_curvature(s), lower, upper) - lower) * (255 / (upper - lower)))
-        except ValueError:
+        except ValueError or ZeroDivisionError:
             colour_mag = 0
         return colour_mag, 255 - colour_mag, 0
 
@@ -319,7 +317,7 @@ class PygameGraphics:
 
     def _draw_cars(self, cars):
         for car in cars:
-            x, y = self._position_offsetter(car[0], car[1])
+            x, y = self._position_offsetter(car[0] * 100, car[1] * 100)
             pygame.draw.circle(self.surface, (255, 130, 0), (x, y), 5)
 
 
