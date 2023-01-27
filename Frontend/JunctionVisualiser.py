@@ -11,8 +11,11 @@ class JunctionVisualiser:
     def __init__(self) -> None:
         """
 
-        Class the executes the PYQT GUI
-        Any code after this class will not be executed until the GUI window is closed.
+
+        Junction Visualiser is a stripped down version of Junction Designer that allows the user to view the junction
+        and cars in real time.
+        GUI uses PYQT with PyGame for visualiser on the backend.
+        GUI is threadded to allow the simulation to run on another thread.
         """
         # Create application
         self.application = QtWidgets.QApplication(sys.argv)
@@ -28,22 +31,51 @@ class JunctionVisualiser:
         self.worker.finished.connect(self.worker.deleteLater)
         self.thread.finished.connect(self.thread.deleteLater)
 
-    def load_junction(self, junction_file_path, ):
+    def load_junction(self, junction_file_path: str) -> None:
+        """
+
+        Load junction
+        :param junction_file_path: file path of junction to show
+        :return: None
+        """
         self.viewer_window.model.load_junction(junction_file_path, quick_load=True)
         self.viewer_window.render_pygame_widget()
 
-    def define_main(self, function):
-        self.worker.set_main_function(function)
+    def define_main(self, main_function) -> None:
+        """
 
-    def open(self):
+        Defines the main function to run on the thread
+        :param function: Main function
+        :return: None
+        """
+        self.worker.set_main_function(main_function)
+
+    def open(self) -> None:
+        """
+
+        Open the Junction Visualiser and start running the main function
+        :return: None
+        """
         self.thread.start()
         self.viewer_window.show()
         self.application.exec_()
 
     def update_car_positions(self, car_positions: list) -> None:
+        """
+
+        Updates the GUI car positions with a list of x, y coordinates
+        :param car_positions: list of x,y car positions
+        :return: None
+        """
         self.viewer_window.model.vehicles = car_positions
 
-    def set_scale(self, scale):
+    def set_scale(self, scale: int) -> None:
+        """
+
+        Sets GUI scale
+        :param scale: scale %
+        :return: None
+        """
         scale = clamp(scale, 25, 200)
         scale = scale / 100
         self.viewer_window.pygame_graphics.set_scale(scale)
@@ -52,15 +84,29 @@ class JunctionVisualiser:
 class Run_Time_Function(QObject):
     finished = pyqtSignal()
     def __init__(self):
+        """
+
+        Class to run on second thread that handles simulation
+        """
         super().__init__()
-        self.function = None
+        self.main_function = None
 
-    def run(self):
+    def run(self) -> None:
+        """
+
+        Runs the main function and closes thread when function is complete
+        :return: None
+        """
         self.function()
-        self.finished.emit()
+        self.main_function.emit()
 
-    def set_main_function(self, function):
-        self.function = function
+    def set_main_function(self, main_function) -> None:
+        """
+
+        :param main_function:
+        :return: None
+        """
+        self.main_function = main_function
 
 
 class ViewerMainWindow(QtWidgets.QMainWindow):
@@ -91,6 +137,7 @@ class ViewerMainWindow(QtWidgets.QMainWindow):
         # Initialise render
         self.render_pygame_widget()
 
+        # GUI refresh timer (set at 100FPS)
         self.timer = Timer(10, self.refresh_pygame_widget, single_shot=False)
 
     def refresh_pygame_widget(self) -> None:

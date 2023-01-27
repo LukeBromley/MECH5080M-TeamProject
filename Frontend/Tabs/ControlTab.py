@@ -9,13 +9,9 @@ class ControlTab(QtWidgets.QWidget):
     def __init__(self, gui, model):
         """
 
-        :param refresh_function: pygame graphics refresh function
-        :param render_function: pygame graphics render function
-        :param identify_light_function: pygame graphics identify light function
-        :param update_node_paths: function that updates the model with current node and paths
-        :param get_node_paths: function that gets the lists of nodes and paths from the model
-        :param update_lights: function that updates the model with the current lights
-        :param get_lights: function that gets the list lights from the model
+        Control tab that allows the user to add traffic lights
+        :param gui: parent gui class
+        :param model: model
         """
         super(ControlTab, self).__init__()
 
@@ -143,7 +139,7 @@ class ControlTab(QtWidgets.QWidget):
     def identify_light(self, uid: int) -> None:
         """
 
-        Creats a list of paths to identify when an identify button is pressed
+        Creates a list of paths to identify when an identify button is pressed
         :param uid: UID of light that we want to identify the paths of
         :return: None
         """

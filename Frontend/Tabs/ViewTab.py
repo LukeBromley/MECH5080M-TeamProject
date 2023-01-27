@@ -5,6 +5,9 @@ from PyQt5.QtCore import Qt
 class ViewTab(QtWidgets.QWidget):
     def __init__(self, gui, set_scale_function) -> None:
         """
+        View tab that allows the user to show and hide layers, set scaling and reset
+        :param gui: parent gui class
+        :param set_scale_function: function that sets the scale of the gui
 
         """
         super(ViewTab, self).__init__()
