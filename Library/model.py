@@ -38,13 +38,16 @@ class Model:
                 return light
 
     def get_vehicles(self):
-        self.vehicles = [vehicle for vehicle in self.vehicles if vehicle.get_position() is not None]
+        self.vehicles = [vehicle for vehicle in self.vehicles if vehicle.get_route_distance_travelled() < vehicle.get_route().length]
         return self.vehicles
 
     def add_vehicle(self, vehicle):
         self.vehicles.append(vehicle)
 
-    def remove_vehicle(self, index):
-        del self.vehicles[index]
+    def remove_vehicle(self, uid):
+        for index, vehicle in enumerate(self.vehicles):
+            if vehicle.uid == uid:
+                self.vehicles.pop(index)
+
 
 

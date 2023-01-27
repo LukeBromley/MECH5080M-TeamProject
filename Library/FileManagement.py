@@ -1,6 +1,6 @@
 import json
 from Library.infrastructure import Node, Path, TrafficLight
-from Library.vehicles import Car
+from Library.vehicles import Vehicle
 
 """
 Explanation of File Management

@@ -1,10 +1,6 @@
+import math
 import random
-from math import sin, cos, sqrt, floor, atan
-
-import sympy as sym
-from numpy import polyfit, RankWarning
-import warnings
-
+from math import sin, cos, sqrt, atan
 from Library.maths import Vector, calculate_cross_product, calculate_vector_magnitude
 
 
@@ -21,9 +17,9 @@ class Node:
         return tx, ty
 
 
-
 class Path:
-    def __init__(self, uid: int, start_node: Node, end_mode: Node, discrete_length_increment_size=0.01, discrete_iteration_qty=100000):
+    def __init__(self, uid: int, start_node: Node, end_mode: Node, discrete_length_increment_size=0.01,
+                 discrete_iteration_qty=100000):
         self.uid = uid
         self.start_node = start_node
         self.end_node = end_mode
@@ -104,7 +100,7 @@ class Path:
             s = iteration / self.discrete_iteration_qty
             x1, y1 = self.calculate_coords(s)
             x0, y0 = self.discrete_path[-1][1], self.discrete_path[-1][2]
-            distance = sqrt((y1-y0)**2 + (x1-x0)**2)
+            distance = sqrt((y1 - y0) ** 2 + (x1 - x0) ** 2)
             if abs(distance) >= self.discrete_length_increment_size:
                 self.discrete_path.append([s, x1, y1])
 
@@ -121,16 +117,20 @@ class Path:
     # Hermite Calculations
 
     def calculate_coords(self, s: float):
-        x = self.x_hermite_cubic_coeff[0] + self.x_hermite_cubic_coeff[1] * s + self.x_hermite_cubic_coeff[2] * (s * s) + self.x_hermite_cubic_coeff[3] * (s * s * s)
-        y = self.y_hermite_cubic_coeff[0] + self.y_hermite_cubic_coeff[1] * s + self.y_hermite_cubic_coeff[2] * (s * s) + self.y_hermite_cubic_coeff[3] * (s * s * s)
+        x = self.x_hermite_cubic_coeff[0] + self.x_hermite_cubic_coeff[1] * s + self.x_hermite_cubic_coeff[2] * (
+                    s * s) + self.x_hermite_cubic_coeff[3] * (s * s * s)
+        y = self.y_hermite_cubic_coeff[0] + self.y_hermite_cubic_coeff[1] * s + self.y_hermite_cubic_coeff[2] * (
+                    s * s) + self.y_hermite_cubic_coeff[3] * (s * s * s)
         return x, y
 
     def calculate_direction(self, s: float):
-        dy_ds = self.y_hermite_cubic_coeff[1] + 2 * self.y_hermite_cubic_coeff[2] * s + 3 * self.y_hermite_cubic_coeff[3] * s * s
-        dx_ds = self.x_hermite_cubic_coeff[1] + 2 * self.x_hermite_cubic_coeff[2] * s + 3 * self.x_hermite_cubic_coeff[3] * s * s
-        if dx_ds != 0 :
+        dy_ds = self.y_hermite_cubic_coeff[1] + 2 * self.y_hermite_cubic_coeff[2] * s + 3 * self.y_hermite_cubic_coeff[
+            3] * s * s
+        dx_ds = self.x_hermite_cubic_coeff[1] + 2 * self.x_hermite_cubic_coeff[2] * s + 3 * self.x_hermite_cubic_coeff[
+            3] * s * s
+        if dx_ds != 0:
             dy_dx = dy_ds / dx_ds
-            a = 90-atan(dy_dx)
+            a = 90 - atan(dy_dx)
         else:
             if dy_ds > 0:
                 a = 0
@@ -141,42 +141,92 @@ class Path:
     def calculate_curvature(self, s: float):
         ## Source: https://math.libretexts.org/Bookshelves/Calculus/Supplemental_Modules_(Calculus)/Vector_Calculus/2%3A_Vector-Valued_Functions_and_Motion_in_Space/2.3%3A_Curvature_and_Normal_Vectors_of_a_Curve
 
-        dy_ds = self.y_hermite_cubic_coeff[1] + 2 * self.y_hermite_cubic_coeff[2] * s + 3 * self.y_hermite_cubic_coeff[3] * s * s
+        dy_ds = self.y_hermite_cubic_coeff[1] + 2 * self.y_hermite_cubic_coeff[2] * s + 3 * self.y_hermite_cubic_coeff[
+            3] * s * s
         dy2_ds2 = 2 * self.y_hermite_cubic_coeff[2] + 6 * self.y_hermite_cubic_coeff[3] * s
 
-        dx_ds = self.x_hermite_cubic_coeff[1] + 2 * self.x_hermite_cubic_coeff[2] * s + 3 * self.x_hermite_cubic_coeff[3] * (s * s)
+        dx_ds = self.x_hermite_cubic_coeff[1] + 2 * self.x_hermite_cubic_coeff[2] * s + 3 * self.x_hermite_cubic_coeff[
+            3] * (s * s)
         dx2_ds2 = 2 * self.x_hermite_cubic_coeff[2] + 6 * self.x_hermite_cubic_coeff[3] * s
 
         dR_ds = Vector(dx_ds, dy_ds, 0)
         dR2_ds2 = Vector(dx2_ds2, dy2_ds2, 0)
 
-        c = calculate_vector_magnitude(calculate_cross_product(dR_ds, dR2_ds2)) / (calculate_vector_magnitude(dR_ds)**3)
+        c = calculate_vector_magnitude(calculate_cross_product(dR_ds, dR2_ds2)) / (
+                    calculate_vector_magnitude(dR_ds) ** 3)
         return c
 
+    def get_length(self):
+        return len(self.discrete_path) * self.discrete_length_increment_size
 
 class Route:
     def __init__(self, paths: list[Path]):
         discrete_length_increment_sizes = [path.discrete_length_increment_size for path in paths]
-        assert discrete_length_increment_sizes.count(discrete_length_increment_sizes[0]) == len(discrete_length_increment_sizes)
+        assert discrete_length_increment_sizes.count(discrete_length_increment_sizes[0]) == len(
+            discrete_length_increment_sizes)
         self.discrete_length_increment_size = discrete_length_increment_sizes[0]
 
-        self._curvature = []
-        self._coordinates = []
-
+        self.length = 0.0
         for path in paths:
-            self._coordinates += [(element[1], element[2]) for element in path.discrete_path]
-            self._curvature += [element[4] for element in path.discrete_path]
+            self.length += path.get_length()
 
-    def get_coordinates(self, arc_length: float):
-        index = round(arc_length / self.discrete_length_increment_size)
-        if index >= len(self._coordinates):
-            return None
-        else:
-            return self._coordinates[index]
+        self._paths = paths
 
-    def get_curvature(self, arc_length: float):
-        index = round(arc_length / self.discrete_length_increment_size)
-        return self._curvature[index]
+    def get_object_ahead(self, route_distance_travelled, vehicles, lights):
+        if vehicles is None and lights is None:
+            return
+
+        this_path, this_index = self.get_path_and_index(route_distance_travelled)
+        path_minimum_distance_ahead = float('inf')
+        path_vehicle_ahead = None
+        for vehicle in vehicles:
+            that_path, that_index = vehicle.get_path_and_index()
+            if (
+                    this_path == that_path and
+                    this_index < that_index and
+                    that_index - this_index < path_minimum_distance_ahead
+            ):
+                path_minimum_distance_ahead = that_index - this_index
+                path_vehicle_ahead = vehicle
+
+        if path_vehicle_ahead is not None:
+            return path_vehicle_ahead
+
+        path_minimum_distance_ahead = float('inf')
+        for vehicle in vehicles:
+            if (
+                    self == vehicle.get_route() and
+                    route_distance_travelled < vehicle.get_route_distance_travelled() and
+                    vehicle.get_route_distance_travelled() - route_distance_travelled < path_minimum_distance_ahead
+            ):
+                path_minimum_distance_ahead = vehicle.get_route_distance_travelled() - route_distance_travelled
+                path_vehicle_ahead = vehicle
+
+        if path_vehicle_ahead is not None:
+            return path_vehicle_ahead
+
+    def get_coordinates(self, route_distance_travelled: float):
+        path, index = self.get_path_and_index(route_distance_travelled)
+        return path.discrete_path[index][1], path.discrete_path[index][2]
+
+    def get_curvature(self, route_distance_travelled: float):
+        path, index = self.get_path_and_index(route_distance_travelled)
+        return path.discrete_path[index][4]
+
+    def get_path(self, route_distance_travelled: float):
+        path, _ = self.get_path_and_index(route_distance_travelled)
+        return path
+
+    def get_path_and_index(self, route_distance_travelled: float):
+        index = math.floor(route_distance_travelled / self.discrete_length_increment_size)
+        index_offset = 0
+        for path in self._paths:
+            path_length = len(path.discrete_path)
+            if index_offset + path_length <= index:
+                index_offset += path_length
+                continue
+            else:
+                return path, index - index_offset
 
 
 class TrafficLight:
