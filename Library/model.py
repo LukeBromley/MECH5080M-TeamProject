@@ -37,6 +37,14 @@ class Model:
             if light.uid == light_uid:
                 return light
 
+    def get_vehicles(self):
+        self.vehicles = [vehicle for vehicle in self.vehicles if vehicle.get_position() is not None]
+        return self.vehicles
+
     def add_vehicle(self, vehicle):
         self.vehicles.append(vehicle)
+
+    def remove_vehicle(self, index):
+        del self.vehicles[index]
+
 

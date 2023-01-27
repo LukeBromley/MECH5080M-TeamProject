@@ -44,7 +44,7 @@ class JunctionVisualiser:
         self.viewer_window.model.vehicles = car_positions
 
     def set_scale(self, scale):
-        scale = clamp(scale, 25, 200)
+        scale = clamp(scale, 10, 200)
         scale = scale / 100
         self.viewer_window.pygame_graphics.set_scale(scale)
 
