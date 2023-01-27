@@ -23,7 +23,7 @@ class PygameGraphics:
 
         :param window_width: GUI window width for calculating surface size
         :param window_height: GUI window heigh for calculating surface size
-        :param get_data_function: method of JuctionVisualiser for retrieving current nodes and current paths
+        :param model: model
         """
 
         # Functions
@@ -78,8 +78,8 @@ class PygameGraphics:
         This function manages what "layers" are displayed on the pygame surface.
         :param draw_grid: boolean for enabling display of grid
         :param draw_hermite_paths: boolean for enabling display of hermite paths
-        :param draw_poly_paths: boolean for enabling display of poly paths
         :param draw_nodes: boolean for enabling display of nodes
+        :param draw_cars: boolean for enabling display of cars
         :param draw_node_labels: boolean for enabling display of node labels
         :param draw_path_labels: boolean for enabling display of path labels
         :param draw_curvature: boolean for enabling display of path curvature
@@ -137,6 +137,11 @@ class PygameGraphics:
                         self._path_labels.append(VisualLabel(str(path.uid), x + 5, y + 5))
 
     def _calculate_hermite_path_curvature(self, paths: list) -> tuple:
+        """
+
+        :param paths: list of all paths
+        :return: Returns the highest and curvature and lowest curvature of all paths
+        """
         curvature = []
         for path in paths:
             curvature += path.get_all_curvature()
@@ -150,6 +155,7 @@ class PygameGraphics:
 
         :param paths_points: points to be drawn on the path
         :param draw_curvature: boolean to enable curvature coloring of drawn paths
+        :param highlight: highlight the paths in pink colour
         :return: None
         """
         for point in paths_points:
@@ -222,8 +228,8 @@ class PygameGraphics:
         """
 
         Draw all labels on pygame surface
-        :param _draw_node_labels: boolean to enable drawing of node labels
-        :param _draw_path_labels: boolean to enable drawing of path labels
+        :param draw_node_labels: boolean to enable drawing of node labels
+        :param draw_path_labels: boolean to enable drawing of path labels
         :return:
         """
         if draw_node_labels:
@@ -315,7 +321,13 @@ class PygameGraphics:
         """
         self._scale = scale
 
-    def _draw_cars(self, cars):
+    def _draw_cars(self, cars: list) -> None:
+        """
+
+        Draws cars
+        :param cars: list of car x,y coordinates
+        :return: None
+        """
         for car in cars:
             x, y = self._position_offsetter(car[0] * 100, car[1] * 100)
             pygame.draw.circle(self.surface, (255, 130, 0), (x, y), 5)

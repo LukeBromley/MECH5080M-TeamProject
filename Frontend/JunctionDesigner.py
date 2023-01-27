@@ -9,15 +9,14 @@ from .Tabs.DesignTab import *
 from .Tabs.ViewTab import *
 from .Tabs.ControlTab import *
 
-import threading
-
 
 class JunctionDesigner:
     def __init__(self) -> None:
         """
 
-        Class the executes the PYQT GUI
-        Any code after this class will not be executed until the GUI window is closed.
+        Junction Designer allows the user to design and create a junction and view car positions.
+        GUI uses PYQT with PyGame for visualiser on the backend.
+        WARNING: Any code after this class will not be executed until the GUI window is closed.
         """
         # Create application
         self.application = QtWidgets.QApplication(sys.argv)
@@ -146,23 +145,29 @@ class DesignerMainWindow(QtWidgets.QMainWindow):
         Updates the list of nodes and paths
         :param nodes: list of nodes
         :param paths: list of paths
-        :param refresh_widgets: If nodes are changed on the back-end then the widgets (on the front end) need updating
         :return:
         """
         self.model.nodes = nodes
         self.model.paths = paths
 
     def update_design_tab(self):
+        """
+
+        :return: Updates the design tab with models nodes and paths
+        """
         self.design_tab.update_node_path_widgets()
 
     def update_control_tab(self):
+        """
+
+        :return: Updates the control tab with models nodes and paths
+        """
         self.control_tab.set_add_light_button_state()
 
     def update_lights(self, lights: list):
         """
 
         :param lights: list of light objects
-        :param refresh_widgets: If lights are changed on the back-end then the widgets (on the front end) need updating
         :return: None
         """
         self.model.lights = lights
