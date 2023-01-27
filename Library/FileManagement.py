@@ -1,6 +1,6 @@
 import json
 from Library.infrastructure import Node, Path, TrafficLight
-from Library.vehicles import Car
+from Library.vehicles import VehicleResults
 
 """
 Explanation of File Management
@@ -24,7 +24,7 @@ class Configuration:
                  max_length: int,
                  min_width: int,
                  max_width: int,
-                 max_num_cars: int
+                 max_num_vehicles: int
                  ):
         self.lanes = lanes
         self.min_start_velocity = min_start_velocity
@@ -35,7 +35,7 @@ class Configuration:
         self.max_length = max_length
         self.min_width = min_width
         self.max_width = max_width
-        self.max_num_cars = max_num_cars
+        self.max_num_vehicles = max_num_vehicles
 
 
 class FileManagement:
@@ -55,7 +55,7 @@ class FileManagement:
         self.max_length_key = "max_car_length"
         self.min_width_key = "min_car_width"
         self.max_width_key = "max_car_length"
-        self.max_num_cars_key = "max_number_of_cars"
+        self.max_num_vehicles_key = "max_number_of_vehicles"
 
         # Junction identifiers
         self.nodes_key = "nodes"
@@ -177,7 +177,7 @@ class FileManagement:
         file_dict[self.max_length_key] = config.max_length
         file_dict[self.min_width_key] = config.min_width
         file_dict[self.max_width_key] = config.max_width
-        file_dict[self.max_num_cars_key] = config.max_num_cars
+        file_dict[self.max_num_vehicles_key] = config.max_num_vehicles
 
         with open(file_path, "w") as file:
             json.dump(file_dict, file)
@@ -200,15 +200,15 @@ class FileManagement:
         max_length = file_dict[self.max_length_key]
         min_width = file_dict[self.min_width_key]
         max_width = file_dict[self.max_width_key]
-        max_num_cars = file_dict[self.max_num_cars_key]
+        max_num_vehicles = file_dict[self.max_num_vehicles_key]
 
         configuration = Configuration(lanes, min_start_velocity, max_start_velocity, min_start_acceleration,
                                       max_start_acceleration, min_length, max_length, min_width, max_width,
-                                      max_num_cars)
+                                      max_num_vehicles)
 
         return configuration
 
-    def save_results_data_file(self, file_path: str, cars: list) -> None:
+    def save_results_data_file(self, file_path: str, vehicles: list) -> None:
         """
 
         saving car position data to a file
@@ -218,10 +218,10 @@ class FileManagement:
         """
         file_dict = {}
 
-        for car in cars:
-            file_dict[str(car.uid)] = {}
-            file_dict[str(car.uid)][self.start_time_key] = car.start_time
-            file_dict[str(car.uid)][self.position_data_key] = car.position_data
+        for vehicle in vehicles:
+            file_dict[str(vehicle.uid)] = {}
+            file_dict[str(vehicle.uid)][self.start_time_key] = vehicle.start_time
+            file_dict[str(vehicle.uid)][self.position_data_key] = vehicle.position_data
 
         with open(file_path, "w") as file:
             json.dump(file_dict, file)
@@ -235,11 +235,11 @@ class FileManagement:
         with open(file_path, "r") as file:
             file_dict = json.load(file)
 
-            cars = []
+            vehicles = []
             for uid in file_dict:
                 start_time = file_dict[uid][self.start_time_key]
                 position_data = file_dict[uid][self.position_data_key]
-                cars.append(str(uid), start_time, position_data)
+                vehicles.append(VehicleResults(int(uid), start_time, position_data))
 
-            return cars
+            return vehicles
 

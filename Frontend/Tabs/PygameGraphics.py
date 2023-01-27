@@ -72,7 +72,7 @@ class PygameGraphics:
         self._path_label_colour = (0, 255, 0)
 
     # Main function for drawing paths (from renders), nodes, labels, grid etc.
-    def refresh(self, draw_grid=False, draw_hermite_paths=False, draw_nodes=False, draw_cars=False, draw_node_labels=False, draw_path_labels=False, draw_curvature=False) -> None:
+    def refresh(self, draw_grid=False, draw_hermite_paths=False, draw_nodes=False, draw_vehicles=False, draw_node_labels=False, draw_path_labels=False, draw_curvature=False) -> None:
         """
 
         This function manages what "layers" are displayed on the pygame surface.
@@ -87,13 +87,13 @@ class PygameGraphics:
         """
         self.surface.fill((255, 255, 255))
 
-        nodes, paths, cars = self.model.nodes, self.model.paths, self.model.vehicles
+        nodes, paths, vehicles = self.model.nodes, self.model.paths, self.model.vehicles
 
         if draw_grid: self._draw_grid()
         if draw_hermite_paths: self._draw_hermite_paths(draw_curvature)
         if draw_nodes: self._draw_nodes(nodes)
         pygame.draw.circle(self.surface, (0, 0, 0), self._position_offsetter(0, 0), 3)
-        if draw_cars: self._draw_cars(cars)
+        if draw_vehicles: self._draw_vehicles(vehicles)
         self._draw_labels(draw_node_labels, draw_path_labels)
 
     def highlight_paths(self, paths: list) -> None:
@@ -321,22 +321,22 @@ class PygameGraphics:
         """
         self._scale = scale
 
-    def _draw_cars(self, cars: list) -> None:
+    def _draw_vehicles(self, vehicles: list) -> None:
         """
 
         Draws cars
         :param cars: list of car x,y coordinates
         :return: None
         """
-        for car in cars:
-            x, y = self._position_offsetter(car[0] * 100, car[1] * 100)
-            if len(car) > 2:
-                car_size_x = 400 * self._scale
-                car_size_y = 200 * self._scale
-                rectangle_surface = pygame.Surface((car_size_x, car_size_y))
+        for vehicle in vehicles:
+            x, y = self._position_offsetter(vehicle[0] * 100, vehicle[1] * 100)
+            if len(vehicle) > 2:
+                vehicle_size_x = 400 * self._scale
+                vehicle_size_y = 200 * self._scale
+                rectangle_surface = pygame.Surface((vehicle_size_x, vehicle_size_y))
                 rectangle_surface.set_colorkey((0, 0, 0))
-                pygame.draw.rect(rectangle_surface, (255, 130, 0), (0, 0, car_size_x, car_size_y))
-                rectangle_surface = pygame.transform.rotate(rectangle_surface, car[2])
+                pygame.draw.rect(rectangle_surface, (255, 130, 0), (0, 0, vehicle_size_x, vehicle_size_y))
+                rectangle_surface = pygame.transform.rotate(rectangle_surface, vehicle[2])
 
                 self.surface.blit(rectangle_surface, (x - round(rectangle_surface.get_width() / 2), y - round(rectangle_surface.get_height() / 2)))
             else:

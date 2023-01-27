@@ -6,6 +6,7 @@ if system() == 'Windows':
     sys.path.append('./')
 
 from Frontend.JunctionVisualiser import *
+from Library.vehicles import Vehicle
 
 Visualiser = JunctionVisualiser()
 
@@ -17,7 +18,11 @@ def main():
     y_change = 0.1
     x_change = 0.2
     a_change = 1
-    while(True):
+
+    vehicle = Vehicle(None)
+    model = Model()
+
+    for i in range(500):
         y = y + y_change
         x = x + x_change
         a = a + a_change
@@ -42,7 +47,10 @@ def main():
 
         sleep(0.01)
 
-        Visualiser.update_car_positions([[x, y, a]])
+        Visualiser.update_vehicle_positions([[x, y, a]])
+        vehicle.position_data.append([x, y, a])
+    model.vehicles.append(vehicle)
+    model.save_results(os.path.join(os.path.dirname(__file__), "../Junction_Designs/test_results.res"))
 
 
 Visualiser.define_main(main)

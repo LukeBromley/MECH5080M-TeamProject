@@ -1,5 +1,6 @@
 from Frontend.Tabs.PYQTShortcuts import *
 from PyQt5.QtCore import Qt
+from PyQt5.QtWidgets import QFileDialog
 
 
 class ViewTab(QtWidgets.QWidget):
@@ -36,14 +37,14 @@ class ViewTab(QtWidgets.QWidget):
         self.show_layer_nodes = True
         self.show_layer_labels = True
         self.show_layer_curvature = True
-        self.show_layer_cars = False
+        self.show_layer_vehicles = False
 
         self.layer_grid = TickBox(self, "Grid", layout=self.layers_box.v_box)
         self.layer_hermite_paths = TickBox(self, "Hermite Paths", layout=self.layers_box.v_box)
         self.layer_nodes = TickBox(self, "Nodes", layout=self.layers_box.v_box)
         self.layer_labels = TickBox(self, "Labels", layout=self.layers_box.v_box)
         self.layer_curvature = TickBox(self, "Curvature", layout=self.layers_box.v_box)
-        self.layer_cars = TickBox(self, "Cars", layout=self.layers_box.v_box)
+        self.layer_vehicles = TickBox(self, "Cars", layout=self.layers_box.v_box)
         self.set_layer_states()
 
         # Playback
@@ -72,7 +73,9 @@ class ViewTab(QtWidgets.QWidget):
         self.layer_nodes.stateChanged.connect(self.update_layer_states)
         self.layer_labels.stateChanged.connect(self.update_layer_states)
         self.layer_curvature.stateChanged.connect(self.update_layer_states)
-        self.layer_cars.stateChanged.connect(self.update_layer_states)
+        self.layer_vehicles.stateChanged.connect(self.update_layer_states)
+
+        self.play_load_data.pressed.connect(self.load_results_data)
 
     def update_layer_states(self) -> None:
         """
@@ -93,7 +96,7 @@ class ViewTab(QtWidgets.QWidget):
         self.show_layer_nodes = self.layer_nodes.isChecked()
         self.show_layer_labels = self.layer_labels.isChecked()
         self.show_layer_curvature = self.layer_curvature.isChecked()
-        self.show_layer_cars = self.layer_cars.isChecked()
+        self.show_layer_vehicles = self.layer_vehicles.isChecked()
 
         self.gui.refresh_pygame_widget()
 
@@ -108,7 +111,7 @@ class ViewTab(QtWidgets.QWidget):
         self.layer_nodes.setChecked(self.show_layer_nodes)
         self.layer_labels.setChecked(self.show_layer_labels)
         self.layer_curvature.setChecked(self.show_layer_curvature)
-        self.layer_cars.setChecked(self.show_layer_cars)
+        self.layer_vehicles.setChecked(self.show_layer_vehicles)
 
     def set_scale(self) -> None:
         """
@@ -119,3 +122,9 @@ class ViewTab(QtWidgets.QWidget):
         scale = 0.2 * self.scale.value() / 100
         self.set_scale_function(scale)
         self.gui.refresh_pygame_widget()
+
+    def load_results_data(self):
+        file_path = QFileDialog.getOpenFileName(self, 'Open Results Data', '../Junction_Designs', "Results File (*.res)")[0]
+        if len(file_path) > 0:
+            self.model.load_results(self.save_file_path)
+

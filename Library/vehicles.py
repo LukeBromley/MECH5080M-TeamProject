@@ -4,7 +4,7 @@ from math import sqrt
 from typing import List
 
 
-class Car:
+class Vehicle:
     def __init__(self, route: Route, start_time: float = 0.0, uid: int = 0,
                  velocity: float = 0.0, acceleration: float = 0.0,
                  direction: float = 0.0, sensing_radius: float = 0.0,
@@ -98,13 +98,13 @@ class Car:
         if vehicles is None:
             return
 
-        vehicles_on_path = [car for car in vehicles if car.get_route() == self._route]
-        vehicles_ahead = [car for car in vehicles_on_path if car.get_distance_travelled() > self._distance_travelled]
+        vehicles_on_path = [vehicle for vehicle in vehicles if vehicle.get_route() == self._route]
+        vehicles_ahead = [vehicle for vehicle in vehicles_on_path if vehicle.get_distance_travelled() > self._distance_travelled]
         if len(vehicles_ahead) > 0:
             vehicle_ahead = vehicles_ahead[0]
-            for car in vehicles_ahead:
-                if (car.get_distance_travelled() - self._distance_travelled) < vehicle_ahead.get_distance_travelled():
-                    vehicle_ahead = car
+            for vehicle in vehicles_ahead:
+                if (vehicle.get_distance_travelled() - self._distance_travelled) < vehicle_ahead.get_distance_travelled():
+                    vehicle_ahead = vehicle
             return vehicle_ahead
         else:
             return None
@@ -117,10 +117,10 @@ class Car:
         :return: list of vehicles within detection radius
         """
         nearby_vehicles = []
-        for car in vehicles:
-            distance = sqrt(sum(pow(x, 2) for x in car.get_position()))
+        for vehicle in vehicles:
+            distance = sqrt(sum(pow(x, 2) for x in vehicle.get_position()))
             if distance < self._sensing_radius:
-                nearby_vehicles.append(car)
+                nearby_vehicles.append(vehicle)
 
     def get_position(self):
         """
@@ -173,3 +173,10 @@ class Car:
 
     def set_acceleration(self, acceleration: float) -> None:
         self._acceleration = clamp(acceleration, -(self._maximum_deceleration), self._maximum_acceleration)
+
+
+class VehicleResults:
+    def __init__(self, uid: int, start_time: float, position_data: list) -> None:
+        self.uid = uid
+        self.start_time = start_time
+        self.position_data = position_data
