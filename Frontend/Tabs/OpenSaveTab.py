@@ -7,23 +7,17 @@ from Library.FileManagement import *
 
 
 class OpenSaveTab(QtWidgets.QWidget):
-    def __init__(self, refresh_pygame_widget, render_function, update_nodes_paths_function, get_nodes_paths_function, update_lights_function, get_lights_function) -> None:
+    def __init__(self, gui, model):
         """
 
-        :param refresh_pygame_widget: function that refreshes the pygame graphics
-        :param render_function: function that renders the pygame graphics
-        :param update_nodes_paths_function: function that updates the nodes and paths in the top level class
-        :param get_nodes_paths_function: function gets nodes and paths from the top level class
+        Tab that allows the user to open and save junction
+        :param gui: parent gui class
+        :param model: model
         """
         super().__init__()
 
-        # Functions
-        self.refresh_pygame_widget = refresh_pygame_widget
-        self.render_function = render_function
-        self.update_nodes_paths_function = update_nodes_paths_function
-        self.get_nodes_paths_function = get_nodes_paths_function
-        self.update_lights_function = update_lights_function
-        self.get_lights_function = get_lights_function
+        self.model = model
+        self.gui = gui
 
         # File path
         self.save_file_path = None
@@ -58,11 +52,11 @@ class OpenSaveTab(QtWidgets.QWidget):
         :return: None
         """
         self.save_file_path = file_path
-        FileManager = FileManagement()
-        nodes, paths, lights = FileManager.load_from_junction_file(self.save_file_path, quick_load=True)
-        self.update_nodes_paths_function(nodes, paths)
-        self.update_lights_function(lights)
-        self.render_function()
+
+        self.model.load_junction(self.save_file_path, quick_load=True)
+        self.gui.render_pygame_widget()
+        self.gui.update_design_tab()
+        self.gui.update_control_tab()
         self.save.setEnabled(True)
         self.new.setEnabled(True)
 
@@ -73,10 +67,7 @@ class OpenSaveTab(QtWidgets.QWidget):
         :return: None
         """
         if self.save_file_path is not None:
-            FileManager = FileManagement()
-            nodes, paths = self.get_nodes_paths_function()
-            lights = self.get_lights_function()
-            FileManager.save_to_junction_file(self.save_file_path, nodes, paths, lights)
+            self.model.save_junction(self.save_file_path)
 
     def save_as_junction(self) -> None:
         """
@@ -88,10 +79,7 @@ class OpenSaveTab(QtWidgets.QWidget):
         file_path = QFileDialog.getSaveFileName(self, 'Save Junction', path, "Junction Files (*.junc)")[0]
         if len(file_path) > 0:
             self.save_file_path = file_path
-            FileManager = FileManagement()
-            nodes, paths = self.get_nodes_paths_function()
-            lights = self.get_lights_function()
-            FileManager.save_to_junction_file(self.save_file_path, nodes, paths, lights)
+            self.model.save_junction(self.save_file_path)
             self.save.setEnabled(True)
             self.new.setEnabled(True)
 
@@ -103,11 +91,11 @@ class OpenSaveTab(QtWidgets.QWidget):
         """
         if self.save_file_path is not None:
             self.save_junction()
-        self.update_nodes_paths_function([], [])
+        self.gui.update_nodes_paths_function([], [])
         self.save_file_path = None
         self.save.setDisabled(True)
         self.new.setDisabled(True)
-        self.render_function()
+        self.gui.render_function()
 
     def load_example(self) -> None:
         """

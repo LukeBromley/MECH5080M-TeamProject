@@ -16,6 +16,7 @@ class Node:
         return tx, ty
 
 
+
 class Path:
     def __init__(self, uid: int, start_node: Node, end_mode: Node, discrete_length_increment_size=0.01, discrete_iteration_qty=100000):
         self.uid = uid
@@ -28,29 +29,33 @@ class Path:
         self.discrete_iteration_qty = discrete_iteration_qty
 
         self.discrete_path = []
-
         self.curvature = []
 
-        self.calculate_all()
+        # self.calculate_all()
 
     # Gets
-    def get_euclidean_distance(self):
-        return sqrt((self.start_node.x - self.end_node.x) ** 2 + (self.start_node.y - self.end_node.y) ** 2)
+    def get_euclidean_distance(self, model):
+        start_node = model.get_node(self.start_node)
+        end_node = model.get_node(self.end_node)
+        return sqrt((start_node.x - end_node.x) ** 2 + (start_node.y - end_node.y) ** 2)
 
     def get_s(self, arc_length: float):
         arc_length = round(arc_length * (1 / self.discrete_length_increment_size))
         return self.discrete_path[arc_length][0]
 
-    def get_coords(self, arc_length: float):
-        arc_length = round(arc_length * (1 / self.discrete_length_increment_size))
-        return self.discrete_path[arc_length][1], self.discrete_path[arc_length][2]
+    def get_coordinates(self, arc_length: float):
+        arc_length = round(arc_length / self.discrete_length_increment_size)
+        if arc_length >= len(self.discrete_path):
+            return None
+        else:
+            return self.discrete_path[arc_length][1], self.discrete_path[arc_length][2]
 
     def get_direction(self, arc_length: float):
-        arc_length = round(arc_length * (1 / self.discrete_length_increment_size))
+        arc_length = round(arc_length / self.discrete_length_increment_size)
         return self.discrete_path[arc_length][3]
 
     def get_curvature(self, arc_length: float):
-        arc_length = round(arc_length * (1 / self.discrete_length_increment_size))
+        arc_length = round(arc_length / self.discrete_length_increment_size)
         return self.discrete_path[arc_length][4]
 
     def get_all_s(self):
@@ -67,19 +72,21 @@ class Path:
 
     # Discrete Calculations
 
-    def calculate_all(self):
-        self.calculate_hermite_spline_coefficients()
+    def calculate_all(self, model):
+        self.calculate_hermite_spline_coefficients(model)
         self.calculate_discrete_arc_length_points()
         self.calculate_discrete_direction_points()
         self.calculate_discrete_curvature_points()
 
-    def calculate_hermite_spline_coefficients(self):
-        p1x = self.start_node.x
-        p1y = self.start_node.y
-        p1tx, p1ty = self.start_node.get_tangents(self.get_euclidean_distance() * 1.5)
-        p2x = self.end_node.x
-        p2y = self.end_node.y
-        p2tx, p2ty = self.end_node.get_tangents(self.get_euclidean_distance() * 1.5)
+    def calculate_hermite_spline_coefficients(self, model):
+        start_node = model.get_node(self.start_node)
+        end_node = model.get_node(self.end_node)
+        p1x = start_node.x
+        p1y = start_node.y
+        p1tx, p1ty = start_node.get_tangents(self.get_euclidean_distance(model) * 1.5)
+        p2x = end_node.x
+        p2y = end_node.y
+        p2tx, p2ty = end_node.get_tangents(self.get_euclidean_distance(model) * 1.5)
         p2tx = -p2tx
         p2ty = -p2ty
         self.x_hermite_cubic_coeff = [p1x, p1tx, -3 * p1x + 3 * p2x - 2 * p1tx + p2tx, 2 * p1x - 2 * p2x + p1tx - p2tx]
@@ -93,8 +100,7 @@ class Path:
             x1, y1 = self.calculate_coords(s)
             x0, y0 = self.discrete_path[-1][1], self.discrete_path[-1][2]
             distance = sqrt((y1-y0)**2 + (x1-x0)**2)
-            distance_delta = self.discrete_length_increment_size - distance
-            if abs(distance_delta) >= self.discrete_length_increment_size:
+            if abs(distance) >= self.discrete_length_increment_size:
                 self.discrete_path.append([s, x1, y1])
 
     def calculate_discrete_direction_points(self):
@@ -141,6 +147,31 @@ class Path:
 
         c = calculate_vector_magnitude(calculate_cross_product(dR_ds, dR2_ds2)) / (calculate_vector_magnitude(dR_ds)**3)
         return c
+
+
+class Route:
+    def __init__(self, paths: list[Path]):
+        discrete_length_increment_sizes = [path.discrete_length_increment_size for path in paths]
+        assert discrete_length_increment_sizes.count(discrete_length_increment_sizes[0]) == len(discrete_length_increment_sizes)
+        self.discrete_length_increment_size = discrete_length_increment_sizes[0]
+
+        self._curvature = []
+        self._coordinates = []
+
+        for path in paths:
+            self._coordinates += [(element[1], element[2]) for element in path.discrete_path]
+            self._curvature += [element[4] for element in path.discrete_path]
+
+    def get_coordinates(self, arc_length: float):
+        index = round(arc_length / self.discrete_length_increment_size)
+        if index >= len(self._coordinates):
+            return None
+        else:
+            return self._coordinates[index]
+
+    def get_curvature(self, arc_length: float):
+        index = round(arc_length / self.discrete_length_increment_size)
+        return self._curvature[index]
 
 
 class TrafficLight:

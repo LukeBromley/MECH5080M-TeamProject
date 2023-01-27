@@ -90,28 +90,15 @@ class FileManagement:
         paths = []
         for uid in file_dict[self.paths_key]:
             path_data = file_dict[self.paths_key][uid]
-
-            start_node = None
-            end_node = None
-            for node in nodes:
-                if node.uid == path_data[0]:
-                    start_node = node
-                if node.uid == path_data[1]:
-                    end_node = node
             if quick_load:
-                paths.append(Path(int(uid), start_node, end_node))
+                paths.append(Path(int(uid), path_data[0], path_data[1], discrete_length_increment_size=0.1, discrete_iteration_qty=1000))
             else:
-                paths.append(Path(int(uid), start_node, end_node, discrete_length_increment_size=0.1, discrete_iteration_qty=1000))
+                paths.append(Path(int(uid), path_data[0], path_data[1]))
 
         # Load light data
         lights = []
         for uid in file_dict[self.lights_key]:
-            path_list = []
-            for path_uid in file_dict[self.lights_key][uid][0]:
-                for path in paths:
-                    if path.uid == int(path_uid):
-                        path_list.append(path)
-            lights.append(TrafficLight(int(uid), path_list))
+            lights.append(TrafficLight(int(uid), file_dict[self.lights_key][uid][0]))
 
         # Return the data
         return nodes, paths, lights
@@ -134,8 +121,8 @@ class FileManagement:
 
         # Add path data
         for path in paths:
-            file_dict[self.paths_key][str(path.uid)] = [path.start_node.uid,
-                                                        path.end_node.uid]
+            file_dict[self.paths_key][str(path.uid)] = [path.start_node,
+                                                        path.end_node]
 
         # Add light data
         for light in lights:

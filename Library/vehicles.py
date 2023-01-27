@@ -1,10 +1,10 @@
-from Library.infrastructure import Path
+from Library.infrastructure import Route
 from Library.maths import clamp
 from math import sqrt
 
 
 class Car:
-    def __init__(self, path: Path, start_time: float = 0.0, uid: int = 0,
+    def __init__(self, route: Route, start_time: float = 0.0, uid: int = 0,
                  velocity: float = 0.0, acceleration: float = 0.0,
                  direction: float = 0.0, sensing_radius: float = 0.0,
                  maximum_acceleration: float = 9.81, maximum_deceleration: float = 6.0,
@@ -15,7 +15,7 @@ class Car:
 
         :param uid: unique identifier for vehicle
         :param start_time: Simulation time when vehicle is spawned
-        :param path: path instance that vehicle is on
+        :param route: route instance that vehicle is on
         :param velocity: initial velocity of the vehicle [m/s]
         :param acceleration: initial acceleration of the vehicle [m/s**2]
         :param direction: initial direction of the vehicle [radians]
@@ -30,8 +30,9 @@ class Car:
         :param vehicle_width: width of the vehicle [m]
         """
         self.uid = uid
-        self._path = path
-        self._start_time = start_time
+        self._route = route
+        self.start_time = start_time
+        self.position_data = []
         self._velocity = velocity
         self._acceleration = acceleration
         self._direction = direction
@@ -45,9 +46,7 @@ class Car:
         self._vehicle_length = vehicle_length
         self._vehicle_width = vehicle_width
 
-        self.position_data = []
-
-    def update(self, time_delta: float = 0.1, vehicles: list = []) -> None:
+    def update(self, time_delta: float = 0.1, vehicles: list["Car"] = None) -> None:
         """
         :param time_delta: change in time between updates [s]
         :param vehicles: list of vehicles within sim
@@ -80,11 +79,13 @@ class Car:
             delta_distance_ahead = vehicle_ahead.get_distance_travelled() - \
                 self._distance_travelled
 
-        acceleration = (velocity_vehicle_ahead ** 2 - self._velocity ** 2 + 2 * self._maximum_deceleration * (anticipation_time * (
-            velocity_vehicle_ahead - self._velocity) + delta_distance_ahead - self._velocity * self._preferred_time_gap)) / (
-            anticipation_time * (2 * self._maximum_deceleration * self._preferred_time_gap + self._maximum_deceleration * anticipation_time + 2 * self._velocity))
+        acceleration = (velocity_vehicle_ahead ** 2 - self._velocity ** 2 + 2 * self._maximum_deceleration * (
+                anticipation_time * (
+                velocity_vehicle_ahead - self._velocity) + delta_distance_ahead - self._velocity * self._preferred_time_gap)) / (
+                               anticipation_time * (
+                               2 * self._maximum_deceleration * self._preferred_time_gap + self._maximum_deceleration * anticipation_time + 2 * self._velocity))
 
-        return clamp(acceleration, -(self._maximum_deceleration), self._maximum_acceleration)
+        return clamp(acceleration, -self._maximum_deceleration, self._maximum_acceleration)
 
     def _vehicle_ahead(self, vehicles):
         """
@@ -93,14 +94,16 @@ class Car:
         :param vehicles: list of vehicles within sim
         :return: object of vehicle ahead
         """
-        vehicles_on_path = [
-            car for car in vehicles if car.get_path == self._path]
-        vehicles_ahead = [
-            car for car in vehicles_on_path if car.get_distance_travelled > self.get_distance_travelled]
+
+        if vehicles is None:
+            return
+
+        vehicles_on_path = [car for car in vehicles if car.get_route() == self._route]
+        vehicles_ahead = [car for car in vehicles_on_path if car.get_distance_travelled() > self._distance_travelled]
         if len(vehicles_ahead) > 0:
             vehicle_ahead = vehicles_ahead[0]
             for car in vehicles_ahead:
-                if (car.get_distance_travelled - self.get_distance_travelled) < vehicle_ahead.get_distance_travelled:
+                if (car.get_distance_travelled() - self._distance_travelled) < vehicle_ahead.get_distance_travelled():
                     vehicle_ahead = car
             return vehicle_ahead
         else:
@@ -115,7 +118,7 @@ class Car:
         """
         nearby_vehicles = []
         for car in vehicles:
-            distance = sqrt((sum(pow(x, 2) for x in car.get_position())), -2)
+            distance = sqrt(sum(pow(x, 2) for x in car.get_position()))
             if distance < self._sensing_radius:
                 nearby_vehicles.append(car)
 
@@ -125,17 +128,8 @@ class Car:
         :rtype: list
         :return: x and y coordinates
         """
-        x, y = self._path.calculate_coords(self._distance_travelled)
-        return [x, y]
+        return self._route.get_coordinates(self._distance_travelled)
 
-    def get_path(self) -> Path:
-        """
-
-        :rtype: Path
-        :return: path that vehicle is on
-        """
-        return self._path
-    
     def get_distance_travelled(self) -> float:
         """
 
@@ -168,8 +162,8 @@ class Car:
         """
         return self._preferred_time_gap
 
-    def get_dimensions(self) -> float:
-        return [self._vehicle_length, self._vehicle_width]
+    def get_route(self):
+        return self._route
 
     def set_distance_travelled(self, distance_travelled: float) -> None:
         self._distance_travelled = distance_travelled

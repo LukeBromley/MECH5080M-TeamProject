@@ -1,7 +1,5 @@
 import pygame
 from math import sin, cos
-from statistics import mean, median, quantiles
-
 from PyQt5 import QtCore
 from Library.maths import clamp, VisualPoint
 
@@ -20,16 +18,16 @@ class VisualLabel:
 
 
 class PygameGraphics:
-    def __init__(self, window_width, window_height, get_data_function) -> None:
+    def __init__(self, window_width, window_height, model) -> None:
         """
 
         :param window_width: GUI window width for calculating surface size
         :param window_height: GUI window heigh for calculating surface size
-        :param get_data_function: method of JuctionVisualiser for retrieving current nodes and current paths
+        :param model: model
         """
 
         # Functions
-        self.get_data_function = get_data_function
+        self.model = model
 
         # Window Parameters
         self._window_width, self._window_height = window_width, window_height
@@ -80,8 +78,8 @@ class PygameGraphics:
         This function manages what "layers" are displayed on the pygame surface.
         :param draw_grid: boolean for enabling display of grid
         :param draw_hermite_paths: boolean for enabling display of hermite paths
-        :param draw_poly_paths: boolean for enabling display of poly paths
         :param draw_nodes: boolean for enabling display of nodes
+        :param draw_cars: boolean for enabling display of cars
         :param draw_node_labels: boolean for enabling display of node labels
         :param draw_path_labels: boolean for enabling display of path labels
         :param draw_curvature: boolean for enabling display of path curvature
@@ -90,7 +88,7 @@ class PygameGraphics:
         self.surface.fill((255, 255, 255))
         self.surface.set_at(self._position_offsetter(0, 0), (0, 0, 0))
 
-        nodes, paths, cars = self.get_data_function()
+        nodes, paths, cars = self.model.nodes, self.model.paths, self.model.vehicles
 
         if draw_grid: self._draw_grid()
         if draw_hermite_paths: self._draw_hermite_paths(draw_curvature)
@@ -124,8 +122,8 @@ class PygameGraphics:
         self._path_labels.clear()
         upper, lower = self._calculate_hermite_path_curvature(paths)
         for path in paths:
-            if path.get_euclidean_distance() > 0:
-                path_length = round(path.get_euclidean_distance() * 150)  # Changing iteration intervals for improved performance
+            if path.get_euclidean_distance(self.model) > 0:
+                path_length = round(path.get_euclidean_distance(self.model) * 150)  # Changing iteration intervals for improved performance
                 for i in range(path_length+1):
                     s = i/path_length
                     x, y = path.calculate_coords(s)
@@ -139,6 +137,11 @@ class PygameGraphics:
                         self._path_labels.append(VisualLabel(str(path.uid), x + 5, y + 5))
 
     def _calculate_hermite_path_curvature(self, paths: list) -> tuple:
+        """
+
+        :param paths: list of all paths
+        :return: Returns the highest and curvature and lowest curvature of all paths
+        """
         curvature = []
         for path in paths:
             curvature += path.get_all_curvature()
@@ -152,6 +155,7 @@ class PygameGraphics:
 
         :param paths_points: points to be drawn on the path
         :param draw_curvature: boolean to enable curvature coloring of drawn paths
+        :param highlight: highlight the paths in pink colour
         :return: None
         """
         for point in paths_points:
@@ -180,10 +184,10 @@ class PygameGraphics:
         :param upper: highest path curve radius
         :return: colour based on curve radius at path curvature array index
         """
-        try:
-            colour_mag = round((clamp(path.calculate_curvature(s), lower, upper) - lower) * (255 / (upper - lower)))
-        except ValueError:
+        if upper == lower:
             colour_mag = 0
+        else:
+            colour_mag = round((clamp(path.calculate_curvature(s), lower, upper) - lower) * (255 / (upper - lower)))
         return colour_mag, 255 - colour_mag, 0
 
     def _position_offsetter(self, x: int, y: int) -> tuple:
@@ -224,8 +228,8 @@ class PygameGraphics:
         """
 
         Draw all labels on pygame surface
-        :param _draw_node_labels: boolean to enable drawing of node labels
-        :param _draw_path_labels: boolean to enable drawing of path labels
+        :param draw_node_labels: boolean to enable drawing of node labels
+        :param draw_path_labels: boolean to enable drawing of path labels
         :return:
         """
         if draw_node_labels:
@@ -317,9 +321,15 @@ class PygameGraphics:
         """
         self._scale = scale
 
-    def _draw_cars(self, cars):
+    def _draw_cars(self, cars: list) -> None:
+        """
+
+        Draws cars
+        :param cars: list of car x,y coordinates
+        :return: None
+        """
         for car in cars:
-            x, y = self._position_offsetter(car[0], car[1])
+            x, y = self._position_offsetter(car[0] * 100, car[1] * 100)
             pygame.draw.circle(self.surface, (255, 130, 0), (x, y), 5)
 
 
