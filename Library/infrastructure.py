@@ -1,10 +1,5 @@
 import random
 from math import sin, cos, sqrt, floor, atan
-
-import sympy as sym
-from numpy import polyfit, RankWarning
-import warnings
-
 from Library.maths import Vector, calculate_cross_product, calculate_vector_magnitude
 
 
