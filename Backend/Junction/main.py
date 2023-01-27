@@ -13,6 +13,7 @@ class Simulation:
 
         self.model = Model()
         self.model.load_junction(file_path)
+
         self._route_1 = Route([self.model.get_path(1), self.model.get_path(2), self.model.get_path(3)])
         self._route_2 = Route([self.model.get_path(4), self.model.get_path(5), self.model.get_path(6)])
 

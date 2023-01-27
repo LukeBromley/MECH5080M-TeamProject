@@ -193,7 +193,7 @@ class TrafficLight:
 
         self.uid = uid
         self.paths = paths if paths is not None else []
-        self.distance_traveled = distance_traveled
+        self.distance_traveled = 0.0
         self.color = "green"
         self.cycle_time = 0.0
         self.cycle_red = cycle_red
