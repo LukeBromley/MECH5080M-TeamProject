@@ -98,7 +98,6 @@ class Run_Time_Function(QObject):
         :return: None
         """
         self.main_function()
-        self.finished.emit()
 
     def set_main_function(self, main_function) -> None:
         """

@@ -104,7 +104,7 @@ class PygameGraphics:
         :return: None
         """
         self.surface.fill((255, 255, 255))
-        pygame.draw.circle(self.surface, (0, 255, 195), self._position_offsetter(0, 0), 30)
+        pygame.draw.circle(self.surface, (0, 0, 0), self._position_offsetter(0, 0), 3)
 
         self.render_hermite_paths(paths)
         self._draw_hermite_paths(False, highlight=True)
