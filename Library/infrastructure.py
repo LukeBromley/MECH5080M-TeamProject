@@ -21,6 +21,7 @@ class Node:
         return tx, ty
 
 
+
 class Path:
     def __init__(self, uid: int, start_node: Node, end_mode: Node, discrete_length_increment_size=0.01, discrete_iteration_qty=100000):
         self.uid = uid
@@ -151,6 +152,31 @@ class Path:
 
         c = calculate_vector_magnitude(calculate_cross_product(dR_ds, dR2_ds2)) / (calculate_vector_magnitude(dR_ds)**3)
         return c
+
+
+class Route:
+    def __init__(self, paths: list[Path]):
+        discrete_length_increment_sizes = [path.discrete_length_increment_size for path in paths]
+        assert discrete_length_increment_sizes.count(discrete_length_increment_sizes[0]) == len(discrete_length_increment_sizes)
+        self.discrete_length_increment_size = discrete_length_increment_sizes[0]
+
+        self._curvature = []
+        self._coordinates = []
+
+        for path in paths:
+            self._coordinates += [(element[1], element[2]) for element in path.discrete_path]
+            self._curvature += [element[4] for element in path.discrete_path]
+
+    def get_coordinates(self, arc_length: float):
+        index = round(arc_length / self.discrete_length_increment_size)
+        if index >= len(self._coordinates):
+            return None
+        else:
+            return self._coordinates[index]
+
+    def get_curvature(self, arc_length: float):
+        index = round(arc_length / self.discrete_length_increment_size)
+        return self._curvature[index]
 
 
 class TrafficLight:

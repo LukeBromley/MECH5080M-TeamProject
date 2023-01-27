@@ -2,6 +2,7 @@ import time
 
 from Frontend.JunctionVisualiser import JunctionVisualiser
 from Library.FileManagement import FileManagement
+from Library.infrastructure import Route
 from Library.model import Model
 from Library.vehicles import Car
 from config import ROOT_DIR
@@ -16,7 +17,7 @@ class Simulation:
             Car(
                 uid=0,
                 start_time=0,
-                path=self.model.get_path(1),
+                route=Route([self.model.get_path(8), self.model.get_path(2), self.model.get_path(13)]),
                 velocity=0.0,
                 acceleration=0.0,
                 maximum_acceleration=3.0,
