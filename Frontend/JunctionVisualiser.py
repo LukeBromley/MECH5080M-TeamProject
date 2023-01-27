@@ -60,14 +60,14 @@ class JunctionVisualiser:
         self.viewer_window.show()
         self.application.exec_()
 
-    def update_car_positions(self, car_positions: list) -> None:
+    def update_vehicle_positions(self, vehicle_positions: list) -> None:
         """
 
         Updates the GUI car positions with a list of x, y coordinates
         :param car_positions: list of x,y car positions
         :return: None
         """
-        self.viewer_window.model.vehicles = car_positions
+        self.viewer_window.model.vehicles = vehicle_positions
 
     def set_scale(self, scale: int) -> None:
         """
@@ -77,7 +77,7 @@ class JunctionVisualiser:
         :return: None
         """
         scale = clamp(scale, 25, 200)
-        scale = scale / 100
+        scale = 0.2 * scale / 100
         self.viewer_window.pygame_graphics.set_scale(scale)
 
 
@@ -97,8 +97,7 @@ class Run_Time_Function(QObject):
         Runs the main function and closes thread when function is complete
         :return: None
         """
-        self.function()
-        self.main_function.emit()
+        self.main_function()
 
     def set_main_function(self, main_function) -> None:
         """
@@ -153,7 +152,7 @@ class ViewerMainWindow(QtWidgets.QMainWindow):
             draw_grid=True,
             draw_hermite_paths=True,
             draw_nodes=True,
-            draw_cars=True,
+            draw_vehicles=True,
             draw_node_labels=False,
             draw_path_labels=False,
             draw_curvature=False,

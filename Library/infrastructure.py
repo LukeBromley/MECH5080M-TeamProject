@@ -1,9 +1,6 @@
 import random
 from math import sin, cos, sqrt, floor, atan
-
-import sympy as sym
-from numpy import polyfit, RankWarning
-import warnings
+from typing import List
 
 from Library.maths import Vector, calculate_cross_product, calculate_vector_magnitude
 
@@ -155,7 +152,7 @@ class Path:
 
 
 class Route:
-    def __init__(self, paths: list[Path]):
+    def __init__(self, paths: List[Path]):
         discrete_length_increment_sizes = [path.discrete_length_increment_size for path in paths]
         assert discrete_length_increment_sizes.count(discrete_length_increment_sizes[0]) == len(discrete_length_increment_sizes)
         self.discrete_length_increment_size = discrete_length_increment_sizes[0]

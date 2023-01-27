@@ -10,7 +10,7 @@ Visualiser = JunctionVisualiser()
 
 def main():
     # Run simulation here
-    Visualiser.update_car_positions([[0, 0]])
+    Visualiser.update_vehicle_positions([[0, 0]])
 
 
 Visualiser.define_main(main)
