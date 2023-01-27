@@ -1,6 +1,7 @@
 from Library.infrastructure import Route
 from Library.maths import clamp
 from math import sqrt
+from typing import List
 
 
 class Car:
@@ -46,7 +47,7 @@ class Car:
         self._vehicle_length = vehicle_length
         self._vehicle_width = vehicle_width
 
-    def update(self, time_delta: float = 0.1, vehicles: list["Car"] = None) -> None:
+    def update(self, time_delta: float = 0.1, vehicles=None) -> None:  # was vehicles: List[self] = None
         """
         :param time_delta: change in time between updates [s]
         :param vehicles: list of vehicles within sim

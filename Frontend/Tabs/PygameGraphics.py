@@ -32,7 +32,7 @@ class PygameGraphics:
         # Window Parameters
         self._window_width, self._window_height = window_width, window_height
         self._surface_width, self._surface_height = round(self._window_width / 2), self._window_height
-        self._scale = 0.5
+        self._scale = 0.2
 
         # Scroll Parameters
         self._mouse_position_x = 0
@@ -86,13 +86,13 @@ class PygameGraphics:
         :return: None
         """
         self.surface.fill((255, 255, 255))
-        self.surface.set_at(self._position_offsetter(0, 0), (0, 0, 0))
 
         nodes, paths, cars = self.model.nodes, self.model.paths, self.model.vehicles
 
         if draw_grid: self._draw_grid()
         if draw_hermite_paths: self._draw_hermite_paths(draw_curvature)
         if draw_nodes: self._draw_nodes(nodes)
+        pygame.draw.circle(self.surface, (0, 0, 0), self._position_offsetter(0, 0), 3)
         if draw_cars: self._draw_cars(cars)
         self._draw_labels(draw_node_labels, draw_path_labels)
 
@@ -104,7 +104,7 @@ class PygameGraphics:
         :return: None
         """
         self.surface.fill((255, 255, 255))
-        self.surface.set_at(self._position_offsetter(0, 0), (0, 0, 0))
+        pygame.draw.circle(self.surface, (0, 255, 195), self._position_offsetter(0, 0), 30)
 
         self.render_hermite_paths(paths)
         self._draw_hermite_paths(False, highlight=True)
@@ -219,7 +219,7 @@ class PygameGraphics:
 
             center_point = self._position_offsetter(x, y)
             node_tangents_x, _node_tangents_y = node.get_tangents(200)
-            direction_point = self._position_offsetter(x + round(self._tangent_scale * node_tangents_x), y + round(self._tangent_scale * _node_tangents_y))
+            direction_point = self._position_offsetter(x + round(self._tangent_scale * node_tangents_x / self._scale), y + round(self._tangent_scale * _node_tangents_y / self._scale))
             pygame.draw.circle(self.surface, self._node_colour, center_point, radius=self._node_diameter, width=0)
             pygame.draw.line(self.surface, self._node_colour, center_point, direction_point, width=3)
             self._node_labels.append(VisualLabel(str(node.uid), x - (self._node_diameter + 5) * sin(node.angle), y + (self._node_diameter + 5) * cos(node.angle)))
@@ -330,6 +330,16 @@ class PygameGraphics:
         """
         for car in cars:
             x, y = self._position_offsetter(car[0] * 100, car[1] * 100)
-            pygame.draw.circle(self.surface, (255, 130, 0), (x, y), 5)
+            if len(car) > 2:
+                car_size_x = 400 * self._scale
+                car_size_y = 200 * self._scale
+                rectangle_surface = pygame.Surface((car_size_x, car_size_y))
+                rectangle_surface.set_colorkey((0, 0, 0))
+                pygame.draw.rect(rectangle_surface, (255, 130, 0), (0, 0, car_size_x, car_size_y))
+                rectangle_surface = pygame.transform.rotate(rectangle_surface, car[2])
+
+                self.surface.blit(rectangle_surface, (x - round(rectangle_surface.get_width() / 2), y - round(rectangle_surface.get_height() / 2)))
+            else:
+                pygame.draw.circle(self.surface, (255, 130, 0), (x, y), 5)
 
 

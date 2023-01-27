@@ -77,7 +77,7 @@ class JunctionVisualiser:
         :return: None
         """
         scale = clamp(scale, 25, 200)
-        scale = scale / 100
+        scale = 0.2 * scale / 100
         self.viewer_window.pygame_graphics.set_scale(scale)
 
 
@@ -97,7 +97,7 @@ class Run_Time_Function(QObject):
         Runs the main function and closes thread when function is complete
         :return: None
         """
-        self.function()
+        self.main_function()
         self.main_function.emit()
 
     def set_main_function(self, main_function) -> None:
