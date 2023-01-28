@@ -1,6 +1,8 @@
 import math
 import random
 from math import sin, cos, sqrt, atan
+from typing import List
+
 from Library.maths import Vector, calculate_cross_product, calculate_vector_magnitude
 
 
@@ -153,50 +155,17 @@ class Path:
         return len(self.discrete_path) * self.discrete_length_increment_size
 
 class Route:
-    def __init__(self, paths: List[Path]):
+    def __init__(self, uid: int, paths: List[Path]):
         discrete_length_increment_sizes = [path.discrete_length_increment_size for path in paths]
         assert discrete_length_increment_sizes.count(discrete_length_increment_sizes[0]) == len(
             discrete_length_increment_sizes)
         self.discrete_length_increment_size = discrete_length_increment_sizes[0]
 
+        self.uid = uid
         self.length = 0.0
         for path in paths:
             self.length += path.get_length()
-
         self._paths = paths
-
-    def get_object_ahead(self, route_distance_travelled, vehicles, lights):
-        if vehicles is None and lights is None:
-            return
-
-        this_path, this_index = self.get_path_and_index(route_distance_travelled)
-        path_minimum_distance_ahead = float('inf')
-        path_vehicle_ahead = None
-        for vehicle in vehicles:
-            that_path, that_index = vehicle.get_path_and_index()
-            if (
-                    this_path == that_path and
-                    this_index < that_index and
-                    that_index - this_index < path_minimum_distance_ahead
-            ):
-                path_minimum_distance_ahead = that_index - this_index
-                path_vehicle_ahead = vehicle
-
-        if path_vehicle_ahead is not None:
-            return path_vehicle_ahead
-
-        path_minimum_distance_ahead = float('inf')
-        for vehicle in vehicles:
-            if (
-                    self == vehicle.get_route() and
-                    route_distance_travelled < vehicle.get_route_distance_travelled() and
-                    vehicle.get_route_distance_travelled() - route_distance_travelled < path_minimum_distance_ahead
-            ):
-                path_minimum_distance_ahead = vehicle.get_route_distance_travelled() - route_distance_travelled
-                path_vehicle_ahead = vehicle
-
-        if path_vehicle_ahead is not None:
-            return path_vehicle_ahead
 
     def get_coordinates(self, route_distance_travelled: float):
         path, index = self.get_path_and_index(route_distance_travelled)
@@ -223,8 +192,7 @@ class Route:
 
 
 class TrafficLight:
-    def __init__(self, uid, paths: list = None, distance_traveled: float = 0.0, cycle_length: float = 10.0,
-                 cycle_red: float = 0.5,
+    def __init__(self, uid, path_uid: int, cycle_length: float = 10.0, cycle_red: float = 0.5,
                  cycle_yellow: float = 0.4) -> None:
         """
 
@@ -235,7 +203,7 @@ class TrafficLight:
         """
 
         self.uid = uid
-        self.paths = paths if paths is not None else []
+        self.path_uid = path_uid
         self.distance_traveled = 0.0
         self.color = "green"
         self.cycle_time = 0.0

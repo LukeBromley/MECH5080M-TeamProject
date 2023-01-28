@@ -5,14 +5,13 @@ from typing import List
 
 
 class Vehicle:
-    def __init__(self, route: Route, start_time: float = 0.0, uid: int = 0,
+    def __init__(self, route_uid: int, start_time: float = 0.0, uid: int = 0,
                  velocity: float = 0.0, acceleration: float = 0.0,
                  direction: float = 0.0, sensing_radius: float = 0.0,
                  maximum_acceleration: float = 9.81, maximum_deceleration: float = 6.0,
                  maximum_velocity: float = 20.0, minimum_velocity: float = -20.0,
                  distance_travelled: float = 0.0, preferred_time_gap: float = 2.0,
-                 vehicle_length: float = 4.4, vehicle_width: float = 1.82,
-                 remove=None) -> None:
+                 vehicle_length: float = 4.4, vehicle_width: float = 1.82) -> None:
         """
 
         :param uid: unique identifier for vehicle
@@ -33,7 +32,7 @@ class Vehicle:
         """
 
         self.uid = uid
-        self._route = route
+        self.route_uid = route_uid
         self.start_time = start_time
         self.position_data = []
         self._velocity = velocity
@@ -48,28 +47,25 @@ class Vehicle:
         self._preferred_time_gap = preferred_time_gap
         self._vehicle_length = vehicle_length
         self._vehicle_width = vehicle_width
-        self.remove = remove
 
-    def update(self, time_delta: float = 0.1, vehicles: list["Vehicle"] = None,
-               lights: List[TrafficLight] = None) -> None:
+    def update(self, time_delta: float = 0.1, object_ahead: "Vehicle" = None) -> None:
         """
         :param lights: list of traffic lights within sim
         :param time_delta: change in time between updates [s]
         :param vehicles: list of vehicles within sim
         """
-        object_ahead = self._get_object_ahead(vehicles, lights)
+
         self._acceleration = self._calculate_acceleration(object_ahead)
-        self._velocity = clamp(
-            (self._velocity + (self._acceleration * time_delta)), self._minimum_velocity, self._maximum_velocity)
-
+        self._velocity = clamp((self._velocity + (self._acceleration * time_delta)), self._minimum_velocity,
+                               self._maximum_velocity)
         self._distance_travelled += self._velocity * time_delta
-        if self._distance_travelled > self._route.length:
-            self.remove()
-            return
+        # TODO: Move to Simulation class
 
-        self.position_data.append(self.get_position)
 
-    def _calculate_acceleration(self, vehicle_ahead: "Vehicle") -> float:
+    def update_position_data(self, position_data):
+        self.position_data.append(position_data)
+
+    def _calculate_acceleration(self, object_ahead: "Vehicle") -> float:
         """
 
         :rtype: float
@@ -82,12 +78,12 @@ class Vehicle:
         else:
             anticipation_time = 2.0
 
-        if vehicle_ahead is None:
+        if object_ahead is None:
             velocity_vehicle_ahead = 100.0
             delta_distance_ahead = 100.0
         else:
-            velocity_vehicle_ahead = vehicle_ahead.get_velocity()
-            delta_distance_ahead = vehicle_ahead.get_route_distance_travelled() - self._distance_travelled
+            velocity_vehicle_ahead = object_ahead.get_velocity()
+            delta_distance_ahead = object_ahead.get_route_distance_travelled() - self._distance_travelled
 
         acceleration = (velocity_vehicle_ahead ** 2 - self._velocity ** 2 + 2 * self._maximum_deceleration * (
                 anticipation_time * (
@@ -96,16 +92,6 @@ class Vehicle:
                                2 * self._maximum_deceleration * self._preferred_time_gap + self._maximum_deceleration * anticipation_time + 2 * self._velocity))
 
         return clamp(acceleration, -self._maximum_deceleration, self._maximum_acceleration)
-
-    def _get_object_ahead(self, vehicles: list["Vehicle"], lights: list[TrafficLight]):
-        """
-
-        :rtype: Vehicle
-        :param vehicles: list of vehicles within sim
-        :return: object of vehicle ahead
-        """
-
-        return self._route.get_object_ahead(self._distance_travelled, vehicles, lights)
 
     def _nearby_vehicles(self, vehicles):
         """
@@ -116,17 +102,9 @@ class Vehicle:
         """
         nearby_vehicles = []
         for vehicle in vehicles:
-            distance = sqrt(sum(pow(x, 2) for x in vehicle.get_position()))
+            distance = sqrt(sum(pow(x, 2) for x in vehicle.position_data[-1]))
             if distance < self._sensing_radius:
                 nearby_vehicles.append(vehicle)
-
-    def get_position(self):
-        """
-
-        :rtype: list
-        :return: x and y coordinates
-        """
-        return self._route.get_coordinates(self._distance_travelled)
 
     def get_route_distance_travelled(self) -> float:
         """
@@ -160,12 +138,6 @@ class Vehicle:
         """
         return self._preferred_time_gap
 
-    def get_route(self):
-        return self._route
-
-    def get_path_and_index(self):
-        return self._route.get_path_and_index(self._distance_travelled)
-
     def set_distance_travelled(self, distance_travelled: float) -> None:
         self._distance_travelled = distance_travelled
 
@@ -173,7 +145,7 @@ class Vehicle:
         self._velocity = velocity
 
     def set_acceleration(self, acceleration: float) -> None:
-        self._acceleration = clamp(acceleration, -(self._maximum_deceleration), self._maximum_acceleration)
+        self._acceleration = clamp(acceleration, -self._maximum_deceleration, self._maximum_acceleration)
 
 
 class VehicleResults:
