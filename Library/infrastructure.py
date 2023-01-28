@@ -192,6 +192,17 @@ class Route:
             else:
                 distance_travelled += path.get_length()
 
+    def get_path_and_path_distance_travelled(self, route_distance_travelled: float):
+        index = math.floor(route_distance_travelled / self.discrete_length_increment_size)
+        index_offset = 0
+        for path in self._paths:
+            path_length = len(path.discrete_path)
+            if index_offset + path_length <= index:
+                index_offset += path_length
+                continue
+            else:
+                return path, (index - index_offset) * self.discrete_length_increment_size
+
     def get_path_and_index(self, route_distance_travelled: float):
         index = math.floor(route_distance_travelled / self.discrete_length_increment_size)
         index_offset = 0
@@ -249,13 +260,6 @@ class TrafficLight:
 
     def get_velocity(self) -> float:
         return 0.0
-
-    def get_route_distance_travelled(self):
-        # Assumes the route_distance_travelled is set for every target vehicle
-        return self.route_distance_travelled
-
-    def set_route_distance_travelled(self, route_distance_travelled):
-        self.route_distance_travelled = route_distance_travelled
 
     def allows_traffic(self) -> bool:
         if self.color == "red":
