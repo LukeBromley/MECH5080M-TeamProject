@@ -97,7 +97,7 @@ class Run_Time_Function(QObject):
         Runs the main function and closes thread when function is complete
         :return: None
         """
-        self.function()
+        self.main_function()
         self.main_function.emit()
 
     def set_main_function(self, main_function) -> None:

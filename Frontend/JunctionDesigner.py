@@ -1,13 +1,18 @@
+from platform import system
+if system() == 'Windows':
+    import sys
+    sys.path.append('./')
+
 import sys
 from PyQt5.QtWidgets import QStyleFactory
 
 from Library.model import Model
 
-from .Tabs.PygameGraphics import *
-from .Tabs.OpenSaveTab import *
-from .Tabs.DesignTab import *
-from .Tabs.ViewTab import *
-from .Tabs.ControlTab import *
+from Frontend.Tabs.PygameGraphics import *
+from Frontend.Tabs.OpenSaveTab import *
+from Frontend.Tabs.DesignTab import *
+from Frontend.Tabs.ViewTab import *
+from Frontend.Tabs.ControlTab import *
 
 
 class JunctionDesigner:
