@@ -76,7 +76,7 @@ class JunctionVisualiser:
         :param scale: scale %
         :return: None
         """
-        scale = clamp(scale, 25, 200)
+        scale = clamp(scale, 10, 200)
         scale = 0.2 * scale / 100
         self.viewer_window.pygame_graphics.set_scale(scale)
 
