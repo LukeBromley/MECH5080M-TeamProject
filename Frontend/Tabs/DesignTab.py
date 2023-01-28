@@ -9,10 +9,9 @@ class DesignTab(QtWidgets.QWidget):
     def __init__(self, gui, model):
         """
 
-        :param refresh_function: function that refreshes the pygame graphics
-        :param render_function: function that renders the pygame graphics
-        :param update_nodes_paths: function that updates the nodes and paths in the top level class
-        :param get_nodes_paths: function gets nodes and paths from the top level class
+        Design tab that allows the user to add paths or nodes
+        :param gui: parent gui class
+        :param model: model
         """
         super(DesignTab, self).__init__()
 
@@ -54,9 +53,7 @@ class DesignTab(QtWidgets.QWidget):
     def update_node_path_widgets(self) -> None:
         """
 
-        Updates the widgets for the list of nodes and paths with current node and path information
-        :param nodes: list of all nodes
-        :param paths: list of all paths
+        Updates the widgets for the list of nodes and paths in the model
         :return: None
         """
         # Remove all current node and path widgets
@@ -81,7 +78,7 @@ class DesignTab(QtWidgets.QWidget):
             self.path_widgets.append(PathWidget(self.path_box, self.path_box_scroll.v_box))
             self.path_widgets[-1].set_info(path.uid, path.start_node, path.end_node, self.model.nodes)
             self.path_widgets[-1].connect_delete(partial(self.remove_path, path.uid))
-            self.path_widgets[-1].connect_change(partial(self.update_path_data, path.uid, index))
+            self.path_widgets[-1].connect_change(partial(self.update_path_data, index))
             if path.start_node == path.end_node:
                 self.path_widgets[-1].highlight_error()
             else:
@@ -146,16 +143,14 @@ class DesignTab(QtWidgets.QWidget):
         self.gui.update_nodes_paths(nodes, paths)
         self.update_node_path_widgets()
 
-    def update_path_data(self, uid: int, widget_index: int) -> None:
+    def update_path_data(self, widget_index: int) -> None:
         """
 
         Updates the nodes of the specified path and recalculates the path coefficients
-        :param uid: uid of path to update
         :param widget_index: index of widget in path widget list which represents the path
         :return:
         """
         nodes, paths = self.model.nodes, self.model.paths
-
 
         for path in paths:
             path.start_node = int(self.path_widgets[widget_index].start_node.currentText())

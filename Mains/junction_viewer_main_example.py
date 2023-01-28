@@ -6,6 +6,7 @@ if system() == 'Windows':
     sys.path.append('./')
 
 from Frontend.JunctionVisualiser import *
+from Library.vehicles import Vehicle
 
 Visualiser = JunctionVisualiser()
 
@@ -13,32 +14,46 @@ Visualiser = JunctionVisualiser()
 def main():
     y = 0
     x = 0
-    y_change = 0.01
-    x_change = 0.02
-    while(True):
+    a = 0
+    y_change = 0.1
+    x_change = 0.2
+    a_change = 1
+
+    vehicle = Vehicle(None)
+    model = Model()
+
+    for i in range(500):
         y = y + y_change
         x = x + x_change
+        a = a + a_change
 
-        if y > 1:
-            y_change = -0.01
-            y = 1
-        elif y < -1:
-            y_change = 0.01
-            y = -1
+        if y > 6:
+            y_change = -0.1
+            y = 6
+            a_change = 1
+        elif y < -2:
+            y_change = 0.1
+            y = -2
+            a_change = -1
 
-        if x > 1:
-            x_change = -0.02
-            x = 1
-        elif x < -1:
-            x_change = 0.02
-            x = -1
+        if x > 5:
+            x_change = -0.2
+            x = 5
+            a_change = 2
+        elif x < -5:
+            x_change = 0.2
+            x = -5
+            a_change = -2
 
         sleep(0.01)
 
-        Visualiser.update_car_positions([[x, y]])
+        Visualiser.update_vehicle_positions([[x, y, a]])
+        vehicle.position_data.append([x, y, a])
+    model.vehicles.append(vehicle)
+    model.save_results(os.path.join(os.path.dirname(__file__), "../Junction_Designs/test_results.res"))
 
 
 Visualiser.define_main(main)
 Visualiser.load_junction(os.path.join(os.path.dirname(__file__), "../Frontend/example_junction.junc"))
-Visualiser.set_scale(100)
+Visualiser.set_scale(200)
 Visualiser.open()

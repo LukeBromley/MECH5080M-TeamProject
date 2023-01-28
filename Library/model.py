@@ -9,6 +9,7 @@ class Model:
         self.paths = []
         self.lights = []
         self.vehicles = []
+        self.vehicle_results = []
 
     def load_junction(self, junction_file_location, quick_load=False):
         self.nodes, self.paths, self.lights = self.file_manager.load_from_junction_file(junction_file_location, quick_load=quick_load)
@@ -21,6 +22,12 @@ class Model:
 
     def load_config(self, config_file_location):
         self.config = self.file_manager.load_config_file(config_file_location)
+
+    def save_results(self, results_file_location):
+        self.file_manager.save_results_data_file(results_file_location, self.vehicles)
+
+    def load_results(self, results_file_location):
+        self.vehicle_results = self.file_manager.load_results_data_file(results_file_location)
 
     def get_node(self, node_uid):
         for node in self.nodes:

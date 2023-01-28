@@ -117,20 +117,16 @@ class Path:
     # Hermite Calculations
 
     def calculate_coords(self, s: float):
-        x = self.x_hermite_cubic_coeff[0] + self.x_hermite_cubic_coeff[1] * s + self.x_hermite_cubic_coeff[2] * (
-                    s * s) + self.x_hermite_cubic_coeff[3] * (s * s * s)
-        y = self.y_hermite_cubic_coeff[0] + self.y_hermite_cubic_coeff[1] * s + self.y_hermite_cubic_coeff[2] * (
-                    s * s) + self.y_hermite_cubic_coeff[3] * (s * s * s)
+        x = self.x_hermite_cubic_coeff[0] + self.x_hermite_cubic_coeff[1] * s + self.x_hermite_cubic_coeff[2] * (s * s) + self.x_hermite_cubic_coeff[3] * (s * s * s)
+        y = self.y_hermite_cubic_coeff[0] + self.y_hermite_cubic_coeff[1] * s + self.y_hermite_cubic_coeff[2] * (s * s) + self.y_hermite_cubic_coeff[3] * (s * s * s)
         return x, y
 
     def calculate_direction(self, s: float):
-        dy_ds = self.y_hermite_cubic_coeff[1] + 2 * self.y_hermite_cubic_coeff[2] * s + 3 * self.y_hermite_cubic_coeff[
-            3] * s * s
-        dx_ds = self.x_hermite_cubic_coeff[1] + 2 * self.x_hermite_cubic_coeff[2] * s + 3 * self.x_hermite_cubic_coeff[
-            3] * s * s
-        if dx_ds != 0:
+        dy_ds = self.y_hermite_cubic_coeff[1] + 2 * self.y_hermite_cubic_coeff[2] * s + 3 * self.y_hermite_cubic_coeff[3] * s * s
+        dx_ds = self.x_hermite_cubic_coeff[1] + 2 * self.x_hermite_cubic_coeff[2] * s + 3 * self.x_hermite_cubic_coeff[3] * s * s
+        if dx_ds != 0 :
             dy_dx = dy_ds / dx_ds
-            a = 90 - atan(dy_dx)
+            a = 90-atan(dy_dx)
         else:
             if dy_ds > 0:
                 a = 0
@@ -141,26 +137,23 @@ class Path:
     def calculate_curvature(self, s: float):
         ## Source: https://math.libretexts.org/Bookshelves/Calculus/Supplemental_Modules_(Calculus)/Vector_Calculus/2%3A_Vector-Valued_Functions_and_Motion_in_Space/2.3%3A_Curvature_and_Normal_Vectors_of_a_Curve
 
-        dy_ds = self.y_hermite_cubic_coeff[1] + 2 * self.y_hermite_cubic_coeff[2] * s + 3 * self.y_hermite_cubic_coeff[
-            3] * s * s
+        dy_ds = self.y_hermite_cubic_coeff[1] + 2 * self.y_hermite_cubic_coeff[2] * s + 3 * self.y_hermite_cubic_coeff[3] * s * s
         dy2_ds2 = 2 * self.y_hermite_cubic_coeff[2] + 6 * self.y_hermite_cubic_coeff[3] * s
 
-        dx_ds = self.x_hermite_cubic_coeff[1] + 2 * self.x_hermite_cubic_coeff[2] * s + 3 * self.x_hermite_cubic_coeff[
-            3] * (s * s)
+        dx_ds = self.x_hermite_cubic_coeff[1] + 2 * self.x_hermite_cubic_coeff[2] * s + 3 * self.x_hermite_cubic_coeff[3] * (s * s)
         dx2_ds2 = 2 * self.x_hermite_cubic_coeff[2] + 6 * self.x_hermite_cubic_coeff[3] * s
 
         dR_ds = Vector(dx_ds, dy_ds, 0)
         dR2_ds2 = Vector(dx2_ds2, dy2_ds2, 0)
 
-        c = calculate_vector_magnitude(calculate_cross_product(dR_ds, dR2_ds2)) / (
-                    calculate_vector_magnitude(dR_ds) ** 3)
+        c = calculate_vector_magnitude(calculate_cross_product(dR_ds, dR2_ds2)) / (calculate_vector_magnitude(dR_ds)**3)
         return c
 
     def get_length(self):
         return len(self.discrete_path) * self.discrete_length_increment_size
 
 class Route:
-    def __init__(self, paths: list[Path]):
+    def __init__(self, paths: List[Path]):
         discrete_length_increment_sizes = [path.discrete_length_increment_size for path in paths]
         assert discrete_length_increment_sizes.count(discrete_length_increment_sizes[0]) == len(
             discrete_length_increment_sizes)

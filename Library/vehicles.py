@@ -1,6 +1,7 @@
 from Library.infrastructure import Route, TrafficLight
 from Library.maths import clamp
 from math import sqrt
+from typing import List
 
 
 class Vehicle:
@@ -50,7 +51,7 @@ class Vehicle:
         self.remove = remove
 
     def update(self, time_delta: float = 0.1, vehicles: list["Vehicle"] = None,
-               lights: list[TrafficLight] = None) -> None:
+               lights: List[TrafficLight] = None) -> None:
         """
         :param lights: list of traffic lights within sim
         :param time_delta: change in time between updates [s]
@@ -114,10 +115,10 @@ class Vehicle:
         :return: list of vehicles within detection radius
         """
         nearby_vehicles = []
-        for car in vehicles:
-            distance = sqrt(sum(pow(x, 2) for x in car.get_position()))
+        for vehicle in vehicles:
+            distance = sqrt(sum(pow(x, 2) for x in vehicle.get_position()))
             if distance < self._sensing_radius:
-                nearby_vehicles.append(car)
+                nearby_vehicles.append(vehicle)
 
     def get_position(self):
         """
@@ -173,3 +174,10 @@ class Vehicle:
 
     def set_acceleration(self, acceleration: float) -> None:
         self._acceleration = clamp(acceleration, -(self._maximum_deceleration), self._maximum_acceleration)
+
+
+class VehicleResults:
+    def __init__(self, uid: int, start_time: float, position_data: list) -> None:
+        self.uid = uid
+        self.start_time = start_time
+        self.position_data = position_data

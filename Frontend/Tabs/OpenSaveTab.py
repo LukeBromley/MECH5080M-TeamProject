@@ -10,10 +10,9 @@ class OpenSaveTab(QtWidgets.QWidget):
     def __init__(self, gui, model):
         """
 
-        :param refresh_pygame_widget: function that refreshes the pygame graphics
-        :param render_function: function that renders the pygame graphics
-        :param update_nodes_paths_function: function that updates the nodes and paths in the top level class
-        :param get_nodes_paths_function: function gets nodes and paths from the top level class
+        Tab that allows the user to open and save junction
+        :param gui: parent gui class
+        :param model: model
         """
         super().__init__()
 
