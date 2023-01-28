@@ -68,7 +68,7 @@ class Model:
         self.vehicles = [vehicle for vehicle in self.vehicles if vehicle.get_route_distance_travelled() < self.get_route(vehicle.route_uid).length]
         return self.vehicles
 
-    def get_lights(self):
+    def get_lights(self) -> List[TrafficLight]:
         return self.lights
 
     def add_vehicle(self, vehicle):

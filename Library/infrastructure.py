@@ -166,6 +166,7 @@ class Route:
         for path in paths:
             self.length += path.get_length()
         self._paths = paths
+        self._path_uids = [path.uid for path in paths]
 
     def get_coordinates(self, route_distance_travelled: float):
         path, index = self.get_path_and_index(route_distance_travelled)
@@ -178,6 +179,18 @@ class Route:
     def get_path(self, route_distance_travelled: float):
         path, _ = self.get_path_and_index(route_distance_travelled)
         return path
+
+    def get_path_uids(self):
+        return self._path_uids
+
+    def get_route_distance_travelled_to_path(self, path_uid):
+        assert path_uid in self.get_path_uids()
+        distance_travelled = 0.0
+        for path in self._paths:
+            if path.uid == path_uid:
+                return distance_travelled
+            else:
+                distance_travelled += path.get_length()
 
     def get_path_and_index(self, route_distance_travelled: float):
         index = math.floor(route_distance_travelled / self.discrete_length_increment_size)
@@ -192,8 +205,7 @@ class Route:
 
 
 class TrafficLight:
-    def __init__(self, uid, path_uid: int, cycle_length: float = 10.0, cycle_red: float = 0.5,
-                 cycle_yellow: float = 0.4) -> None:
+    def __init__(self, uid, path_uid: int, cycle_length: float = 12.0, cycle_green: float = 0.5) -> None:
         """
 
         :param cycle_length: time it takes for the traffic light to complete a single light cycle [s]
@@ -203,13 +215,23 @@ class TrafficLight:
         """
 
         self.uid = uid
-        self.path_uid = path_uid
-        self.distance_traveled = 0.0
+        self.path_uid = path_uid[0]
+        self.route_distance_travelled = None
         self.color = "green"
         self.cycle_time = 0.0
-        self.cycle_red = cycle_red
-        self.cycle_yellow = cycle_yellow
+
+        assert 0.0 <= cycle_green <= 1.0
+        self.cycle_green = cycle_green
         self.cycle_length = cycle_length
+
+    def set_state(self, color: str):
+        match color:
+            case "green":
+                self.cycle_time = 0.0
+                self.color = "green"
+            case "red":
+                self.cycle_time = self.cycle_length * self.cycle_green
+                self.color = "red"
 
     def update(self, time_delta: float = 0.1) -> None:
         """
@@ -217,24 +239,26 @@ class TrafficLight:
         :rtype: None
         :param time_delta: iteration length [s]
         """
-
         self.cycle_time += time_delta
-        if self.cycle_time < self.cycle_yellow * self.cycle_length:
+        if self.cycle_time < self.cycle_green * self.cycle_length:
             self.color = "green"
-        elif self.cycle_time < self.cycle_red * self.cycle_length:
-            self.color = "yellow"
         elif self.cycle_time < self.cycle_length:
             self.color = "red"
         else:
             self.cycle_time = 0.0
 
-    def set_color(self, color: str) -> None:
-        self.color = color
+    def get_velocity(self) -> float:
+        return 0.0
+
+    def get_route_distance_travelled(self):
+        # Assumes the route_distance_travelled is set for every target vehicle
+        return self.route_distance_travelled
+
+    def set_route_distance_travelled(self, route_distance_travelled):
+        self.route_distance_travelled = route_distance_travelled
 
     def allows_traffic(self) -> bool:
         if self.color == "red":
             return False
         elif self.color == "green":
             return True
-        elif self.color == "yellow":
-            return random.random() > 0.5

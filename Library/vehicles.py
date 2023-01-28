@@ -48,11 +48,10 @@ class Vehicle:
         self._vehicle_length = vehicle_length
         self._vehicle_width = vehicle_width
 
-    def update(self, time_delta: float = 0.1, object_ahead: "Vehicle" = None) -> None:
+    def update(self, time_delta: float = 0.1, object_ahead=None) -> None:
         """
-        :param lights: list of traffic lights within sim
+        :param object_ahead:
         :param time_delta: change in time between updates [s]
-        :param vehicles: list of vehicles within sim
         """
 
         self._acceleration = self._calculate_acceleration(object_ahead)
