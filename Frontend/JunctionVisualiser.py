@@ -139,7 +139,7 @@ class ViewerMainWindow(QtWidgets.QMainWindow):
         # GUI refresh timer (set at 100FPS)
         self.timer = Timer(10, self.refresh_pygame_widget, single_shot=False)
 
-    def refresh_pygame_widget(self) -> None:
+    def refresh_pygame_widget(self, force_full_refresh=True) -> None:
         """
 
         Regresh pygame widget with current pygame graphics render.
@@ -149,6 +149,7 @@ class ViewerMainWindow(QtWidgets.QMainWindow):
         :return: None
         """
         self.pygame_graphics.refresh(
+            force_full_refresh=force_full_refresh,
             draw_grid=True,
             draw_hermite_paths=True,
             draw_nodes=True,

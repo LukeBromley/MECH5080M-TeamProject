@@ -92,7 +92,7 @@ class DesignerMainWindow(QtWidgets.QMainWindow):
         :return: None
         """
         self.pygame_graphics.refresh(
-            force_full_refresh = force_full_refresh,
+            force_full_refresh=force_full_refresh,
             draw_grid=self.view_tab.show_layer_grid,
             draw_hermite_paths=self.view_tab.show_layer_hermite_paths,
             draw_nodes=self.view_tab.show_layer_nodes,
