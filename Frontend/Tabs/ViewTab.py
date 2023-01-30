@@ -213,7 +213,7 @@ class ViewTab(QtWidgets.QWidget):
         for vehicle in self.gui.model.vehicle_results:
             if self.get_time() > vehicle.start_time:
                 tick_delta = self.tick - vehicle.start_tick(self.tick_time)
-                car_positions.append(vehicle.position_data[int(tick_delta)][:2])
+                car_positions.append(vehicle.position_data[int(tick_delta)])
         return car_positions
 
     def update_car_positions(self):
