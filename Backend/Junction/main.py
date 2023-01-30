@@ -21,22 +21,6 @@ class Simulation:
         self.model = Model()
         self.model.load_junction(file_path)
         self.model.generate_routes()
-        self.model.add_vehicle(
-            
-            Car(
-                uid=0,
-                start_time=0,
-                route=self.model.get_route(),
-                velocity=0.0,
-                acceleration=0.0,
-                maximum_acceleration=3.0,
-                maximum_deceleration=6.0,
-                preferred_time_gap=2.0,
-                vehicle_length=4.0,
-                maximum_velocity=30.0
-            )
-        )
-
 
         self.visualiser = JunctionVisualiser()
         self.visualiser.define_main(self.main)
@@ -44,13 +28,10 @@ class Simulation:
         self.visualiser.set_scale(50)
 
     def main(self):
-        self.model.get_lights()[0].set_state("red")
-        self.model.get_lights()[1].set_state("green")
-
         dt = 0.01
         while True:
             if random.random() > 0.995:
-                self.add_vehicle(random.choice([1, 2]))
+                self.add_vehicle(random.choice(self.model.get_route_uids()))
 
             for light in self.model.get_lights():
                 light.update(dt)
@@ -129,5 +110,5 @@ class Simulation:
         )
 
 if __name__ == "__main__":
-    sim = Simulation(os.path.join(ROOT_DIR, "Junction_Designs", "cross_road.junc"))
+    sim = Simulation(os.path.join(ROOT_DIR, "Junction_Designs", "Roundabout3.junc"))
     sim.run()
