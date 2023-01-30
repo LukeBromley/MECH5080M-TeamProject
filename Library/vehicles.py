@@ -48,23 +48,28 @@ class Vehicle:
         self._vehicle_length = vehicle_length
         self._vehicle_width = vehicle_width
 
-    def update(self, time_delta: float = 0.1, object_ahead=None) -> None:
+    def update(self, time_delta: float, velocity_object_ahead: float, delta_distance_ahead: float) -> None:
         """
-        :param object_ahead:
+        :param velocity_object_ahead:
+        :param delta_distance_ahead:
         :param time_delta: change in time between updates [s]
         """
 
-        self._acceleration = self._calculate_acceleration(object_ahead)
+        if velocity_object_ahead is None:
+            velocity_object_ahead = 100.0
+
+        if delta_distance_ahead is None:
+            delta_distance_ahead = 100.0
+
+        self._acceleration = self._calculate_acceleration(velocity_object_ahead, delta_distance_ahead)
         self._velocity = clamp((self._velocity + (self._acceleration * time_delta)), self._minimum_velocity,
                                self._maximum_velocity)
         self._distance_travelled += self._velocity * time_delta
-        # TODO: Move to Simulation class
-
 
     def update_position_data(self, position_data):
         self.position_data.append(position_data)
 
-    def _calculate_acceleration(self, object_ahead: "Vehicle") -> float:
+    def _calculate_acceleration(self, velocity_vehicle_ahead, delta_distance_ahead) -> float:
         """
 
         :rtype: float
@@ -75,14 +80,7 @@ class Vehicle:
         if self._acceleration < 0:
             anticipation_time = 0.4
         else:
-            anticipation_time = 2.0
-
-        if object_ahead is None:
-            velocity_vehicle_ahead = 100.0
-            delta_distance_ahead = 100.0
-        else:
-            velocity_vehicle_ahead = object_ahead.get_velocity()
-            delta_distance_ahead = object_ahead.get_route_distance_travelled() - self._distance_travelled
+            anticipation_time = 1.0
 
         acceleration = (velocity_vehicle_ahead ** 2 - self._velocity ** 2 + 2 * self._maximum_deceleration * (
                 anticipation_time * (
