@@ -1,10 +1,8 @@
 import math
 import random
 from math import sin, cos, sqrt, atan
-from typing import List
-
 from Library.maths import Vector, calculate_cross_product, calculate_vector_magnitude
-
+from typing import List
 
 class Node:
     def __init__(self, uid: int, x: float, y: float, angle: float):

@@ -1,61 +1,38 @@
-from Constants import *
-from Library.vehicles import Vehicle
-import random
+from Library.vehicles import Car
+from Frontend.JunctionVisualiser import JunctionVisualiser
+from Library.FileManagement import FileManagement
+
 import time
-import csv
-
-class Car2:
-    def __init__(self, uid, random_start_lane, goal_lane, initial_velocity, initial_acceleration, dimensions) -> None:
-        self.uid = uid
-        self.current_lane = random_start_lane
-        self.position = [0, 0]  # Change to psoition of lane.
-        self.goal_lane = goal_lane
-        self.velocity = initial_velocity
-        self.acceleration = initial_acceleration
-        self.dimensions = dimensions
-
-    def print_car(self):
-        print("Current Lane = ", self.current_lane)
-        print("Goal Lane = ", self.goal_lane)
-        print("Velocity = ", self.velocity)
-        print("Acceleration = ", self.acceleration)
-        print("Dimensions = Length: ",
-              self.dimensions[0], ", Width: ", self.dimensions[1])
-
-    def update(self):
-        self.position[0] += self.velocity
-        self.position[1] += self.velocity
-        self.velocity += self.acceleration
-
-    def log(self, sim_time):
-        log_format = [sim_time, self.uid, self.position[0], self.position[1]]
-        return log_format
+from Constants import *
 
 class Simulation:
-
     def __init__(self) -> None:
-        self.cars = []
+    
+        self.vehicles = []
         self.car_uid = 0
         self.sim_time = 0.0
         self.log = []
+        self.tick = 0.1
 
     def sim_begin(self):
+        self.car_spawner()
         self.advance_tick()
 
     def advance_tick(self):
-        self.car_spawner()
         self.update_cars()
-        time.sleep(TICK)
-        self.sim_time = round(self.sim_time + TICK, 1)
-        if self.sim_time > 3:
-            self.log_writer()
+        time.sleep(self.tick)
+        self.sim_time = self.sim_time + self.tick
+        if self.sim_time > 60:
+            #self.log_writer()
             quit()
         else:
             self.advance_tick()
 
     def car_spawner(self):
-        if len(self.cars) < MAX_CARS:
+        if len(self.cars) < 4:
             self.spawn_car()
+        time.sleep(1)
+        self.car_spawner()
 
     def spawn_car(self):
         uid = self.car_uid

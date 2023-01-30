@@ -1,3 +1,8 @@
+from platform import system
+if system() == 'Windows':
+    import sys
+    sys.path.append('./')
+
 from time import sleep
 from Frontend.JunctionVisualiser import JunctionVisualiser
 from Library.infrastructure import Route
@@ -15,6 +20,23 @@ class Simulation:
 
         self.model = Model()
         self.model.load_junction(file_path)
+        self.model.generate_routes()
+        self.model.add_vehicle(
+            
+            Car(
+                uid=0,
+                start_time=0,
+                route=self.model.get_route(),
+                velocity=0.0,
+                acceleration=0.0,
+                maximum_acceleration=3.0,
+                maximum_deceleration=6.0,
+                preferred_time_gap=2.0,
+                vehicle_length=4.0,
+                maximum_velocity=30.0
+            )
+        )
+
 
         self.visualiser = JunctionVisualiser()
         self.visualiser.define_main(self.main)
@@ -109,4 +131,3 @@ class Simulation:
 if __name__ == "__main__":
     sim = Simulation(os.path.join(ROOT_DIR, "Junction_Designs", "cross_road.junc"))
     sim.run()
-
