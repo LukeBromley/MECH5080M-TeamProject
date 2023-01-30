@@ -21,11 +21,17 @@ def main():
 
     vehicle = Vehicle(None)
     model = Model()
+    model.add_light([1])
 
     for i in range(500):
         y = y + y_change
         x = x + x_change
         a = a + a_change
+
+        if i < 250:
+            model.update_light(1, "red")
+        else:
+            model.update_light(1, "green")
 
         if y > 6:
             y_change = -0.1
@@ -48,6 +54,8 @@ def main():
         sleep(0.01)
 
         Visualiser.update_vehicle_positions([[x, y, a]])
+        Visualiser.update_light_colours(model.lights)
+
         vehicle.position_data.append([x, y, a])
     model.vehicles.append(vehicle)
     model.save_results(os.path.join(os.path.dirname(__file__), "../Junction_Designs/test_results.res"))

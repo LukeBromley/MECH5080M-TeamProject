@@ -13,6 +13,7 @@ import os
 import random
 from functools import partial
 
+
 class Simulation:
     def __init__(self, file_path: str):
         self.time = 0.0
@@ -25,7 +26,7 @@ class Simulation:
         self.visualiser = JunctionVisualiser()
         self.visualiser.define_main(self.main)
         self.visualiser.load_junction(file_path)
-        self.visualiser.set_scale(50)
+        self.visualiser.set_scale(100)
 
     def main(self):
         dt = 0.01
@@ -46,6 +47,7 @@ class Simulation:
                 vehicle.update_position_data(coordinates[-1])
 
             self.visualiser.update_vehicle_positions(coordinates)
+            self.visualiser.update_light_colours(self.model.lights)
             self.time += dt
             sleep(dt)
 
@@ -73,7 +75,7 @@ class Simulation:
         distance_travelled_offset = this_path.get_length() - this_vehicle_path_distance_travelled
         for path_uid in path_uids_ahead:
             for light in self.model.get_lights():
-                if light.path_uid == path_uid and not light.allows_traffic():
+                if light.path_uids == path_uid and not light.allows_traffic():
                     return light, distance_travelled_offset
             for that_vehicle in self.model.get_vehicles():
                 that_path, that_vehicle_path_distance_travelled = self.model.get_route(that_vehicle.route_uid).get_path_and_path_distance_travelled(that_vehicle.get_route_distance_travelled())

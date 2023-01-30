@@ -75,7 +75,7 @@ class PygameGraphics:
         self._path_label_colour = (0, 255, 0)
 
     # Main function for drawing paths (from renders), nodes, labels, grid etc.
-    def refresh(self, force_full_refresh, draw_grid=False, draw_hermite_paths=False, draw_nodes=False, draw_vehicles=False, draw_node_labels=False, draw_path_labels=False, draw_curvature=False) -> None:
+    def refresh(self, force_full_refresh, draw_grid=False, draw_hermite_paths=False, draw_nodes=False, draw_vehicles=False, draw_node_labels=False, draw_path_labels=False, draw_curvature=False, draw_lights=False) -> None:
         """
 
         This function manages what "layers" are displayed on the pygame surface.
@@ -88,14 +88,13 @@ class PygameGraphics:
         :param draw_curvature: boolean for enabling display of path curvature
         :return: None
         """
-        nodes, paths, vehicles = self.model.nodes, self.model.paths, self.model.vehicles
 
         if self._scroll_changed or force_full_refresh:
 
             self.surface.fill((255, 255, 255))
             if draw_grid: self._draw_grid()
             if draw_hermite_paths: self._draw_hermite_paths(draw_curvature)
-            if draw_nodes: self._draw_nodes(nodes)
+            if draw_nodes: self._draw_nodes(self.model.nodes)
             pygame.draw.circle(self.surface, (0, 0, 0), self._position_offsetter(0, 0), 3)
             self._draw_labels(draw_node_labels, draw_path_labels)
 
@@ -105,7 +104,8 @@ class PygameGraphics:
         else:
             self.surface = self.prev_surface.copy()
 
-        if draw_vehicles: self._draw_vehicles(vehicles)
+        if draw_vehicles: self._draw_vehicles(self.model.vehicles)
+        if draw_lights: self._draw_lights(self.model.lights)
 
     def efficient_refresh(self, draw_grid=False, draw_hermite_paths=False, draw_nodes=False, draw_vehicles=False, draw_node_labels=False, draw_path_labels=False, draw_curvature=False):
         if self._scroll_changed:
@@ -373,6 +373,55 @@ class PygameGraphics:
                 self.surface.blit(rectangle_surface, (x - round(rectangle_surface.get_width() / 2), y - round(rectangle_surface.get_height() / 2)))
             else:
                 pygame.draw.circle(self.surface, (255, 130, 0), (x, y), 5)
+
+    def _draw_lights(self, traffic_lights: list) -> None:
+        light_colours = []
+
+        for traffic_light in traffic_lights:
+            for path_uid in traffic_light.path_uids:
+                path = self.model.get_path(path_uid)
+
+                if path.start_node in [light.node_uid for light in light_colours]:
+                    for light in light_colours:
+                        if light.node_uid == path.start_node:
+                            light.add_colour(traffic_light.colour)
+                            break
+                else:
+                    light_colours.append(LightColour(path.start_node, traffic_light.colour))
+
+        for light in light_colours:
+            node = self.model.get_node(light.node_uid)
+
+            x, y = self._position_offsetter(node.x * 100, node.y * 100)
+            pygame.draw.rect(self.surface, (0, 0, 0), (x - round((len(light.colours) * 10) / 2), y + 10, len(light.colours) * 10, 20))
+
+            for index, colour in enumerate(light.colours):
+                position_offset = round((-((len(light.colours) - 1) * 25) / 2) + index * 25)
+
+                green_rgb = (0, 100, 0)
+                red_rgb = (100, 0, 0)
+
+                if colour == "green":
+                    green_rgb = (0, 200, 0)
+                    red_rgb = (50, 0, 0)
+                elif colour == "red":
+                    green_rgb = (0, 50, 0)
+                    red_rgb = (255, 0, 0)
+                pygame.draw.circle(self.surface, red_rgb, self._position_offsetter((node.x * 100) + position_offset, (node.y * 100) + 37), 3)
+                pygame.draw.circle(self.surface, green_rgb, self._position_offsetter((node.x * 100) + position_offset, (node.y * 100) + 60), 3)
+
+
+class LightColour:
+    def __init__(self, node_uid, initial_color=None):
+        self.node_uid = node_uid
+        self.colours = []
+        if initial_color is not None:
+            self.add_colour(initial_color)
+
+    def add_colour(self, colour):
+        self.colours.append(colour)
+
+
 
 
 

@@ -105,6 +105,7 @@ class DesignerMainWindow(QtWidgets.QMainWindow):
             draw_node_labels=True if self.view_tab.show_layer_labels and self.view_tab.show_layer_nodes else False,
             draw_path_labels=True if self.view_tab.show_layer_labels and self.view_tab.show_layer_hermite_paths else False,
             draw_curvature=self.view_tab.show_layer_curvature,
+            draw_lights=False
         )
         self.pygame_widget.refresh(self.pygame_graphics.surface)
 
@@ -137,13 +138,14 @@ class DesignerMainWindow(QtWidgets.QMainWindow):
         self.refresh_pygame_widget()
         self.update_mouse_coords()
 
-    def identify_path(self, paths: list) -> None:
+    def identify_path(self, path_uids: list) -> None:
         """
 
         Displays only the listed paths for 0.25s (seems to be more because of rendering time)
         :param paths: list of paths to highlight
         :return: None
         """
+        paths = [self.model.get_path(path_uid) for path_uid in path_uids]
         self.pygame_graphics.highlight_paths(paths)
         self.pygame_widget.refresh(self.pygame_graphics.surface)
         self.timer = Timer(250, self.render_pygame_widget)
