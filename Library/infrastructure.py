@@ -151,6 +151,7 @@ class Path:
     def get_length(self):
         return len(self.discrete_path) * self.discrete_length_increment_size
 
+
 class Route:
     def __init__(self, uid: int, paths: List[Path]):
         discrete_length_increment_sizes = [path.discrete_length_increment_size for path in paths]
@@ -233,13 +234,12 @@ class TrafficLight:
         self.cycle_length = cycle_length
 
     def set_state(self, color: str):
-        match color:
-            case "green":
-                self.cycle_time = 0.0
-                self.color = "green"
-            case "red":
-                self.cycle_time = self.cycle_length * self.cycle_green
-                self.color = "red"
+        if color == "green":
+            self.cycle_time = 0.0
+            self.color = "green"
+        elif color == "red":
+            self.cycle_time = self.cycle_length * self.cycle_green
+            self.color = "red"
 
     def update(self, time_delta: float = 0.1) -> None:
         """
