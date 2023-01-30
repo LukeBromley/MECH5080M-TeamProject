@@ -52,7 +52,7 @@ class ControlTab(QtWidgets.QWidget):
         """
         self.add_light_button.pressed.connect(self.add_light)
 
-    def update_light_widgets(self, lights: list) -> None:
+    def update_light_widgets(self) -> None:
         """
 
         Updates the view with all light data in the model
@@ -67,11 +67,10 @@ class ControlTab(QtWidgets.QWidget):
         self.light_widgets.clear()
 
         # Re-add all lights
-        nodes, paths = self.model.nodes, self.model.paths
-        for index, light in enumerate(reversed(lights)):
+        for index, light in enumerate(reversed(self.model.lights)):
             self.light_widgets.append(TrafficLightWidget(self.light_box, self.light_box_scroll.v_box))
-            self.light_widgets[-1].set_options(paths)
-            self.light_widgets[-1].set_info(light.uid, light.paths)
+            self.light_widgets[-1].set_options(self.model.paths)
+            self.light_widgets[-1].set_info(light.uid, light.path_uids)
             self.light_widgets[-1].connect_delete(partial(self.remove_light, light.uid))
             self.light_widgets[-1].connect_identify(partial(self.identify_light, light.uid))
             self.light_widgets[-1].connect_change(partial(self.update_traffic_light_data, light.uid, index))
@@ -84,20 +83,16 @@ class ControlTab(QtWidgets.QWidget):
         :param widget_index: Index of traffic light widget with updated info
         :return: None
         """
-        nodes, paths = self.model.nodes, self.model.paths
         lights = self.model.lights
         for light in lights:
             if light.uid == uid:
-                light.paths.clear()
+                light.path_uids.clear()
                 all_items = [self.light_widgets[widget_index].selected_paths.model().item(i, 0) for i in range(self.light_widgets[widget_index].selected_paths.count())]
                 for item in all_items:
                     if item.checkState() == QtCore.Qt.Checked:
-                        for path in paths:
-                            if path.uid == int(item.text()):
-                                light.paths.append(path)
-                                break
+                        light.path_uids.append(int(item.text()))
 
-                if len(light.paths) > 0:
+                if len(light.path_uids) > 0:
                     self.light_widgets[widget_index].identify.setEnabled(True)
                 else:
                     self.light_widgets[widget_index].identify.setDisabled(True)
@@ -110,13 +105,9 @@ class ControlTab(QtWidgets.QWidget):
         Adds a light to the model and updates the view
         :return: None
         """
-        lights = self.model.lights
-        light_uid = 1
-        if len(lights) > 0:
-            light_uid = max([light.uid for light in lights]) + 1
-        lights.append(TrafficLight(light_uid, None))
+        self.model.add_light([])
         self.gui.update_control_tab()
-        self.update_light_widgets(lights)
+        self.update_light_widgets()
         self.light_box_scroll.verticalScrollBar().setSliderPosition(0)
 
     def remove_light(self, uid: int) -> None:
@@ -126,15 +117,9 @@ class ControlTab(QtWidgets.QWidget):
         :param uid: UID of light to delete
         :return: None
         """
-        lights = self.model.lights
-
-        for index, light in enumerate(lights):
-            if light.uid == uid:
-                lights.pop(index)
-                break
-
-        self.gui.update_control_tab(lights)
-        self.update_light_widgets(lights)
+        self.model.remove_light(uid)
+        self.gui.update_control_tab()
+        self.update_light_widgets()
 
     def identify_light(self, uid: int) -> None:
         """
@@ -146,7 +131,7 @@ class ControlTab(QtWidgets.QWidget):
         lights = self.model.lights
         for light in lights:
             if light.uid == uid:
-                self.gui.identify_path(light.paths)
+                self.gui.identify_path(light.path_uids)
                 break
 
 

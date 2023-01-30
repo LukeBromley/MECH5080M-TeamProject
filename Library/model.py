@@ -127,7 +127,7 @@ class Model:
                 return light
 
     def get_light_index(self, light_uid):
-        for index, light in enumerate(self.lightw):
+        for index, light in enumerate(self.lights):
             if light.uid == light_uid:
                 return index
     
@@ -138,11 +138,16 @@ class Model:
         index = self.get_path_index(light.uid)
         self.lights[index] = light
 
-    def add_light(self):
+    def update_light(self, light_uid, colour=None):
+        index = self.get_light_index(light_uid)
+        if colour is not None:
+            self.lights[index].colour = colour
+
+    def add_light(self, path_uids):
         light_uid = 1
-        if len(self.paths) > 0:
+        if len(self.lights) > 0:
             light_uid = max([light.uid for light in self.lights]) + 1
-        self.lights.append(TrafficLight(light_uid))
+        self.lights.append(TrafficLight(light_uid, path_uids))
 
     def remove_light(self, light_uid):
         index = self.get_light_index(light_uid)

@@ -73,7 +73,7 @@ class Simulation:
         distance_travelled_offset = this_path.get_length() - this_vehicle_path_distance_travelled
         for path_uid in path_uids_ahead:
             for light in self.model.get_lights():
-                if light.path_uid == path_uid and not light.allows_traffic():
+                if light.path_uids == path_uid and not light.allows_traffic():
                     return light, distance_travelled_offset
             for that_vehicle in self.model.get_vehicles():
                 that_path, that_vehicle_path_distance_travelled = self.model.get_route(that_vehicle.route_uid).get_path_and_path_distance_travelled(that_vehicle.get_route_distance_travelled())

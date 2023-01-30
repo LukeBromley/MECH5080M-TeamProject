@@ -69,6 +69,15 @@ class JunctionVisualiser:
         """
         self.viewer_window.model.vehicles = vehicle_positions
 
+    def update_light_colours(self, lights: list) -> None:
+        """
+
+        Updates the GUI car positions with a list of x, y coordinates
+        :param car_positions: list of x,y car positions
+        :return: None
+        """
+        self.viewer_window.model.lights = lights
+
     def set_scale(self, scale: int) -> None:
         """
 
@@ -157,6 +166,7 @@ class ViewerMainWindow(QtWidgets.QMainWindow):
             draw_node_labels=False,
             draw_path_labels=False,
             draw_curvature=False,
+            draw_lights=True
         )
         self.pygame_widget.refresh(self.pygame_graphics.surface)
 

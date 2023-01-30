@@ -4,6 +4,7 @@ from math import sin, cos, sqrt, atan
 from Library.maths import Vector, calculate_cross_product, calculate_vector_magnitude
 from typing import List
 
+
 class Node:
     def __init__(self, uid: int, x: float, y: float, angle: float):
         self.uid = uid
@@ -30,8 +31,6 @@ class Path:
 
         self.discrete_path = []
         self.curvature = []
-
-        # self.calculate_all()
 
     # Gets
     def get_euclidean_distance(self, model):
@@ -214,7 +213,7 @@ class Route:
 
 
 class TrafficLight:
-    def __init__(self, uid, path_uid: int, cycle_length: float = 12.0, cycle_green: float = 0.5) -> None:
+    def __init__(self, uid, path_uids: list, cycle_length: float = 12.0, cycle_green: float = 0.5) -> None:
         """
 
         :param cycle_length: time it takes for the traffic light to complete a single light cycle [s]
@@ -224,22 +223,22 @@ class TrafficLight:
         """
 
         self.uid = uid
-        self.path_uid = path_uid[0]
+        self.path_uids = path_uids  # was path_uids[0]. Vilius needs to fix this on his end.
         self.route_distance_travelled = None
-        self.color = "green"
+        self.colour = "green"
         self.cycle_time = 0.0
 
         assert 0.0 <= cycle_green <= 1.0
         self.cycle_green = cycle_green
         self.cycle_length = cycle_length
 
-    def set_state(self, color: str):
-        if color == "green":
+    def set_state(self, colour: str):
+        if colour == "green":
             self.cycle_time = 0.0
-            self.color = "green"
-        elif color == "red":
+            self.colour = "green"
+        elif colour == "red":
             self.cycle_time = self.cycle_length * self.cycle_green
-            self.color = "red"
+            self.colour = "red"
 
     def update(self, time_delta: float = 0.1) -> None:
         """
@@ -249,9 +248,9 @@ class TrafficLight:
         """
         self.cycle_time += time_delta
         if self.cycle_time < self.cycle_green * self.cycle_length:
-            self.color = "green"
+            self.colour = "green"
         elif self.cycle_time < self.cycle_length:
-            self.color = "red"
+            self.colour = "red"
         else:
             self.cycle_time = 0.0
 
@@ -262,7 +261,7 @@ class TrafficLight:
         return 0.0
 
     def allows_traffic(self) -> bool:
-        if self.color == "red":
+        if self.colour == "red":
             return False
-        elif self.color == "green":
+        elif self.colour == "green":
             return True
