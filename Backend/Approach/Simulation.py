@@ -45,8 +45,8 @@ class Simulation:
             MINIMUM_START_ACCELERATION, MAXIMUM_START_ACCELERATION)
         dimensions = [random.uniform(
             MIN_LENGTH, MAX_LENGTH), random.uniform(MIN_WIDTH, MAX_WIDTH)]
-        car = Car(uid, random_start_lane, goal_lane, initial_velocity,
-                  initial_acceleration, dimensions)
+        car = Vehicle(uid, random_start_lane, goal_lane, initial_velocity,
+                      initial_acceleration, dimensions)
         self.cars.append(car)
 
     # runs on tick
