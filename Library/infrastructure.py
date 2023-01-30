@@ -261,6 +261,9 @@ class TrafficLight:
     def get_velocity(self) -> float:
         return 0.0
 
+    def get_length(self) -> float:
+        return 0.0
+
     def allows_traffic(self) -> bool:
         if self.color == "red":
             return False

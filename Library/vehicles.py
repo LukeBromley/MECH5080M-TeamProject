@@ -11,7 +11,7 @@ class Vehicle:
                  maximum_acceleration: float = 9.81, maximum_deceleration: float = 6.0,
                  maximum_velocity: float = 20.0, minimum_velocity: float = -20.0,
                  distance_travelled: float = 0.0, preferred_time_gap: float = 2.0,
-                 vehicle_length: float = 4.4, vehicle_width: float = 1.82) -> None:
+                 length: float = 4.4, width: float = 1.82) -> None:
         """
 
         :param uid: unique identifier for vehicle
@@ -45,21 +45,22 @@ class Vehicle:
         self._minimum_velocity = minimum_velocity
         self._distance_travelled = distance_travelled
         self._preferred_time_gap = preferred_time_gap
-        self._vehicle_length = vehicle_length
-        self._vehicle_width = vehicle_width
+        self._length = length
+        self._width = width
 
-    def update(self, time_delta: float, velocity_object_ahead: float, delta_distance_ahead: float) -> None:
+    def update(self, time_delta: float, object_ahead: "Vehicle", delta_distance_ahead: float) -> None:
         """
-        :param velocity_object_ahead:
+        :param object_ahead:
         :param delta_distance_ahead:
         :param time_delta: change in time between updates [s]
         """
 
-        if velocity_object_ahead is None:
+        if object_ahead is None:
             velocity_object_ahead = 100.0
-
-        if delta_distance_ahead is None:
             delta_distance_ahead = 100.0
+        else:
+            velocity_object_ahead = object_ahead.get_velocity()
+            delta_distance_ahead = delta_distance_ahead - 0.5*(self._length + object_ahead.get_length())
 
         self._acceleration = self._calculate_acceleration(velocity_object_ahead, delta_distance_ahead)
         self._velocity = clamp((self._velocity + (self._acceleration * time_delta)), self._minimum_velocity,
@@ -118,6 +119,9 @@ class Vehicle:
         :return: velocity of vehicle [m/s]
         """
         return self._velocity
+
+    def get_length(self) -> float:
+        return self._length
 
     def get_acceleration(self) -> float:
         """
