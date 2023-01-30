@@ -82,7 +82,7 @@ class DesignerMainWindow(QtWidgets.QMainWindow):
         # Initialise render
         self.render_pygame_widget()
 
-    def refresh_pygame_widget(self) -> None:
+    def refresh_pygame_widget(self, force_full_refresh=True) -> None:
         """
 
         Regresh pygame widget with current pygame graphics render.
@@ -92,15 +92,18 @@ class DesignerMainWindow(QtWidgets.QMainWindow):
         :return: None
         """
         self.pygame_graphics.refresh(
+            force_full_refresh = force_full_refresh,
             draw_grid=self.view_tab.show_layer_grid,
             draw_hermite_paths=self.view_tab.show_layer_hermite_paths,
             draw_nodes=self.view_tab.show_layer_nodes,
-            draw_vehicles=False,
+            draw_vehicles=self.view_tab.show_layer_vehicles,
             draw_node_labels=True if self.view_tab.show_layer_labels and self.view_tab.show_layer_nodes else False,
             draw_path_labels=True if self.view_tab.show_layer_labels and self.view_tab.show_layer_hermite_paths else False,
             draw_curvature=self.view_tab.show_layer_curvature,
         )
         self.pygame_widget.refresh(self.pygame_graphics.surface)
+
+    def update_mouse_coords(self):
         x, y = self.pygame_graphics.get_click_position()
         self.design_tab.coords.setText("Mouse Coords: (" + str(x) + ", " + str(y) + ")")
 
@@ -127,6 +130,7 @@ class DesignerMainWindow(QtWidgets.QMainWindow):
         """
         self.pygame_graphics.calculate_scroll(event)
         self.refresh_pygame_widget()
+        self.update_mouse_coords()
 
     def identify_path(self, paths: list) -> None:
         """

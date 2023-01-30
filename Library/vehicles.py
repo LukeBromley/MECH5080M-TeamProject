@@ -180,3 +180,12 @@ class VehicleResults:
         self.uid = uid
         self.start_time = start_time
         self.position_data = position_data
+
+    def total_time(self, time_step_size):
+        return self.start_time + len(self.position_data) * time_step_size
+
+    def total_tick(self, time_step_size):
+        return (self.start_time / time_step_size) + len(self.position_data)
+
+    def start_tick(self, time_step_size):
+        return self.start_time / time_step_size

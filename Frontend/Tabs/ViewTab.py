@@ -37,7 +37,7 @@ class ViewTab(QtWidgets.QWidget):
         self.show_layer_nodes = True
         self.show_layer_labels = True
         self.show_layer_curvature = True
-        self.show_layer_vehicles = False
+        self.show_layer_vehicles = True
 
         self.layer_grid = TickBox(self, "Grid", layout=self.layers_box.v_box)
         self.layer_hermite_paths = TickBox(self, "Hermite Paths", layout=self.layers_box.v_box)
@@ -48,13 +48,21 @@ class ViewTab(QtWidgets.QWidget):
         self.set_layer_states()
 
         # Playback
-        self.play_box = GroupBox(self, "Play", layout=self.v_box)
-        self.play_load_data = Button(self, "Load Data", self.play_box.v_box)
-        self.play_scroll = Slider(self, direction="h", layout=self.play_box.v_box)
-        self.h_box = HBox(self, self.play_box.v_box)
-        self.play_prev_tick = Button(self, "<", self.h_box)
-        self.play_play_pause = Button(self, "Play", self.h_box)
-        self.play_next_tick = Button(self, ">", self.h_box)
+        self.playback_box = GroupBox(self, "Play", layout=self.v_box)
+        self.playback_load_data = Button(self, "Load Data", self.playback_box.v_box)
+        self.playback_scrub_bar = Slider(self, direction="h", layout=self.playback_box.v_box)
+        self.h_box = HBox(self, self.playback_box.v_box)
+        self.playback_prev_tick = Button(self, "<", self.h_box)
+        self.playback_play_pause = Button(self, "Play", self.h_box)
+        self.playback_next_tick = Button(self, ">", self.h_box)
+        self.disable_playback()
+
+        self.playback_timer = Timer(10, self.next_tick, single_shot=False)
+
+        self.tick = 0
+        self.playback_play = False
+        self.playback_max_tick = 0
+        self.tick_time = 0.01
 
         # Connect widget callback functions
         self.connect()
@@ -75,7 +83,11 @@ class ViewTab(QtWidgets.QWidget):
         self.layer_curvature.stateChanged.connect(self.update_layer_states)
         self.layer_vehicles.stateChanged.connect(self.update_layer_states)
 
-        self.play_load_data.pressed.connect(self.load_results_data)
+        self.playback_load_data.pressed.connect(self.load_results_data)
+        self.playback_next_tick.pressed.connect(self.next_tick)
+        self.playback_prev_tick.pressed.connect(self.prev_tick)
+        self.playback_play_pause.pressed.connect(self.play_pause)
+        self.playback_scrub_bar.valueChanged.connect(self.scrub)
 
     def update_layer_states(self) -> None:
         """
@@ -123,8 +135,93 @@ class ViewTab(QtWidgets.QWidget):
         self.set_scale_function(scale)
         self.gui.refresh_pygame_widget()
 
+    def disable_playback(self):
+        self.playback_scrub_bar.setDisabled(True)
+        self.playback_prev_tick.setDisabled(True)
+        self.playback_play_pause.setDisabled(True)
+        self.playback_next_tick.setDisabled(True)
+
+    def enable_playback(self):
+        self.playback_scrub_bar.setEnabled(True)
+        self.playback_prev_tick.setEnabled(True)
+        self.playback_play_pause.setEnabled(True)
+        self.playback_next_tick.setEnabled(True)
+
     def load_results_data(self):
         file_path = QFileDialog.getOpenFileName(self, 'Open Results Data', '../Junction_Designs', "Results File (*.res)")[0]
         if len(file_path) > 0:
-            self.model.load_results(self.save_file_path)
+            self.gui.model.load_results(file_path)
+        self.enable_playback()
+        self.playback_max_tick = self.get_max_tick()
+        self.playback_scrub_bar.setMaximum(self.playback_max_tick)
+
+    def get_max_time(self):
+        time = [vehicle.total_time(self.tick_time) for vehicle in self.gui.model.vehicle_results]
+        return max(time)
+
+    def get_max_tick(self):
+        time = [vehicle.total_tick(self.tick_time) for vehicle in self.gui.model.vehicle_results]
+        return max(time) - 1
+
+    def get_time(self):
+        return self.tick_time * self.tick
+
+    def get_start_tick(self, time):
+        return time / self.tick_time
+
+    def next_tick(self):
+        self.tick += 1
+        if self.tick > self.playback_max_tick:
+            self.tick = self.playback_max_tick
+            self.playback_play = False
+            self.playback_timer.stop()
+            self.update_play_pause_button()
+        self.update_playback_scroll()
+        self.update_car_positions()
+
+    def prev_tick(self):
+        self.tick -= 1
+        if self.tick < 0:
+            self.tick = 0
+        self.update_playback_scroll()
+        self.update_car_positions()
+
+    def play_pause(self):
+        if self.playback_play:
+            self.playback_timer.stop()
+            self.playback_play = False
+        else:
+            self.playback_timer.start()
+            self.playback_play = True
+        self.update_play_pause_button()
+
+    def scrub(self):
+        self.tick = self.playback_scrub_bar.value()
+        self.update_car_positions()
+
+    def update_play_pause_button(self):
+        if self.playback_play:
+            self.playback_play_pause.setText("Pause")
+        else:
+            self.playback_play_pause.setText("Play")
+
+    def update_playback_scroll(self):
+        self.playback_scrub_bar.setValue(self.tick)
+
+    def calculate_current_car_positions(self):
+        car_positions = []
+        for vehicle in self.gui.model.vehicle_results:
+            if self.get_time() > vehicle.start_time:
+                tick_delta = self.tick - vehicle.start_tick(self.tick_time)
+                car_positions.append(vehicle.position_data[int(tick_delta)][:2])
+        return car_positions
+
+    def update_car_positions(self):
+        self.gui.model.vehicles = self.calculate_current_car_positions()
+        self.gui.refresh_pygame_widget(force_full_refresh=False)
+
+
+
+
+
 
