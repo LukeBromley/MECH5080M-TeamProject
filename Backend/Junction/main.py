@@ -13,6 +13,7 @@ import os
 import random
 from functools import partial
 
+
 class Simulation:
     def __init__(self, file_path: str):
         self.time = 0.0
@@ -25,7 +26,7 @@ class Simulation:
         self.visualiser = JunctionVisualiser()
         self.visualiser.define_main(self.main)
         self.visualiser.load_junction(file_path)
-        self.visualiser.set_scale(50)
+        self.visualiser.set_scale(100)
 
     def main(self):
         dt = 0.01
@@ -46,6 +47,7 @@ class Simulation:
                 vehicle.update_position_data(coordinates[-1])
 
             self.visualiser.update_vehicle_positions(coordinates)
+            self.visualiser.update_light_colours(self.model.lights)
             self.time += dt
             sleep(dt)
 
