@@ -38,13 +38,9 @@ class Model:
                 start_nodes.remove(path.end_node)
             if path.start_node in end_nodes:
                 end_nodes.remove(path.start_node)
-        #connected_nodes = [[] for node in nodes_uid]
-        #for path in self.paths:
-            #node_index = nodes_uid.index(path.start_node)
-            #connected_nodes[node_index].append(path.end_node)
-        self.find_routes(start_nodes, end_nodes) # nodes_uid, connected_nodes)
+        self.find_routes(start_nodes, end_nodes)
 
-    def find_routes(self, start_nodes, end_nodes): #nodes_uid, connected_nodes):
+    def find_routes(self, start_nodes, end_nodes): 
         potential_routes = []
         for node in start_nodes:
             paths = self.get_paths_from_start_node(node)
@@ -65,22 +61,26 @@ class Model:
                             new_route.append(path)
                             potential_routes.append(new_route)
                     elif k == 0:
-                        to_remove.append(route)
-            
+                        to_remove.append(route)  
             for route in potential_routes:
                 if (self.get_path(route[-1])).end_node in end_nodes:
-                    self._routes.append(route)
+                    shorter_path = False
+                    for existing_route in self._routes:
+                        if (self.get_path(existing_route[0]).start_node) == (self.get_path(route[0]).start_node) and (self.get_path(existing_route[-1]).end_node) == (self.get_path(route[-1]).end_node):
+                            shorter_path = True
+                    if shorter_path == False:
+                        self._routes.append(route)
                     to_remove.append(route)
             for route in to_remove:
                 potential_routes.remove(route)
         print(self._routes)
+        
 
     def get_route(self):
         route = choice(self._routes)
         route_objects = []
         for path in route:
             route_objects.append(self.get_path(path))
-        print(route_objects)
         return Route(route_objects)
 
     def get_node(self, node_uid):
