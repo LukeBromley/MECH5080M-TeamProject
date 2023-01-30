@@ -1,9 +1,8 @@
-
 from typing import List
 from .FileManagement import FileManagement
 from .infrastructure import Route, Node, Path, TrafficLight
 from .vehicles import Vehicle
-from random import choice
+
 
 class Model:
     def __init__(self):
@@ -11,10 +10,10 @@ class Model:
         self.config = None
         self.nodes = []
         self.paths = []
-        self.routes = []
         self.lights = []
         self.vehicles = []
-        self._routes = []
+        self._route_designs = []
+        self.routes = []
         self.vehicle_results = []
 
     def load_junction(self, junction_file_location, quick_load=False):
@@ -22,12 +21,6 @@ class Model:
             junction_file_location, quick_load=quick_load)
         for path in self.paths:
             path.calculate_all(self)
-
-        # TODO: Move to the FileManager.load_from_junction file using graph theory
-        self.routes = [
-            Route(1, [self.get_path(1), self.get_path(2), self.get_path(3)]),
-            Route(2, [self.get_path(4), self.get_path(5), self.get_path(6)])
-        ]
 
     def save_junction(self, junction_file_location):
         self.file_manager.save_to_junction_file(
@@ -46,6 +39,7 @@ class Model:
             if path.start_node in end_nodes:
                 end_nodes.remove(path.start_node)
         self.find_routes(start_nodes, end_nodes)
+        self.build_routes()
 
     def find_routes(self, start_nodes, end_nodes): 
         potential_routes = []
@@ -72,21 +66,24 @@ class Model:
             for route in potential_routes:
                 if (self.get_path(route[-1])).end_node in end_nodes:
                     shorter_path = False
-                    for existing_route in self._routes:
+                    for existing_route in self._route_designs:
                         if (self.get_path(existing_route[0]).start_node) == (self.get_path(route[0]).start_node) and (self.get_path(existing_route[-1]).end_node) == (self.get_path(route[-1]).end_node):
                             shorter_path = True
                     if shorter_path == False:
-                        self._routes.append(route)
+                        self._route_designs.append(route)
                     to_remove.append(route)
             for route in to_remove:
-                potential_routes.remove(route) 
+                potential_routes.remove(route)
 
-    def get_route(self):
-        route = choice(self._routes)
-        route_objects = []
-        for path in route:
-            route_objects.append(self.get_path(path))
-        return Route(route_objects)
+    def build_routes(self):
+        for index, route in enumerate(self._route_designs):
+            route_objects = []
+            for path in route:
+                route_objects.append(self.get_path(path))
+            self.routes.append(Route(index, route_objects))
+
+    def get_route_uids(self):
+        return list(range(len(self.routes)))
 
     def save_results(self, results_file_location):
         self.file_manager.save_results_data_file(results_file_location, self.vehicles)
@@ -121,12 +118,10 @@ class Model:
             if light.uid == light_uid:
                 return light
 
-    def get_vehicle(self, vehicle_uid):
-        for vehicle in self.vehicles:
-            if vehicle.uid == vehicle_uid:
-                return vehicle
+    def get_uid_list(self, object_list=None):
+        if object_list is None:
+            object_list = []
 
-    def get_uid_list(self, object_list: List = []):
         uid_list = []
         for object in object_list:
             uid_list.append(object.uid)
