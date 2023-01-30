@@ -18,11 +18,10 @@ class Node:
 
 
 class Path:
-    def __init__(self, uid: int, start_node: Node, end_mode: Node, discrete_length_increment_size=0.01,
-                 discrete_iteration_qty=100000):
+    def __init__(self, uid: int, start_node: Node, end_node: Node, discrete_length_increment_size=0.01, discrete_iteration_qty=100000):
         self.uid = uid
         self.start_node = start_node
-        self.end_node = end_mode
+        self.end_node = end_node
         self.x_hermite_cubic_coeff = []
         self.y_hermite_cubic_coeff = []
 

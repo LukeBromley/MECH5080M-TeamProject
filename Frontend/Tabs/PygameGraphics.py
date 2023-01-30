@@ -2,6 +2,7 @@ import pygame
 from math import sin, cos
 from PyQt5 import QtCore
 from Library.maths import clamp, VisualPoint
+from copy import deepcopy as copy
 
 
 class VisualLabel:
@@ -44,11 +45,13 @@ class PygameGraphics:
         self._scroll = False
         self._scroll_start_position_x = 0
         self._scroll_start_position_y = 0
+        self._scroll_changed = True
 
         # Initialise Pygame
         pygame.init()
         window = pygame.display.set_mode(flags=pygame.HIDDEN)
         self.surface = pygame.Surface((self._surface_width, self._surface_height))
+        self.prev_surface = self.surface
 
         # Grid Parameters
         self._grid_colour = (230, 230, 230)
@@ -72,29 +75,56 @@ class PygameGraphics:
         self._path_label_colour = (0, 255, 0)
 
     # Main function for drawing paths (from renders), nodes, labels, grid etc.
-    def refresh(self, draw_grid=False, draw_hermite_paths=False, draw_nodes=False, draw_vehicles=False, draw_node_labels=False, draw_path_labels=False, draw_curvature=False) -> None:
+    def refresh(self, force_full_refresh, draw_grid=False, draw_hermite_paths=False, draw_nodes=False, draw_vehicles=False, draw_node_labels=False, draw_path_labels=False, draw_curvature=False) -> None:
         """
 
         This function manages what "layers" are displayed on the pygame surface.
         :param draw_grid: boolean for enabling display of grid
         :param draw_hermite_paths: boolean for enabling display of hermite paths
         :param draw_nodes: boolean for enabling display of nodes
-        :param draw_cars: boolean for enabling display of cars
+        :param draw_vehicles: boolean for enabling display of cars
         :param draw_node_labels: boolean for enabling display of node labels
         :param draw_path_labels: boolean for enabling display of path labels
         :param draw_curvature: boolean for enabling display of path curvature
         :return: None
         """
-        self.surface.fill((255, 255, 255))
-
         nodes, paths, vehicles = self.model.nodes, self.model.paths, self.model.vehicles
 
-        if draw_grid: self._draw_grid()
-        if draw_hermite_paths: self._draw_hermite_paths(draw_curvature)
-        if draw_nodes: self._draw_nodes(nodes)
-        pygame.draw.circle(self.surface, (0, 0, 0), self._position_offsetter(0, 0), 3)
+        if self._scroll_changed or force_full_refresh:
+
+            self.surface.fill((255, 255, 255))
+            if draw_grid: self._draw_grid()
+            if draw_hermite_paths: self._draw_hermite_paths(draw_curvature)
+            if draw_nodes: self._draw_nodes(nodes)
+            pygame.draw.circle(self.surface, (0, 0, 0), self._position_offsetter(0, 0), 3)
+            self._draw_labels(draw_node_labels, draw_path_labels)
+
+            self.prev_surface = self.surface.copy()
+            self._scroll_changed = False
+
+        else:
+            self.surface = self.prev_surface.copy()
+
         if draw_vehicles: self._draw_vehicles(vehicles)
-        self._draw_labels(draw_node_labels, draw_path_labels)
+
+    def efficient_refresh(self, draw_grid=False, draw_hermite_paths=False, draw_nodes=False, draw_vehicles=False, draw_node_labels=False, draw_path_labels=False, draw_curvature=False):
+        if self._scroll_changed:
+            nodes, paths, vehicles = self.model.nodes, self.model.paths, self.model.vehicles
+
+            self.surface.fill((255, 255, 255))
+
+            if draw_grid: self._draw_grid()
+            if draw_hermite_paths: self._draw_hermite_paths(draw_curvature)
+            if draw_nodes: self._draw_nodes(nodes)
+            pygame.draw.circle(self.surface, (0, 0, 0), self._position_offsetter(0, 0), 3)
+            self._draw_labels(draw_node_labels, draw_path_labels)
+
+            self.prev_surface = self.surface
+
+            self._scroll_changed = False
+        else:
+            self.surface = self.prev_surface
+        if draw_vehicles: self._draw_vehicles(vehicles)
 
     def highlight_paths(self, paths: list) -> None:
         """
@@ -281,14 +311,17 @@ class PygameGraphics:
             pos = mouse_event.pos()
             self._mouse_position_x, self._mouse_position_y = pos.x(), pos.y()
         if mouse_event.type() == QtCore.QEvent.MouseButtonPress:
+            self._scroll_changed = True
             self._scroll = True
             pos = mouse_event.pos()
             self._scroll_start_position_x, self._scroll_start_position_y = pos.x(), pos.y()
         if mouse_event.type() == QtCore.QEvent.MouseButtonRelease:
             self._scroll = False
+            self._scroll_changed = True
             self._scroll_offset_x_old = self._scroll_offset_x
             self._scroll_offset_y_old = self._scroll_offset_y
         if self._scroll:
+            self._scroll_changed = True
             self._scroll_offset_x = self._scroll_start_position_x - self._mouse_position_x + self._scroll_offset_x_old
             self._scroll_offset_y = self._scroll_start_position_y - self._mouse_position_y + self._scroll_offset_y_old
 
@@ -337,9 +370,10 @@ class PygameGraphics:
                 rectangle_surface.set_colorkey((0, 0, 0))
                 pygame.draw.rect(rectangle_surface, (255, 130, 0), (0, 0, vehicle_size_x, vehicle_size_y))
                 rectangle_surface = pygame.transform.rotate(rectangle_surface, vehicle[2])
-
                 self.surface.blit(rectangle_surface, (x - round(rectangle_surface.get_width() / 2), y - round(rectangle_surface.get_height() / 2)))
             else:
                 pygame.draw.circle(self.surface, (255, 130, 0), (x, y), 5)
+
+
 
 
