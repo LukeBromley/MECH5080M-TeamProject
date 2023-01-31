@@ -13,6 +13,7 @@ from Frontend.Tabs.OpenSaveTab import *
 from Frontend.Tabs.DesignTab import *
 from Frontend.Tabs.ViewTab import *
 from Frontend.Tabs.ControlTab import *
+from Frontend.Tabs.LaneChangingTab import *
 
 
 class JunctionDesigner:
@@ -83,6 +84,10 @@ class DesignerMainWindow(QtWidgets.QMainWindow):
         self.control_tab = ControlTab(self, self.model)
         self.tabs.addTab(self.control_tab, "Control")
         self.timer = None
+
+        # Lane Changing tab
+        self.lane_changing = LaneChangingTab(self, self.model)
+        self.tabs.addTab(self.lane_changing, "Lane Changing")
 
         # Initialise render
         self.render_pygame_widget()

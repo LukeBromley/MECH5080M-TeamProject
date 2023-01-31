@@ -102,12 +102,14 @@ class Model:
         index = self.get_path_index(path.uid)
         self.paths[index] = path
 
-    def update_path(self, path_uid, start_node_uid=None, end_node_uid=None):
+    def update_path(self, path_uid, start_node_uid=None, end_node_uid=None, parallel_paths=None):
         index = self.get_path_index(path_uid)
         if start_node_uid is not None:
             self.paths[index].start_node = start_node_uid
         if end_node_uid is not None:
             self.paths[index].end_node = end_node_uid
+        if parallel_paths is not None:
+            self.paths[index].parallel_paths = parallel_paths
 
     def add_path(self, start_node_uid, end_node_uid):
         path_uid = 1

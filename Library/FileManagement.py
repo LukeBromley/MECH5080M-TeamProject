@@ -122,7 +122,8 @@ class FileManagement:
         # Add path data
         for path in paths:
             file_dict[self.paths_key][str(path.uid)] = [path.start_node,
-                                                        path.end_node]
+                                                        path.end_node,
+                                                        path.parallel_paths]
 
         # Add light data
         for light in lights:
@@ -150,6 +151,10 @@ class FileManagement:
 
         if self.paths_key not in file_dict:
             file_dict[self.paths_key] = {}
+
+        for path in file_dict[self.paths_key]:
+            while len(file_dict[self.paths_key][path]) < 3:
+                file_dict[self.paths_key][path].append([])
 
         if self.lights_key not in file_dict:
             file_dict["lights"] = {}

@@ -30,6 +30,7 @@ class Path:
 
         self.discrete_path = []
         self.curvature = []
+        self.parallel_paths = []
 
         # self.calculate_all()
 
