@@ -1,4 +1,5 @@
 import json
+from Library.environment import Time
 from Library.infrastructure import Node, Path, TrafficLight
 from Library.vehicles import VehicleResults
 
@@ -15,27 +16,20 @@ Junction Files
 
 class Configuration:
 
-    def __init__(self, lanes: list,
-                 min_start_velocity: float,
-                 max_start_velocity: float,
-                 min_start_acceleration: float,
-                 max_start_acceleration: float,
-                 min_length: int,
-                 max_length: int,
-                 min_width: int,
-                 max_width: int,
-                 max_num_vehicles: int
-                 ):
-        self.lanes = lanes
-        self.min_start_velocity = min_start_velocity
-        self.max_start_velocity = max_start_velocity
-        self.min_start_acceleration = min_start_acceleration
-        self.max_start_acceleration = max_start_acceleration
-        self.min_length = min_length
-        self.max_length = max_length
-        self.min_width = min_width
-        self.max_width = max_width
-        self.max_num_vehicles = max_num_vehicles
+    def __init__(self):
+        self.tick_rate = 10  # ticks per second
+        self.start_time_of_day = Time(12, 0, 0)  # ticks per second
+
+        self.lanes = None
+        self.min_start_velocity = None
+        self.max_start_velocity = None
+        self.min_start_acceleration = None
+        self.max_start_acceleration = None
+        self.min_length = None
+        self.max_length = None
+        self.min_width = None
+        self.max_width = None
+        self.max_num_vehicles = None
 
 
 class FileManagement:
@@ -46,6 +40,9 @@ class FileManagement:
             save and load simulation results files (TO BE COMPLETED)
         """
         # Configuration identifiers
+        self.tick_rate_key = "tick_rate"
+        self.start_time_of_day_key = "start_time_of_day"
+
         self.lanes_key = "lanes"
         self.min_start_velocity_key = "min_start_velocity"
         self.max_start_velocity_key = "max_start_velocity"
@@ -173,6 +170,9 @@ class FileManagement:
         # Create dictionary structure
         file_dict = {}
 
+        file_dict[self.tick_rate_key] = config.tick_rate
+        file_dict[self.start_time_of_day_key] = [config.start_time_of_day.hour, config.start_time_of_day.minute, config.start_time_of_day.second]
+
         file_dict[self.lanes_key] = config.lanes
         file_dict[self.min_start_velocity_key] = config.min_start_velocity
         file_dict[self.max_start_velocity_key] = config.max_start_velocity
@@ -196,22 +196,23 @@ class FileManagement:
         with open(file_path, "r") as file:
             file_dict = json.load(file)
 
-        lanes = file_dict[self.lanes_key]
-        min_start_velocity = file_dict[self.min_start_velocity_key]
-        max_start_velocity = file_dict[self.max_start_velocity_key]
-        min_start_acceleration = file_dict[self.min_start_acceleration_key]
-        max_start_acceleration = file_dict[self.max_start_acceleration_key]
-        min_length = file_dict[self.min_length_key]
-        max_length = file_dict[self.max_length_key]
-        min_width = file_dict[self.min_width_key]
-        max_width = file_dict[self.max_width_key]
-        max_num_vehicles = file_dict[self.max_num_vehicles_key]
+        config = Configuration()
 
-        configuration = Configuration(lanes, min_start_velocity, max_start_velocity, min_start_acceleration,
-                                      max_start_acceleration, min_length, max_length, min_width, max_width,
-                                      max_num_vehicles)
+        config.tick_rate = file_dict[self.tick_rate_key]
+        config.start_time_of_day = Time(file_dict[self.start_time_of_day_key][0], file_dict[self.start_time_of_day_key][1], file_dict[self.start_time_of_day_key][2])
 
-        return configuration
+        config.lanes = file_dict[self.lanes_key]
+        config.min_start_velocity = file_dict[self.min_start_velocity_key]
+        config.max_start_velocity = file_dict[self.max_start_velocity_key]
+        config.min_start_acceleration = file_dict[self.min_start_acceleration_key]
+        config.max_start_acceleration = file_dict[self.max_start_acceleration_key]
+        config.min_length = file_dict[self.min_length_key]
+        config.max_length = file_dict[self.max_length_key]
+        config.min_width = file_dict[self.min_width_key]
+        config.max_width = file_dict[self.max_width_key]
+        config.max_num_vehicles = file_dict[self.max_num_vehicles_key]
+
+        return config
 
     def save_results_data_file(self, file_path: str, vehicles: list) -> None:
         """

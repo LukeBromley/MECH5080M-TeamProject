@@ -149,6 +149,7 @@ class Vehicle:
     def set_acceleration(self, acceleration: float) -> None:
         self._acceleration = clamp(acceleration, -self._maximum_deceleration, self._maximum_acceleration)
 
+
 class VehicleResults:
     def __init__(self, uid: int, start_time: float, position_data: list) -> None:
         self.uid = uid

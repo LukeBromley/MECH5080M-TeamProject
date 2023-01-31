@@ -1,4 +1,5 @@
 from typing import List
+from math import floor
 from .FileManagement import FileManagement
 from Library.infrastructure import Node, Path, TrafficLight, Route
 from Library.vehicles import Vehicle
@@ -8,13 +9,23 @@ class Model:
     def __init__(self):
         self.file_manager = FileManagement()
         self.config = None
+
         self.nodes = []
         self.paths = []
         self.lights = []
         self.vehicles = []
+
         self._route_designs = []
         self.routes = []
         self.vehicle_results = []
+
+        self.tick = 0
+        self.tick_rate = None
+        self.tick_time = None
+        self.start_time_of_day = None
+        self.time_of_day = None
+
+    # SAVING AND LOADING DATA
 
     def load_junction(self, junction_file_location, quick_load=False):
         self.nodes, self.paths, self.lights = self.file_manager.load_from_junction_file(
@@ -28,13 +39,42 @@ class Model:
 
     def load_config(self, config_file_location):
         self.config = self.file_manager.load_config_file(config_file_location)
+        self.set_tick_rate(self.config.tick_rate)
+        self.set_start_time_of_day(self.config.start_time_of_day)
 
+
+    def save_config(self, config_file_location, configuration):
+        self.file_manager.save_config_file(config_file_location, configuration)
 
     def save_results(self, results_file_location):
         self.file_manager.save_results_data_file(results_file_location, self.vehicles)
 
     def load_results(self, results_file_location):
         self.vehicle_results = self.file_manager.load_results_data_file(results_file_location)
+
+    # ENVIRONMENT VARIABLES
+
+    def tock(self):
+        self.tick += 1
+
+    def set_tick_rate(self, tick_rate: float):
+        self.tick_rate = tick_rate
+        self.tick_time = 1 / self.tick_rate
+
+    def calculate_seconds_elapsed(self):
+        return floor(self.tick / self.tick_rate)
+
+    def calculate_milliseconds_elapsed(self):
+        return floor(1000 * self.tick / self.tick_rate)
+
+    def set_start_time_of_day(self, time):
+        self.start_time_of_day = time
+
+    def set_time_of_day(self, time):
+        self.time_of_day = time
+
+    def calculate_time_of_day(self):
+        return self.start_time_of_day.add_milliseconds(self.calculate_milliseconds_elapsed())
 
     # NODES
 
