@@ -381,13 +381,13 @@ class PygameGraphics:
             for path_uid in traffic_light.path_uids:
                 path = self.model.get_path(path_uid)
 
-                if path.start_node in [light.node_uid for light in light_colours]:
+                if path.start_node_uid in [light.node_uid for light in light_colours]:
                     for light in light_colours:
-                        if light.node_uid == path.start_node:
+                        if light.node_uid == path.start_node_uid:
                             light.add_colour(traffic_light.colour)
                             break
                 else:
-                    light_colours.append(LightColour(path.start_node, traffic_light.colour))
+                    light_colours.append(LightColour(path.start_node_uid, traffic_light.colour))
 
         for light in light_colours:
             node = self.model.get_node(light.node_uid)

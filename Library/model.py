@@ -70,7 +70,7 @@ class Model:
     def remove_node(self, node_uid):
         path_uids_to_remove = []
         for path in self.paths:
-            if path.start_node == node_uid or path.end_node == node_uid:
+            if path.start_node_uid == node_uid or path.end_node_uid == node_uid:
                 path_uids_to_remove.append(path.uid)
 
         for path_uid in path_uids_to_remove:
@@ -82,7 +82,7 @@ class Model:
     def get_paths_from_start_node(self, node_uid):
         paths = []
         for path in self.paths:
-            if path.start_node == node_uid:
+            if path.start_node_uid == node_uid:
                 paths.append(path.uid)
         return paths
     
@@ -105,9 +105,9 @@ class Model:
     def update_path(self, path_uid, start_node_uid=None, end_node_uid=None, parallel_paths=None):
         index = self.get_path_index(path_uid)
         if start_node_uid is not None:
-            self.paths[index].start_node = start_node_uid
+            self.paths[index].start_node_uid = start_node_uid
         if end_node_uid is not None:
-            self.paths[index].end_node = end_node_uid
+            self.paths[index].end_node_uid = end_node_uid
         if parallel_paths is not None:
             self.paths[index].parallel_paths = parallel_paths
 
@@ -192,10 +192,10 @@ class Model:
         start_nodes = nodes_uid.copy()
         end_nodes = nodes_uid.copy()
         for path in self.paths:
-            if path.end_node in start_nodes:
-                start_nodes.remove(path.end_node)
-            if path.start_node in end_nodes:
-                end_nodes.remove(path.start_node)
+            if path.end_node_uid in start_nodes:
+                start_nodes.remove(path.end_node_uid)
+            if path.start_node_uid in end_nodes:
+                end_nodes.remove(path.start_node_uid)
         self.find_routes(start_nodes, end_nodes)
         self.build_routes()
 
@@ -209,7 +209,7 @@ class Model:
             to_remove = []
             for route in potential_routes:
                 current_route = route.copy()
-                new_start_node = (self.get_path(route[-1])).end_node
+                new_start_node = (self.get_path(route[-1])).end_node_uid
                 following_paths = self.get_paths_from_start_node(new_start_node)
                 for k, path in enumerate(following_paths):
                     if path not in route:
@@ -222,10 +222,10 @@ class Model:
                     elif k == 0:
                         to_remove.append(route)  
             for route in potential_routes:
-                if (self.get_path(route[-1])).end_node in end_nodes:
+                if (self.get_path(route[-1])).end_node_uid in end_nodes:
                     shorter_path = False
                     for existing_route in self._route_designs:
-                        if (self.get_path(existing_route[0]).start_node) == (self.get_path(route[0]).start_node) and (self.get_path(existing_route[-1]).end_node) == (self.get_path(route[-1]).end_node):
+                        if (self.get_path(existing_route[0]).start_node_uid) == (self.get_path(route[0]).start_node_uid) and (self.get_path(existing_route[-1]).end_node_uid) == (self.get_path(route[-1]).end_node_uid):
                             shorter_path = True
                     if shorter_path == False:
                         self._route_designs.append(route)
