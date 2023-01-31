@@ -86,6 +86,7 @@ class DesignTab(QtWidgets.QWidget):
 
         # Enable / Disable paths
         self.add_path_button.setEnabled(True if len(self.model.nodes) > 1 else False)
+        self.gui.lane_changing.update_lane_widgets()
 
     def update_node_data(self, uid: int, widget_index: int) -> None:
         """

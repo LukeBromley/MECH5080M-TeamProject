@@ -31,6 +31,7 @@ class Path:
 
         self.discrete_path = []
         self.curvature = []
+        self.parallel_paths = []
 
     # Gets
     def get_euclidean_distance(self, model):
