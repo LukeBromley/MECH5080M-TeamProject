@@ -22,9 +22,8 @@ def main():
 
     vehicle = Vehicle(None)
     model = Model()
+    model.load_config(os.path.join(os.path.dirname(__file__), "../Frontend/example_config.config"))
     model.add_light([1])
-    model.set_tick_rate(100)
-    model.set_start_time_of_day(Time(12, 0, 0))
 
     for i in range(5000):
         y = y + y_change
@@ -54,7 +53,7 @@ def main():
             x = -5
             a_change = -2
 
-        sleep(0.01)
+        sleep(model.tick_time)
         model.tock()
         Visualiser.update_vehicle_positions([[x, y, a]])
         Visualiser.update_light_colours(model.lights)

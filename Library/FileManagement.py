@@ -1,5 +1,5 @@
 import json
-from datetime import time
+from Library.environment import Time
 from Library.infrastructure import Node, Path, TrafficLight
 from Library.vehicles import VehicleResults
 
@@ -18,7 +18,7 @@ class Configuration:
 
     def __init__(self):
         self.tick_rate = 10  # ticks per second
-        self.start_time_of_day = time(12, 0, 0)  # ticks per second
+        self.start_time_of_day = Time(12, 0, 0)  # ticks per second
 
         self.lanes = None
         self.min_start_velocity = None
@@ -199,7 +199,7 @@ class FileManagement:
         config = Configuration()
 
         config.tick_rate = file_dict[self.tick_rate_key]
-        config.start_time_of_day = time(file_dict[self.start_time_of_day_key][0], file_dict[self.start_time_of_day_key][1], file_dict[self.start_time_of_day_key][2])
+        config.start_time_of_day = Time(file_dict[self.start_time_of_day_key][0], file_dict[self.start_time_of_day_key][1], file_dict[self.start_time_of_day_key][2])
 
         config.lanes = file_dict[self.lanes_key]
         config.min_start_velocity = file_dict[self.min_start_velocity_key]

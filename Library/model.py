@@ -39,6 +39,9 @@ class Model:
 
     def load_config(self, config_file_location):
         self.config = self.file_manager.load_config_file(config_file_location)
+        self.set_tick_rate(self.config.tick_rate)
+        self.set_start_time_of_day(self.config.start_time_of_day)
+
 
     def save_config(self, config_file_location, configuration):
         self.file_manager.save_config_file(config_file_location, configuration)
