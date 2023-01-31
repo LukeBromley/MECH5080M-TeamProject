@@ -121,8 +121,8 @@ class FileManagement:
 
         # Add path data
         for path in paths:
-            file_dict[self.paths_key][str(path.uid)] = [path.start_node,
-                                                        path.end_node,
+            file_dict[self.paths_key][str(path.uid)] = [path.start_node_uid,
+                                                        path.end_node_uid,
                                                         path.parallel_paths]
 
         # Add light data

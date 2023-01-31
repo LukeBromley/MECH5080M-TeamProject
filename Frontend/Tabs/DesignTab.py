@@ -76,10 +76,10 @@ class DesignTab(QtWidgets.QWidget):
         # Re-add all paths
         for index, path in enumerate(reversed(self.model.paths)):
             self.path_widgets.append(PathWidget(self.path_box, self.path_box_scroll.v_box))
-            self.path_widgets[-1].set_info(path.uid, path.start_node, path.end_node, self.model.nodes)
+            self.path_widgets[-1].set_info(path.uid, path.start_node_uid, path.end_node_uid, self.model.nodes)
             self.path_widgets[-1].connect_delete(partial(self.remove_path, path.uid))
             self.path_widgets[-1].connect_change(partial(self.update_path_data, path.uid, index))
-            if path.start_node == path.end_node:
+            if path.start_node_uid == path.end_node_uid:
                 self.path_widgets[-1].highlight_error()
             else:
                 self.path_widgets[-1].unhighlight_error()
@@ -131,12 +131,12 @@ class DesignTab(QtWidgets.QWidget):
         :return:
         """
 
-        start_node = int(self.path_widgets[widget_index].start_node.currentText())
-        end_node = int(self.path_widgets[widget_index].end_node.currentText())
+        start_node_uid = int(self.path_widgets[widget_index].start_node.currentText())
+        end_node_uid = int(self.path_widgets[widget_index].end_node.currentText())
 
-        self.model.update_path(uid, start_node, end_node)
+        self.model.update_path(uid, start_node_uid, end_node_uid)
 
-        if start_node == end_node:
+        if start_node_uid == end_node_uid:
             self.path_widgets[widget_index].highlight_error()
         else:
             self.path_widgets[widget_index].unhighlight_error()
