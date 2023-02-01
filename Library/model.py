@@ -19,17 +19,26 @@ class Model:
         self.routes = []
         self.vehicle_results = []
 
+        self.nodes_hash_table = {}
+        self.paths_hash_table = {}
+        self.lights_hash_table = {}
+        self.vehicles_hash_table = {}
+        self.routes_hash_table = {}
+
         self.tick = 0
         self.tick_rate = None
         self.tick_time = None
         self.start_time_of_day = None
         self.time_of_day = None
 
+        self.prev_num_cars = 0
+
     # SAVING AND LOADING DATA
 
     def load_junction(self, junction_file_location, quick_load=False):
         self.nodes, self.paths, self.lights = self.file_manager.load_from_junction_file(
             junction_file_location, quick_load=quick_load)
+        self.update_hash_tables()
         for path in self.paths:
             path.calculate_all(self)
 
@@ -42,7 +51,6 @@ class Model:
         self.set_tick_rate(self.config.tick_rate)
         self.set_start_time_of_day(self.config.start_time_of_day)
 
-
     def save_config(self, config_file_location, configuration):
         self.file_manager.save_config_file(config_file_location, configuration)
 
@@ -51,6 +59,35 @@ class Model:
 
     def load_results(self, results_file_location):
         self.vehicle_results = self.file_manager.load_results_data_file(results_file_location)
+
+    # HASH TABLE
+
+    def update_hash_tables(self):
+        self.update_node_hash_table()
+        self.update_path_hash_table()
+        self.update_light_hash_table()
+        self.update_vehicle_hash_table()
+        # self.update_route_hash_table()
+
+    def update_node_hash_table(self):
+        for index, node in enumerate(self.nodes):
+            self.nodes_hash_table[str(node.uid)] = index
+
+    def update_path_hash_table(self):
+        for index, path in enumerate(self.paths):
+            self.paths_hash_table[str(path.uid)] = index
+
+    def update_light_hash_table(self):
+        for index, light in enumerate(self.lights):
+            self.lights_hash_table[str(light.uid)] = index
+
+    def update_vehicle_hash_table(self):
+        for index, vehicle in enumerate(self.vehicles):
+            self.vehicles_hash_table[str(vehicle.uid)] = index
+
+    def update_route_hash_table(self):
+        for index, route in enumerate(self.routes):
+            self.routes_hash_table[str(route.uid)] = index
 
     # ENVIRONMENT VARIABLES
 
@@ -79,14 +116,11 @@ class Model:
     # NODES
 
     def get_node(self, node_uid) -> Node:
-        for node in self.nodes:
-            if node.uid == node_uid:
-                return node
+        index = self.nodes_hash_table[str(node_uid)]
+        return self.nodes[index]
 
     def get_node_index(self, node_uid):
-        for index, node in enumerate(self.nodes):
-            if node.uid == node_uid:
-                return index
+        return self.nodes_hash_table[str(node_uid)]
 
     def set_node(self, node):
         index = self.get_node_index(node.uid)
@@ -106,6 +140,7 @@ class Model:
         if len(self.nodes) > 0:
             node_uid = max([node.uid for node in self.nodes]) + 1
         self.nodes.append(Node(node_uid, x, y, a))
+        self.nodes_hash_table[str(node_uid)] = len(self.nodes) - 1
 
     def remove_node(self, node_uid):
         path_uids_to_remove = []
@@ -118,6 +153,7 @@ class Model:
 
         index = self.get_node_index(node_uid)
         self.nodes.pop(index)
+        self.update_node_hash_table()
 
     def get_paths_from_start_node(self, node_uid):
         paths = []
@@ -129,14 +165,11 @@ class Model:
     # PATHS
 
     def get_path(self, path_uid) -> Path:
-        for path in self.paths:
-            if path.uid == path_uid:
-                return path
+        index = self.get_path_index(path_uid)
+        return self.paths[index]
 
     def get_path_index(self, path_uid):
-        for index, path in enumerate(self.paths):
-            if path.uid == path_uid:
-                return index
+        return self.paths_hash_table[str(path_uid)]
 
     def set_path(self, path):
         index = self.get_path_index(path.uid)
@@ -156,28 +189,27 @@ class Model:
         if len(self.paths) > 0:
             path_uid = max([path.uid for path in self.paths]) + 1
         self.paths.append(Path(path_uid, start_node_uid, end_node_uid))
+        self.paths_hash_table[str(path_uid)] = len(self.paths) - 1
 
     def remove_path(self, path_uid):
         index = self.get_path_index(path_uid)
         self.paths.pop(index)
+        self.update_path_hash_table()
 
     # LIGHTS
     
     def get_light(self, light_uid) -> TrafficLight:
-        for light in self.lights:
-            if light.uid == light_uid:
-                return light
+        index = self.get_light_index(light_uid)
+        return self.lights[index]
 
     def get_light_index(self, light_uid):
-        for index, light in enumerate(self.lights):
-            if light.uid == light_uid:
-                return index
-    
+        return self.lights_hash_table[str(light_uid)]
+
     def get_lights(self) -> List[TrafficLight]:
         return self.lights
 
     def set_light(self, light):
-        index = self.get_path_index(light.uid)
+        index = self.get_light_index(light.uid)
         self.lights[index] = light
 
     def update_light(self, light_uid, colour=None):
@@ -190,24 +222,40 @@ class Model:
         if len(self.lights) > 0:
             light_uid = max([light.uid for light in self.lights]) + 1
         self.lights.append(TrafficLight(light_uid, path_uids))
+        self.lights_hash_table[str(light_uid)] = len(self.lights) - 1
 
     def remove_light(self, light_uid):
         index = self.get_light_index(light_uid)
         self.lights.pop(index)
+        self.update_light_hash_table()
     
     # VEHICLES
     
     def get_vehicle(self, vehicle_uid) -> Vehicle:
-        for vehicle in self.vehicles:
-            if vehicle.uid == vehicle_uid:
-                return vehicle
-    
+        index = self.get_vehicle_index(vehicle_uid)
+        return self.vehicles[index]
+
+    def get_vehicle_index(self, vehicle_uid) -> int:
+        return self.vehicles_hash_table[str(vehicle_uid)]
+
     def get_vehicles(self) -> List[Vehicle]:
-        self.vehicles = [vehicle for vehicle in self.vehicles if vehicle.get_route_distance_travelled() < self.get_route(vehicle.route_uid).length]
+        vehicles_uids_to_remove = []
+        for vehicle in self.vehicles:
+            if vehicle.get_route_distance_travelled() >= self.get_route(vehicle.route_uid).length:
+                vehicles_uids_to_remove.append(vehicle.uid)
+        for vehicle_uid in vehicles_uids_to_remove:
+            self.remove_vehicle(vehicle_uid)
+
         return self.vehicles
         
     def add_vehicle(self, vehicle):
         self.vehicles.append(vehicle)
+        self.vehicles_hash_table[str(vehicle.uid)] = len(self.vehicles) - 1
+
+    def remove_vehicle(self, vehicle_uid):
+        index = self.get_vehicle_index(vehicle_uid)
+        self.vehicles.pop(index)
+        self.update_vehicle_hash_table()
 
     # GENERAL
     
