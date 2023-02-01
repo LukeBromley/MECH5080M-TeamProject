@@ -48,7 +48,6 @@ class Vehicle:
         self._length = length
         self._width = width
 
-
     def update(self, time_delta: float, object_ahead: "Vehicle", delta_distance_ahead: float) -> None:
         """
         :param object_ahead:

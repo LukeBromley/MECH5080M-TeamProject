@@ -23,8 +23,11 @@ class LaneChangingTab(QtWidgets.QWidget):
 
         self.path_box = GroupBox(self, "Paths", layout=self.v_box)
         self.path_box_scroll = ScrollArea(self.path_box, self.path_box.v_box)
+        self.clear_all_lanes_button = Button(self, "Clear All Paths", self.path_box.v_box)
+        self.clear_all_lanes_button.pressed.connect(self.clear_all_lanes)
 
         self.path_widgets = []
+
 
     def update_lane_widgets(self) -> None:
         """
@@ -42,7 +45,7 @@ class LaneChangingTab(QtWidgets.QWidget):
         # Re-add all paths
         for index, path in enumerate(reversed(self.model.paths)):
             self.path_widgets.append(PathWidget(self.path_box, self.path_box_scroll.v_box))
-            self.path_widgets[-1].set_options(self.model.paths)
+            self.path_widgets[-1].set_options(path.uid, self.model.paths)
             self.path_widgets[-1].set_info(path.uid, path.parallel_paths)
             self.path_widgets[-1].connect_identify(partial(self.identify_path, path.uid))
             self.path_widgets[-1].connect_change(partial(self.update_path_data, path.uid, index))
@@ -73,9 +76,14 @@ class LaneChangingTab(QtWidgets.QWidget):
         :return: None
         """
         path = self.model.get_path(uid)
-        paths = [path] + [self.model.get_path(parallel_path) for parallel_path in path.parallel_paths]
+        paths = [path.uid] + path.parallel_paths
 
         self.gui.identify_path(paths)
+
+    def clear_all_lanes(self):
+        for path in self.model.paths:
+            path.parallel_paths.clear()
+        self.update_lane_widgets()
 
 
 class PathWidget(QtWidgets.QWidget):
@@ -95,9 +103,10 @@ class PathWidget(QtWidgets.QWidget):
 
         self.identify = Button(self, "Identify", self.h_box)
 
-    def set_options(self, paths: list) -> None:
+    def set_options(self, uid:int, paths: list) -> None:
         for path in paths:
-            self.other_lanes.addItem(str(path.uid))
+            if path.uid != uid:
+                self.other_lanes.addItem(str(path.uid))
         self.other_lanes.untick_all()
 
     def set_info(self, uid: int, paths_selected: list) -> None:
