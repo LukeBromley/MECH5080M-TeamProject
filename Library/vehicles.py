@@ -45,8 +45,8 @@ class Vehicle:
         self._minimum_velocity = minimum_velocity
         self._distance_travelled = distance_travelled
         self._preferred_time_gap = preferred_time_gap
-        self._length = length
-        self._width = width
+        self.length = length
+        self.width = width
 
     def update(self, time_delta: float, object_ahead: "Vehicle", delta_distance_ahead: float) -> None:
         """
@@ -60,7 +60,7 @@ class Vehicle:
             delta_distance_ahead = 100.0
         else:
             velocity_object_ahead = object_ahead.get_velocity()
-            delta_distance_ahead = delta_distance_ahead - 0.5*(self._length + object_ahead.get_length())
+            delta_distance_ahead = delta_distance_ahead - 0.5*(self.length + object_ahead.get_length())
 
         self._acceleration = self._calculate_acceleration(velocity_object_ahead, delta_distance_ahead)
         self._velocity = clamp((self._velocity + (self._acceleration * time_delta)), self._minimum_velocity,
@@ -121,7 +121,7 @@ class Vehicle:
         return self._velocity
 
     def get_length(self) -> float:
-        return self._length
+        return self.length
 
     def get_acceleration(self) -> float:
         """
