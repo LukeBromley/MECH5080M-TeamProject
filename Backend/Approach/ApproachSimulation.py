@@ -6,7 +6,7 @@ if system() == 'Windows':
 import time
 from Frontend.JunctionVisualiser import JunctionVisualiser
 from Library.FileManagement import FileManagement
-from Library.vehicles import Car
+from Library.vehicles import Vehicle
 from config import ROOT_DIR
 import os
 
@@ -19,7 +19,7 @@ class Simulation:
 
         for uid, path in enumerate(self.paths):
             self.vehicles.append(
-                Car(
+                Vehicle(
                     uid=uid,
                     start_time=0.0,
                     path=path,

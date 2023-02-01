@@ -31,7 +31,7 @@ class Simulation:
     def main(self):
         dt = 0.01
         while True:
-            if random.random() > 0.995:
+            if random.random() > 0.99:
                 self.add_vehicle(random.choice(self.model.get_route_uids()))
 
             for light in self.model.get_lights():
@@ -110,6 +110,7 @@ class Simulation:
                 length=2.5
             )
         )
+
 
 if __name__ == "__main__":
     sim = Simulation(os.path.join(ROOT_DIR, "Junction_Designs", "Roundabout3.junc"))
