@@ -100,7 +100,7 @@ class DesignTab(QtWidgets.QWidget):
         y = self.node_widgets[widget_index].y_pos.value()
         angle = self.node_widgets[widget_index].angle.value() * ((2 * pi) / 360)
 
-        self.model.update_node(uid, x, y, angle)
+        self.model.update_node(uid, x, -y, angle)
 
     def add_node(self) -> None:
         """
@@ -178,13 +178,13 @@ class NodeWidget(QtWidgets.QWidget):
         self.uid_label = Text(self, "Node ID: ", self.h_box)
         self.uid_edit = Text(self, "", self.h_box)
         self.x_label = Text(self, "X: ", self.h_box)
-        self.x_pos = SpinBox(self, self.h_box, 1000, -1000)
+        self.x_pos = DecimalSpinBox(self, self.h_box, 1000, -1000)
         self.x_pos.setValue(0)
         self.y_label = Text(self, "Y: ", self.h_box)
-        self.y_pos = SpinBox(self, self.h_box, 1000, -1000)
+        self.y_pos = DecimalSpinBox(self, self.h_box, 1000, -1000)
         self.y_pos.setValue(0)
         self.ang_label = Text(self, "Angle: ", self.h_box)
-        self.angle = SpinBox(self, self.h_box, 360, 0)
+        self.angle = DecimalSpinBox(self, self.h_box, 360, 0)
         self.delete = Button(self, "Delete", self.h_box)
 
     def set_info(self, uid: int, x: int, y: int, ang: int) -> None:
@@ -199,7 +199,7 @@ class NodeWidget(QtWidgets.QWidget):
         """
         self.uid_edit.setText(str(uid))
         self.x_pos.setValue(int(x))
-        self.y_pos.setValue(int(y))
+        self.y_pos.setValue(int(-y))
         self.angle.setValue(int(ang))
 
     def connect_change(self, function) -> None:
