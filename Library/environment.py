@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta, time
 from math import floor
 from random import randint, normalvariate as normal
+from Library.maths import clamp
 
 
 class Time:
@@ -49,10 +50,9 @@ class Spawning:
 
         self.time_of_last_spawn = start_time_of_day
         self.next_spawn_time_delta = 0
-        # self.calculate_next_spawn_time()
 
-        self.time_between_spawns_mean = 5
-        self.time_between_spawns_sdev = 0.1
+        self.time_between_spawns_mean = 0
+        self.time_between_spawns_sdev = 0
         self.time_between_spawns_min = 1
 
         self.time_between_spawns_mean_over_time = [
@@ -109,28 +109,41 @@ class Spawning:
             80,  # 23:00
         ]
 
-        self.vehicle_x_mean = 1.7
-        self.vehicle_y_mean = 3
-        self.vehicle_x_sdev = 0.2
-        self.vehicle_y_sdev = 1
+        self.vehicle_length_mean_small = 3.5
+        self.vehicle_width_mean_small = 1.7
+        self.vehicle_length_sdev_small = 0.75
+        self.vehicle_width_sdev_small = 0.2
 
-        # self.calculate_spawn_probabilities(start_time_of_day)
+        self.vehicle_length_mean_big = 7
+        self.vehicle_width_mean_big = 2
+        self.vehicle_length_sdev_big = 2
+        self.vehicle_width_sdev_big = 0.2
+
+        self.vehicle_length_max = 10
+        self.vehicle_length_min = 2
+        self.vehicle_width_max = 2.2
+        self.vehicle_width_min = 1.5
+
+
+        self.calculate_spawn_probabilities(start_time_of_day)
+        self.calculate_next_spawn_time()
 
     def nudge(self, time: Time):
         time_delta = time - self.time_of_last_spawn
         if time_delta.total_seconds() > self.next_spawn_time_delta:
-            # self.calculate_spawn_probabilities(time)
+            self.calculate_spawn_probabilities(time)
             self.time_of_last_spawn = time
-            # Spawn vehicle
             self.calculate_next_spawn_time()
-            size = self.get_random_vehicle_size()
             return True
         return False
 
     def get_random_vehicle_size(self):
-        x = normal(self.vehicle_x_mean, self.vehicle_x_sdev)
-        y = normal(self.vehicle_y_mean, self.vehicle_y_sdev)
-        return x, y
+        w = randint(0, 1)
+        length = w * normal(self.vehicle_length_mean_small, self.vehicle_length_sdev_small) + (1 - w) * normal(self.vehicle_length_mean_big, self.vehicle_length_sdev_big)
+        width = w * normal(self.vehicle_width_mean_small, self.vehicle_width_sdev_small) + (1 - w) * normal(self.vehicle_width_mean_big, self.vehicle_width_sdev_big)
+        length = clamp(length, self.vehicle_length_min, self.vehicle_length_max)
+        width = clamp(width, self.vehicle_width_min, self.vehicle_width_max)
+        return length, width
 
     def calculate_next_spawn_time(self):
         self.next_spawn_time_delta = normal(self.time_between_spawns_mean, self.time_between_spawns_sdev)
