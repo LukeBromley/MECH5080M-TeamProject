@@ -26,12 +26,12 @@ class Simulation:
         self.visualiser = JunctionVisualiser()
         self.visualiser.define_main(self.main)
         self.visualiser.load_junction(file_path)
-        self.visualiser.set_scale(100)
+        self.visualiser.set_scale(50)
 
     def main(self):
         dt = 0.01
         while True:
-            if random.random() > 0.995:
+            if random.random() > 0.99:
                 self.add_vehicle(random.choice(self.model.get_route_uids()))
 
             for light in self.model.get_lights():
@@ -75,7 +75,7 @@ class Simulation:
         distance_travelled_offset = this_path.get_length() - this_vehicle_path_distance_travelled
         for path_uid in path_uids_ahead:
             for light in self.model.get_lights():
-                if light.path_uids == path_uid and not light.allows_traffic():
+                if light.path_uids[0] == path_uid and not light.allows_traffic():
                     return light, distance_travelled_offset
             for that_vehicle in self.model.get_vehicles():
                 that_path, that_vehicle_path_distance_travelled = self.model.get_route(that_vehicle.route_uid).get_path_and_path_distance_travelled(that_vehicle.get_route_distance_travelled())
@@ -112,5 +112,5 @@ class Simulation:
         )
 
 if __name__ == "__main__":
-    sim = Simulation(os.path.join(ROOT_DIR, "Junction_Designs", "Roundabout3.junc"))
+    sim = Simulation(os.path.join(ROOT_DIR, "Junction_Designs", "cross_road.junc"))
     sim.run()
