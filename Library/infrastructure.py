@@ -19,10 +19,10 @@ class Node:
 
 
 class Path:
-    def __init__(self, uid: int, start_node: Node, end_node: Node, discrete_length_increment_size=0.01, discrete_iteration_qty=100000):
+    def __init__(self, uid: int, start_node_uid: int, end_node_uid: int, discrete_length_increment_size=0.01, discrete_iteration_qty=100000):
         self.uid = uid
-        self.start_node = start_node
-        self.end_node = end_node
+        self.start_node_uid = start_node_uid
+        self.end_node_uid = end_node_uid
         self.x_hermite_cubic_coeff = []
         self.y_hermite_cubic_coeff = []
 
@@ -31,11 +31,12 @@ class Path:
 
         self.discrete_path = []
         self.curvature = []
+        self.parallel_paths = []
 
     # Gets
     def get_euclidean_distance(self, model):
-        start_node = model.get_node(self.start_node)
-        end_node = model.get_node(self.end_node)
+        start_node = model.get_node(self.start_node_uid)
+        end_node = model.get_node(self.end_node_uid)
         return sqrt((start_node.x - end_node.x) ** 2 + (start_node.y - end_node.y) ** 2)
 
     def get_s(self, arc_length: float):
@@ -78,8 +79,8 @@ class Path:
         self.calculate_discrete_curvature_points()
 
     def calculate_hermite_spline_coefficients(self, model):
-        start_node = model.get_node(self.start_node)
-        end_node = model.get_node(self.end_node)
+        start_node = model.get_node(self.start_node_uid)
+        end_node = model.get_node(self.end_node_uid)
         p1x = start_node.x
         p1y = start_node.y
         p1tx, p1ty = start_node.get_tangents(self.get_euclidean_distance(model) * 1.5)

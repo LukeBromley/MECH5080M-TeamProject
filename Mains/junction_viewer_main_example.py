@@ -7,6 +7,7 @@ if system() == 'Windows':
 
 from Frontend.JunctionVisualiser import *
 from Library.vehicles import Vehicle
+from Library.environment import Time
 
 Visualiser = JunctionVisualiser()
 
@@ -21,14 +22,15 @@ def main():
 
     vehicle = Vehicle(None)
     model = Model()
+    model.load_config(os.path.join(os.path.dirname(__file__), "../Frontend/example_config.config"))
     model.add_light([1])
 
-    for i in range(500):
+    for i in range(5000):
         y = y + y_change
         x = x + x_change
         a = a + a_change
 
-        if i < 250:
+        if i % 250 < 100:
             model.update_light(1, "red")
         else:
             model.update_light(1, "green")
@@ -51,10 +53,11 @@ def main():
             x = -5
             a_change = -2
 
-        sleep(0.01)
-
+        sleep(model.tick_time)
+        model.tock()
         Visualiser.update_vehicle_positions([[x, y, a]])
         Visualiser.update_light_colours(model.lights)
+        Visualiser.update_time(model.calculate_time_of_day())
 
         vehicle.position_data.append([x, y, a])
     model.vehicles.append(vehicle)

@@ -1,4 +1,5 @@
 from typing import List
+from math import floor
 from .FileManagement import FileManagement
 from Library.infrastructure import Node, Path, TrafficLight, Route
 from Library.vehicles import Vehicle
@@ -8,13 +9,23 @@ class Model:
     def __init__(self):
         self.file_manager = FileManagement()
         self.config = None
+
         self.nodes = []
         self.paths = []
         self.lights = []
         self.vehicles = []
+
         self._route_designs = []
         self.routes = []
         self.vehicle_results = []
+
+        self.tick = 0
+        self.tick_rate = None
+        self.tick_time = None
+        self.start_time_of_day = None
+        self.time_of_day = None
+
+    # SAVING AND LOADING DATA
 
     def load_junction(self, junction_file_location, quick_load=False):
         self.nodes, self.paths, self.lights = self.file_manager.load_from_junction_file(
@@ -28,13 +39,42 @@ class Model:
 
     def load_config(self, config_file_location):
         self.config = self.file_manager.load_config_file(config_file_location)
+        self.set_tick_rate(self.config.tick_rate)
+        self.set_start_time_of_day(self.config.start_time_of_day)
 
+
+    def save_config(self, config_file_location, configuration):
+        self.file_manager.save_config_file(config_file_location, configuration)
 
     def save_results(self, results_file_location):
         self.file_manager.save_results_data_file(results_file_location, self.vehicles)
 
     def load_results(self, results_file_location):
         self.vehicle_results = self.file_manager.load_results_data_file(results_file_location)
+
+    # ENVIRONMENT VARIABLES
+
+    def tock(self):
+        self.tick += 1
+
+    def set_tick_rate(self, tick_rate: float):
+        self.tick_rate = tick_rate
+        self.tick_time = 1 / self.tick_rate
+
+    def calculate_seconds_elapsed(self):
+        return floor(self.tick / self.tick_rate)
+
+    def calculate_milliseconds_elapsed(self):
+        return floor(1000 * self.tick / self.tick_rate)
+
+    def set_start_time_of_day(self, time):
+        self.start_time_of_day = time
+
+    def set_time_of_day(self, time):
+        self.time_of_day = time
+
+    def calculate_time_of_day(self):
+        return self.start_time_of_day.add_milliseconds(self.calculate_milliseconds_elapsed())
 
     # NODES
 
@@ -70,7 +110,7 @@ class Model:
     def remove_node(self, node_uid):
         path_uids_to_remove = []
         for path in self.paths:
-            if path.start_node == node_uid or path.end_node == node_uid:
+            if path.start_node_uid == node_uid or path.end_node_uid == node_uid:
                 path_uids_to_remove.append(path.uid)
 
         for path_uid in path_uids_to_remove:
@@ -82,7 +122,7 @@ class Model:
     def get_paths_from_start_node(self, node_uid):
         paths = []
         for path in self.paths:
-            if path.start_node == node_uid:
+            if path.start_node_uid == node_uid:
                 paths.append(path.uid)
         return paths
     
@@ -102,12 +142,14 @@ class Model:
         index = self.get_path_index(path.uid)
         self.paths[index] = path
 
-    def update_path(self, path_uid, start_node_uid=None, end_node_uid=None):
+    def update_path(self, path_uid, start_node_uid=None, end_node_uid=None, parallel_paths=None):
         index = self.get_path_index(path_uid)
         if start_node_uid is not None:
-            self.paths[index].start_node = start_node_uid
+            self.paths[index].start_node_uid = start_node_uid
         if end_node_uid is not None:
-            self.paths[index].end_node = end_node_uid
+            self.paths[index].end_node_uid = end_node_uid
+        if parallel_paths is not None:
+            self.paths[index].parallel_paths = parallel_paths
 
     def add_path(self, start_node_uid, end_node_uid):
         path_uid = 1
@@ -190,10 +232,10 @@ class Model:
         start_nodes = nodes_uid.copy()
         end_nodes = nodes_uid.copy()
         for path in self.paths:
-            if path.end_node in start_nodes:
-                start_nodes.remove(path.end_node)
-            if path.start_node in end_nodes:
-                end_nodes.remove(path.start_node)
+            if path.end_node_uid in start_nodes:
+                start_nodes.remove(path.end_node_uid)
+            if path.start_node_uid in end_nodes:
+                end_nodes.remove(path.start_node_uid)
         self.find_routes(start_nodes, end_nodes)
         self.build_routes()
 
@@ -207,7 +249,7 @@ class Model:
             to_remove = []
             for route in potential_routes:
                 current_route = route.copy()
-                new_start_node = (self.get_path(route[-1])).end_node
+                new_start_node = (self.get_path(route[-1])).end_node_uid
                 following_paths = self.get_paths_from_start_node(new_start_node)
                 for k, path in enumerate(following_paths):
                     if path not in route:
@@ -220,10 +262,10 @@ class Model:
                     elif k == 0:
                         to_remove.append(route)  
             for route in potential_routes:
-                if (self.get_path(route[-1])).end_node in end_nodes:
+                if (self.get_path(route[-1])).end_node_uid in end_nodes:
                     shorter_path = False
                     for existing_route in self._route_designs:
-                        if (self.get_path(existing_route[0]).start_node) == (self.get_path(route[0]).start_node) and (self.get_path(existing_route[-1]).end_node) == (self.get_path(route[-1]).end_node):
+                        if (self.get_path(existing_route[0]).start_node_uid) == (self.get_path(route[0]).start_node_uid) and (self.get_path(existing_route[-1]).end_node_uid) == (self.get_path(route[-1]).end_node_uid):
                             shorter_path = True
                     if shorter_path == False:
                         self._route_designs.append(route)

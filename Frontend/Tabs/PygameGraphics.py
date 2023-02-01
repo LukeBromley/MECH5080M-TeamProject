@@ -53,6 +53,9 @@ class PygameGraphics:
         self.surface = pygame.Surface((self._surface_width, self._surface_height))
         self.prev_surface = self.surface
 
+        # Background parameters
+        self.background_colour = (255, 255, 255)
+
         # Grid Parameters
         self._grid_colour = (230, 230, 230)
         self._grid_range_x, self._grid_range_y = 100, 100
@@ -91,7 +94,7 @@ class PygameGraphics:
 
         if self._scroll_changed or force_full_refresh:
 
-            self.surface.fill((255, 255, 255))
+            self.surface.fill(self.background_colour)
             if draw_grid: self._draw_grid()
             if draw_hermite_paths: self._draw_hermite_paths(draw_curvature)
             if draw_nodes: self._draw_nodes(self.model.nodes)
@@ -111,7 +114,7 @@ class PygameGraphics:
         if self._scroll_changed:
             nodes, paths, vehicles = self.model.nodes, self.model.paths, self.model.vehicles
 
-            self.surface.fill((255, 255, 255))
+            self.surface.fill(self.background_colour)
 
             if draw_grid: self._draw_grid()
             if draw_hermite_paths: self._draw_hermite_paths(draw_curvature)
@@ -381,13 +384,13 @@ class PygameGraphics:
             for path_uid in traffic_light.path_uids:
                 path = self.model.get_path(path_uid)
 
-                if path.start_node in [light.node_uid for light in light_colours]:
+                if path.start_node_uid in [light.node_uid for light in light_colours]:
                     for light in light_colours:
-                        if light.node_uid == path.start_node:
+                        if light.node_uid == path.start_node_uid:
                             light.add_colour(traffic_light.colour)
                             break
                 else:
-                    light_colours.append(LightColour(path.start_node, traffic_light.colour))
+                    light_colours.append(LightColour(path.start_node_uid, traffic_light.colour))
 
         for light in light_colours:
             node = self.model.get_node(light.node_uid)

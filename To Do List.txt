@@ -1,3 +1,0 @@
-Sort out designer traffic light system = Henry + Vilius
-Car size from car object = Henry
-Path node uid system

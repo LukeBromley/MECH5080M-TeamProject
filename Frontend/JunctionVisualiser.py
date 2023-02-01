@@ -78,6 +78,11 @@ class JunctionVisualiser:
         """
         self.viewer_window.model.lights = lights
 
+    def update_time(self, time):
+        seconds = time.total_seconds()
+        colour_mag = 255 - (255 * abs((seconds - (12 * 60 * 60)) / (12 * 60 * 60)))
+        self.viewer_window.pygame_graphics.background_colour = (colour_mag, colour_mag, colour_mag)
+
     def set_scale(self, scale: int) -> None:
         """
 
