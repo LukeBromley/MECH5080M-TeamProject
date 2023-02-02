@@ -124,7 +124,6 @@ class Spawning:
         self.vehicle_width_max = 2.2
         self.vehicle_width_min = 1.5
 
-
         self.calculate_spawn_probabilities(start_time_of_day)
         self.calculate_next_spawn_time()
 
