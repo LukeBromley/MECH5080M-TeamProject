@@ -148,6 +148,20 @@ class SpinBox(QtWidgets.QSpinBox):
         event.ignore()
 
 
+class DecimalSpinBox(QtWidgets.QDoubleSpinBox):
+    def __init__(self, parent_widget, layout=None, max=None, min=None):
+        super().__init__(parent_widget)
+        if layout is not None:
+            layout.addWidget(self)
+        if max is not None:
+            self.setMaximum(max)
+        if min is not None:
+            self.setMinimum(min)
+
+    def wheelEvent(self, event):
+        event.ignore()
+
+
 class Tabs(QtWidgets.QTabWidget):
     def __init__(self, parent_widget, layout=None, height=None):
         super().__init__(parent_widget)

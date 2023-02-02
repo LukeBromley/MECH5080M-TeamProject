@@ -1,6 +1,6 @@
 import math
 import random
-from math import sin, cos, sqrt, atan
+from math import sin, cos, sqrt, atan, pi
 from Library.maths import Vector, calculate_cross_product, calculate_vector_magnitude
 from typing import List
 
@@ -123,14 +123,11 @@ class Path:
     def calculate_direction(self, s: float):
         dy_ds = self.y_hermite_cubic_coeff[1] + 2 * self.y_hermite_cubic_coeff[2] * s + 3 * self.y_hermite_cubic_coeff[3] * s * s
         dx_ds = self.x_hermite_cubic_coeff[1] + 2 * self.x_hermite_cubic_coeff[2] * s + 3 * self.x_hermite_cubic_coeff[3] * s * s
-        if dx_ds != 0 :
+        if dx_ds != 0:
             dy_dx = dy_ds / dx_ds
-            a = 90-atan(dy_dx)
+            a = atan(dy_dx)
         else:
-            if dy_ds > 0:
-                a = 0
-            else:
-                a = 180
+            a = pi / 2
         return a
 
     def calculate_curvature(self, s: float):

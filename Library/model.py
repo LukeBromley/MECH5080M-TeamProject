@@ -1,4 +1,3 @@
-import math
 from typing import List
 from math import floor
 from .FileManagement import FileManagement
@@ -128,14 +127,14 @@ class Model:
         index = self.get_node_index(node.uid)
         self.nodes[index] = node
 
-    def update_node(self, node_uid, x=None, y=None, a=None):
+    def update_node(self, node_uid, x=None, y=None, angle=None):
         index = self.get_node_index(node_uid)
         if x is not None:
             self.nodes[index].x = x
         if y is not None:
             self.nodes[index].y = y
-        if a is not None:
-            self.nodes[index].a = a
+        if angle is not None:
+            self.nodes[index].angle = angle
 
     def add_node(self, x, y, a):
         node_uid = 1
@@ -328,15 +327,32 @@ class Model:
             uid_list.append(object.uid)
         return uid_list
 
-    def generate_routes(self):
+    # ROUTES
+
+    def get_route(self, route_uid) -> Route:
+        for route in self.routes:
+            if route.uid == route_uid:
+                return route
+
+    def calculate_start_nodes(self):
         nodes_uid = self.get_uid_list(self.nodes)
         start_nodes = nodes_uid.copy()
-        end_nodes = nodes_uid.copy()
         for path in self.paths:
             if path.end_node_uid in start_nodes:
                 start_nodes.remove(path.end_node_uid)
+        return start_nodes
+
+    def calculate_end_nodes(self):
+        nodes_uid = self.get_uid_list(self.nodes)
+        end_nodes = nodes_uid.copy()
+        for path in self.paths:
             if path.start_node_uid in end_nodes:
                 end_nodes.remove(path.start_node_uid)
+        return end_nodes
+
+    def generate_routes(self):
+        start_nodes = self.calculate_start_nodes()
+        end_nodes = self.calculate_end_nodes()
         self.find_routes(start_nodes, end_nodes)
 
     def find_routes(self, start_nodes, end_nodes):
@@ -396,3 +412,11 @@ class Model:
 
         index = math.floor(path_distance_travelled / path.discrete_length_increment_size)
         return path.discrete_path[index][4]
+
+    def get_routes_with_starting_node(self, node_uid):
+        routes = []
+        for route in self.routes:
+            path_uid = route.get_path_uids()[0]
+            if self.get_path(path_uid).start_node_uid == node_uid:
+                routes.append(route.uid)
+        return routes

@@ -1,5 +1,5 @@
 import pygame
-from math import sin, cos
+from math import sin, cos, pi
 from PyQt5 import QtCore
 from Library.maths import clamp, VisualPoint
 from copy import deepcopy as copy
@@ -367,12 +367,19 @@ class PygameGraphics:
         for vehicle in vehicles:
             x, y = self._position_offsetter(vehicle[0] * 100, vehicle[1] * 100)
             if len(vehicle) > 2:
-                vehicle_size_x = 400 * self._scale
-                vehicle_size_y = 200 * self._scale
+                if len(vehicle) > 4:
+                    vehicle_length = vehicle[3] * 100
+                    vehicle_width = vehicle[4] * 100
+                else:
+                    vehicle_length = 400
+                    vehicle_width = 200
+
+                vehicle_size_x = vehicle_length * self._scale
+                vehicle_size_y = vehicle_width * self._scale
                 rectangle_surface = pygame.Surface((vehicle_size_x, vehicle_size_y))
                 rectangle_surface.set_colorkey((0, 0, 0))
                 pygame.draw.rect(rectangle_surface, (255, 130, 0), (0, 0, vehicle_size_x, vehicle_size_y))
-                rectangle_surface = pygame.transform.rotate(rectangle_surface, vehicle[2])
+                rectangle_surface = pygame.transform.rotate(rectangle_surface, 180 * -vehicle[2] / pi)
                 self.surface.blit(rectangle_surface, (x - round(rectangle_surface.get_width() / 2), y - round(rectangle_surface.get_height() / 2)))
             else:
                 pygame.draw.circle(self.surface, (255, 130, 0), (x, y), 5)

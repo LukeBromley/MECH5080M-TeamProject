@@ -164,6 +164,8 @@ class Vehicle:
 
     def get_route_uid(self):
         return self._route_uid
+
+
 class VehicleResults:
     def __init__(self, uid: int, start_time: float, position_data: list) -> None:
         self.uid = uid
