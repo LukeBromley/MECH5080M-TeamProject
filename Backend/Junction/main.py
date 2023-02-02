@@ -21,7 +21,6 @@ class Simulation:
 
         self.model = Model()
         self.model.load_junction(file_path)
-        self.model.generate_routes()
 
         self.visualiser = JunctionVisualiser()
         self.visualiser.define_main(self.main)
@@ -39,10 +38,10 @@ class Simulation:
 
             coordinates = []
             for vehicle in self.model.get_vehicles():
-                route = self.model.get_route(vehicle.route_uid)
-                coordinates.append(route.get_coordinates(vehicle.get_route_distance_travelled()))
+                vehicle_uid = vehicle.uid
+                coordinates.append(self.model.get_coordinates(vehicle_uid))
 
-                object_ahead, delta_distance_ahead = self.get_object_ahead(vehicle.uid)
+                object_ahead, delta_distance_ahead = self.model.get_object_ahead(vehicle_uid)
                 vehicle.update(dt, object_ahead, delta_distance_ahead)
                 vehicle.update_position_data(coordinates[-1])
 
@@ -50,46 +49,6 @@ class Simulation:
             self.visualiser.update_light_colours(self.model.lights)
             self.time += dt
             sleep(dt)
-
-    def get_object_ahead(self, vehicle_uid):
-        object_ahead = None
-
-        this_vehicle = self.model.get_vehicle(vehicle_uid)
-        this_route = self.model.get_route(this_vehicle.route_uid)
-        this_path, this_vehicle_path_distance_travelled = this_route.get_path_and_path_distance_travelled(this_vehicle.get_route_distance_travelled())
-
-        # Search the current path
-        min_path_distance_travelled = float('inf')
-        for that_vehicle in self.model.get_vehicles():
-            that_path, that_vehicle_path_distance_travelled = self.model.get_route(that_vehicle.route_uid).get_path_and_path_distance_travelled(that_vehicle.get_route_distance_travelled())
-            if that_path.uid == this_path.uid and min_path_distance_travelled > that_vehicle_path_distance_travelled > this_vehicle_path_distance_travelled:
-                min_path_distance_travelled = that_vehicle_path_distance_travelled
-                object_ahead = that_vehicle
-
-        if object_ahead is not None:
-            return object_ahead, min_path_distance_travelled - this_vehicle_path_distance_travelled
-
-        # Search the paths ahead
-        this_route_path_uids = self.model.get_route(this_vehicle.route_uid).get_path_uids()
-        path_uids_ahead = this_route_path_uids[this_route_path_uids.index(this_path.uid) + 1:]
-        distance_travelled_offset = this_path.get_length() - this_vehicle_path_distance_travelled
-        for path_uid in path_uids_ahead:
-            for light in self.model.get_lights():
-                if light.path_uids[0] == path_uid and not light.allows_traffic():
-                    return light, distance_travelled_offset
-            for that_vehicle in self.model.get_vehicles():
-                that_path, that_vehicle_path_distance_travelled = self.model.get_route(that_vehicle.route_uid).get_path_and_path_distance_travelled(that_vehicle.get_route_distance_travelled())
-                if that_path.uid == path_uid and min_path_distance_travelled > that_vehicle_path_distance_travelled:
-                    min_path_distance_travelled = that_vehicle_path_distance_travelled
-                    object_ahead = that_vehicle
-
-            if object_ahead is not None:
-                return object_ahead, min_path_distance_travelled + distance_travelled_offset
-            else:
-                distance_travelled_offset += self.model.get_path(path_uid).get_length()
-                continue
-
-        return None, None
 
     def run(self):
         self.visualiser.open()

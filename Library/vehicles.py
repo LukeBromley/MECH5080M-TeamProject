@@ -32,7 +32,7 @@ class Vehicle:
         """
 
         self.uid = uid
-        self.route_uid = route_uid
+        self._route_uid = route_uid
         self.start_time = start_time
         self.position_data = []
         self._velocity = velocity
@@ -43,10 +43,12 @@ class Vehicle:
         self._maximum_deceleration = maximum_deceleration
         self._maximum_velocity = maximum_velocity
         self._minimum_velocity = minimum_velocity
-        self._distance_travelled = distance_travelled
+        self._route_distance_travelled = distance_travelled
+        self._path_distance_travelled = 0.0
         self._preferred_time_gap = preferred_time_gap
         self._length = length
         self._width = width
+        self._path_index = 0
 
     def update(self, time_delta: float, object_ahead: "Vehicle", delta_distance_ahead: float) -> None:
         """
@@ -60,12 +62,17 @@ class Vehicle:
             delta_distance_ahead = 100.0
         else:
             velocity_object_ahead = object_ahead.get_velocity()
-            delta_distance_ahead = delta_distance_ahead - 0.5*(self._length + object_ahead.get_length())
+            delta_distance_ahead = delta_distance_ahead - 0.5 * (self._length + object_ahead.get_length())
 
         self._acceleration = self._calculate_acceleration(velocity_object_ahead, delta_distance_ahead)
         self._velocity = clamp((self._velocity + (self._acceleration * time_delta)), self._minimum_velocity,
                                self._maximum_velocity)
-        self._distance_travelled += self._velocity * time_delta
+
+        self._route_distance_travelled += self._velocity * time_delta
+        self._path_distance_travelled += self._velocity * time_delta
+
+    def get_path_index(self):
+        return self._path_index
 
     def update_position_data(self, position_data):
         self.position_data.append(position_data)
@@ -110,7 +117,14 @@ class Vehicle:
         :rtype: float
         :return: distanced travelled along path [m]
         """
-        return self._distance_travelled
+        return self._route_distance_travelled
+
+    def get_path_distance_travelled(self) -> float:
+        return self._path_distance_travelled
+
+    def set_path_distance_travelled(self, path_distance_travelled: float):
+        self._path_distance_travelled = path_distance_travelled
+        self._path_index += 1
 
     def get_velocity(self) -> float:
         """
@@ -140,7 +154,7 @@ class Vehicle:
         return self._preferred_time_gap
 
     def set_distance_travelled(self, distance_travelled: float) -> None:
-        self._distance_travelled = distance_travelled
+        self._route_distance_travelled = distance_travelled
 
     def set_velocity(self, velocity: float) -> None:
         self._velocity = velocity
@@ -148,7 +162,8 @@ class Vehicle:
     def set_acceleration(self, acceleration: float) -> None:
         self._acceleration = clamp(acceleration, -self._maximum_deceleration, self._maximum_acceleration)
 
-
+    def get_route_uid(self):
+        return self._route_uid
 class VehicleResults:
     def __init__(self, uid: int, start_time: float, position_data: list) -> None:
         self.uid = uid
