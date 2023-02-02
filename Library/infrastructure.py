@@ -148,71 +148,17 @@ class Path:
     def get_length(self):
         return len(self.discrete_path) * self.discrete_length_increment_size
 
-
 class Route:
-    def __init__(self, uid: int, paths: List[Path]):
-        discrete_length_increment_sizes = [path.discrete_length_increment_size for path in paths]
-        assert discrete_length_increment_sizes.count(discrete_length_increment_sizes[0]) == len(
-            discrete_length_increment_sizes)
-        self.discrete_length_increment_size = discrete_length_increment_sizes[0]
-
+    def __init__(self, uid: int, path_uids: list, length: float):
         self.uid = uid
-        self.length = 0.0
-        for path in paths:
-            self.length += path.get_length()
-        self._paths = paths
-        self._path_uids = [path.uid for path in paths]
-
-    def get_coordinates(self, route_distance_travelled: float):
-        path, index = self.get_path_and_index(route_distance_travelled)
-        return path.discrete_path[index][1], path.discrete_path[index][2]
-
-    def get_curvature(self, route_distance_travelled: float):
-        path, index = self.get_path_and_index(route_distance_travelled)
-        return path.discrete_path[index][4]
-
-    def get_angle(self, route_distance_travelled: float):
-        path, index = self.get_path_and_index(route_distance_travelled)
-        return path.discrete_path[index][3]
-
-    def get_path(self, route_distance_travelled: float):
-        path, _ = self.get_path_and_index(route_distance_travelled)
-        return path
+        self._path_uids = path_uids
+        self.length = length
 
     def get_path_uids(self):
         return self._path_uids
 
-    def get_route_distance_travelled_to_path(self, path_uid):
-        assert path_uid in self.get_path_uids()
-        distance_travelled = 0.0
-        for path in self._paths:
-            if path.uid == path_uid:
-                return distance_travelled
-            else:
-                distance_travelled += path.get_length()
-
-    def get_path_and_path_distance_travelled(self, route_distance_travelled: float):
-        index = math.floor(route_distance_travelled / self.discrete_length_increment_size)
-        index_offset = 0
-        for path in self._paths:
-            path_length = len(path.discrete_path)
-            if index_offset + path_length <= index:
-                index_offset += path_length
-                continue
-            else:
-                return path, (index - index_offset) * self.discrete_length_increment_size
-
-    def get_path_and_index(self, route_distance_travelled: float):
-        index = math.floor(route_distance_travelled / self.discrete_length_increment_size)
-        index_offset = 0
-        for path in self._paths:
-            path_length = len(path.discrete_path)
-            if index_offset + path_length <= index:
-                index_offset += path_length
-                continue
-            else:
-                return path, index - index_offset
-
+    def get_path_uid(self, index: int):
+        return self._path_uids[index]
 
 class TrafficLight:
     def __init__(self, uid, path_uids: list, cycle_length: float = 12.0, cycle_green: float = 0.5) -> None:
