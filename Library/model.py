@@ -1,3 +1,4 @@
+import math
 from typing import List
 from math import floor
 from .FileManagement import FileManagement
@@ -252,11 +253,11 @@ class Model:
             route = self.get_route(vehicle.get_route_uid())
             path = self.get_path(route.get_path_uid(vehicle.get_path_index()))
 
-            if vehicle.get_route_distance_travelled() >= route.length:
-                vehicles_uids_to_remove.append(vehicle.uid)
-
             if vehicle.get_path_distance_travelled() >= path.get_length():
-                vehicle.set_path_distance_travelled(vehicle.get_path_distance_travelled() - path.get_length())
+                if vehicle.get_path_index() + 1 == len(route.get_path_uids()):
+                    vehicles_uids_to_remove.append(vehicle.uid)
+                else:
+                    vehicle.set_path_distance_travelled(vehicle.get_path_distance_travelled() - path.get_length())
 
         for vehicle_uid in vehicles_uids_to_remove:
             self.remove_vehicle(vehicle_uid)
@@ -390,9 +391,7 @@ class Model:
             for route in to_remove:
                 potential_routes.remove(route)
 
-        for index, path_sequence in enumerate(path_sequences):
-            route_length = sum([self.get_path(path_uid).get_length() for path_uid in path_sequence])
-            self.routes.append(Route(index + 1, path_sequence, route_length))
+        self.routes = [Route(index + 1, path_sequence) for index, path_sequence in enumerate(path_sequences)]
 
     def get_route_uids(self):
         return [route.uid for route in self.routes]

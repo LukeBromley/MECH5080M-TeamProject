@@ -149,10 +149,9 @@ class Path:
         return len(self.discrete_path) * self.discrete_length_increment_size
 
 class Route:
-    def __init__(self, uid: int, path_uids: list, length: float):
+    def __init__(self, uid: int, path_uids: list):
         self.uid = uid
         self._path_uids = path_uids
-        self.length = length
 
     def get_path_uids(self):
         return self._path_uids
