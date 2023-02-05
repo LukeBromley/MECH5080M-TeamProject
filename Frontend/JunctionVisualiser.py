@@ -83,6 +83,10 @@ class JunctionVisualiser:
         colour_mag = 255 - (255 * abs((seconds - (12 * 60 * 60)) / (12 * 60 * 60)))
         self.viewer_window.pygame_graphics.background_colour = (colour_mag, colour_mag, colour_mag)
 
+    def update_collision_warning(self, collision):
+        if collision:
+            self.viewer_window.pygame_graphics.background_colour = (255, 0, 0)
+
     def set_scale(self, scale: int) -> None:
         """
 
