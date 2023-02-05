@@ -1,8 +1,8 @@
 import math
-import random
 from math import sin, cos, sqrt, atan
 from Library.maths import Vector, calculate_cross_product, calculate_vector_magnitude
 from typing import List
+from numpy import asarray, abs, argmin
 
 
 class Node:
@@ -41,6 +41,16 @@ class Path:
     def get_s(self, arc_length: float):
         arc_length = round(arc_length * (1 / self.discrete_length_increment_size))
         return self.discrete_path[arc_length][0]
+
+    def get_arc_length_from_s(self, s: float):
+        s_values = [x[0] for x in self.discrete_path]
+        s_index = self.closest_value(s_values, s)
+        arc_length = s_index*self.discrete_length_increment_size
+        return arc_length
+ 
+    def closest_value(self, s_values, s):
+        closest = min(range(len(s_values)), key=lambda i: abs(s_values[i]-s))
+        return closest
 
     def get_coordinates(self, arc_length: float):
         arc_length = round(arc_length / self.discrete_length_increment_size)

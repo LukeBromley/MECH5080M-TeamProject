@@ -1,8 +1,12 @@
-from Library.infrastructure import Route, TrafficLight
+from Library.infrastructure import Route, TrafficLight, Path
 from Library.maths import clamp
 from math import sqrt
 from typing import List
+from copy import deepcopy
 
+class Ghost:
+    def __init__(self, uid: int = 0) -> None:
+        pass
 
 class Vehicle:
     def __init__(self, route_uid: int, start_time: float = 0.0, uid: int = 0,
@@ -47,6 +51,9 @@ class Vehicle:
         self._preferred_time_gap = preferred_time_gap
         self._length = length
         self._width = width
+        self._path_offset = 0.0
+        self.lane_ghost = None
+        self.is_ghost = False
 
 
     def update(self, time_delta: float, object_ahead: "Vehicle", delta_distance_ahead: float) -> None:
@@ -104,6 +111,12 @@ class Vehicle:
             distance = sqrt(sum(pow(x, 2) for x in vehicle.position_data[-1]))
             if distance < self._sensing_radius:
                 nearby_vehicles.append(vehicle)
+
+    def begin_lane_change(self, distance_travelled):
+        self.lane_ghost = deepcopy(self)
+        self.lane_ghost.route_uid=not(self.route_uid)
+        self.lane_ghost.set_distance_travelled(distance_travelled)
+        self.lane_ghost.is_ghost = True
 
     def get_route_distance_travelled(self) -> float:
         """
