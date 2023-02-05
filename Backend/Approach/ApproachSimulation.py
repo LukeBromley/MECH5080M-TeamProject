@@ -39,10 +39,8 @@ class Simulation:
             coordinates = []
             for vehicle in self.model.get_vehicles():
                 route = self.model.get_route(vehicle.route_uid)
-                coordinates.append(route.get_coordinates(
-                    vehicle.get_route_distance_travelled()))
-                object_ahead, delta_distance_ahead = self.get_object_ahead(
-                    vehicle.uid)
+                coordinates.append(route.get_coordinates(vehicle.get_route_distance_travelled()))
+                object_ahead, delta_distance_ahead = self.get_object_ahead(vehicle.uid)
                 vehicle.update(dt, object_ahead, delta_distance_ahead)
                 vehicle.update_position_data(coordinates[-1])
                 if (vehicle.lane_ghost is None) and (vehicle.is_ghost is False) and vehicle.get_route_distance_travelled() > 5:

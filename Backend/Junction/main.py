@@ -53,7 +53,7 @@ class Simulation:
             coordinates = []
             for vehicle in self.model.get_vehicles():
                 vehicle_uid = vehicle.uid
-                coordinates.append(self.model.get_coordinates(vehicle_uid))
+                coordinates.append(self.model.get_coordinates_on_path(vehicle_uid))
 
                 object_ahead, delta_distance_ahead = self.model.get_object_ahead(vehicle_uid)
                 vehicle.update(self.model.tick_time, object_ahead, delta_distance_ahead)

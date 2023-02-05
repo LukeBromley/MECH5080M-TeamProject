@@ -1,70 +1,99 @@
-from Library.vehicles import Car
-from Frontend.JunctionVisualiser import JunctionVisualiser
-from Library.FileManagement import FileManagement
+from platform import system
+if system() == 'Windows':
+    import sys
+    sys.path.append('./')
 
-import time
-from Constants import *
+from time import sleep
+from Frontend.JunctionVisualiser import JunctionVisualiser
+#from Library.infrastructure import Route
+from Library.model import Model
+from Library.vehicles import Vehicle
+from Library.environment import Spawning, Time
+from config import ROOT_DIR
+import os
+#import random
+#from functools import partial
+#import matplotlib.pyplot as plt
+
+
 
 class Simulation:
-    def __init__(self) -> None:
+    def __init__(self, file_path: str):
+        self.time = 0.0
+        self.uid = 0
+
+        self.model = Model()
+        self.model.load_junction(file_path)
+
+        self.model.set_start_time_of_day(Time(18, 0, 0))
+        self.model.set_tick_rate(100)
+
+        self.visualiser = JunctionVisualiser()
+        self.visualiser.define_main(self.main)
+        self.visualiser.load_junction(file_path)
+        self.visualiser.set_scale(50)
+
+        self.spawning = []
+
+        for node_uid in self.model.calculate_start_nodes():
+            self.spawning.append(Spawning(node_uid, self.model.start_time_of_day))
+
+    def main(self):
+        for i in range(8640000):
+
+            time = self.model.calculate_time_of_day()
+            for index, node_uid in enumerate(self.model.calculate_start_nodes()):
+                if self.spawning[index].nudge(time):
+                    route_uid = self.spawning[index].select_route(self.model.get_routes_with_starting_node(node_uid))
+                    self.add_vehicle(route_uid)
+
+            for light in self.model.get_lights():
+                light.update(self.model.tick_time)
+
+            coordinates = []
+            for vehicle in self.model.get_vehicles():
+                x,y = self.model.get_coordinates_on_path(vehicle.uid)
+                if vehicle.lane_offset > 0:
+                    x += vehicle.lane_offset
+                    vehicle.lane_offset -= vehicle.get_velocity()
+                else:
+                    vehicle.lane_offset = 0
+                coordinates.append([x,y])
+
+                object_ahead, delta_distance_ahead = self.model.get_object_ahead(vehicle.uid)
+                vehicle.update(self.model.tick_time, object_ahead, delta_distance_ahead)
+                vehicle.update_position_data(coordinates[-1])
+
+            self.visualiser.update_vehicle_positions(coordinates)
+            self.visualiser.update_light_colours(self.model.lights)
+            self.model.tock()
+            sleep(self.model.tick_time)
+            if i % 90000 == 0:
+                print(self.model.calculate_time_of_day())
+
+
     
-        self.vehicles = []
-        self.car_uid = 0
-        self.sim_time = 0.0
-        self.log = []
-        self.tick = 0.1
+    def run(self):
+        self.visualiser.open()
 
-    def sim_begin(self):
-        self.car_spawner()
-        self.advance_tick()
-
-    def advance_tick(self):
-        self.update_cars()
-        time.sleep(self.tick)
-        self.sim_time = self.sim_time + self.tick
-        if self.sim_time > 60:
-            #self.log_writer()
-            quit()
-        else:
-            self.advance_tick()
-
-    def car_spawner(self):
-        if len(self.cars) < 4:
-            self.spawn_car()
-        time.sleep(1)
-        self.car_spawner()
-
-    def spawn_car(self):
-        uid = self.car_uid
-        self.car_uid += 1
-        random_start_lane = random.choice(LANES)
-        goal_lane = random.choice(LANES)
-        initial_velocity = random.uniform(
-            MINIMUM_START_VELOCITY, MAXMUM_START_VELOCITY)
-        initial_acceleration = random.uniform(
-            MINIMUM_START_ACCELERATION, MAXIMUM_START_ACCELERATION)
-        dimensions = [random.uniform(
-            MIN_LENGTH, MAX_LENGTH), random.uniform(MIN_WIDTH, MAX_WIDTH)]
-        car = Vehicle(uid, random_start_lane, goal_lane, initial_velocity,
-                      initial_acceleration, dimensions)
-        self.cars.append(car)
-
-    # runs on tick
-    def update_cars(self):
-        for car in self.cars:
-            car.update()
-            self.log.append(car.log(self.sim_time))
-
-    def log_writer(self):
-        file = open('Backend/Approach/log.csv', 'w', newline='')
-        writer = csv.writer(file)
-        writer.writerows(self.log)
-        file.close()
+    def add_vehicle(self, route_uid: int):
+        self.uid += 1
+        self.model.add_vehicle(
+            Vehicle(
+                uid=self.uid,
+                start_time=self.time,
+                route_uid=route_uid,
+                velocity=5.0,
+                acceleration=0.0,
+                maximum_acceleration=3.0,
+                maximum_deceleration=9.0,
+                preferred_time_gap=2.0,
+                maximum_velocity=30.0,
+                length=2.5
+            )
+        )
 
 
-def main():
-    sim = Simulation()
-    sim.sim_begin()
-
-
-main()
+if __name__ == "__main__":
+    sim = Simulation(os.path.join(ROOT_DIR, "Junction_Designs", "Lane_Changing.junc"))
+    sim.run()

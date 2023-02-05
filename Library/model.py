@@ -155,13 +155,6 @@ class Model:
         index = self.get_node_index(node_uid)
         self.nodes.pop(index)
         self.update_node_hash_table()
-
-    def get_paths_from_start_node(self, node_uid):
-        paths = []
-        for path in self.paths:
-            if path.start_node_uid == node_uid:
-                paths.append(path.uid)
-        return paths
     
     # PATHS
 
@@ -329,10 +322,16 @@ class Model:
 
     # ROUTES
 
-    def get_route(self, route_uid) -> Route:
-        for route in self.routes:
-            if route.uid == route_uid:
-                return route
+    def get_route(self, route_uid) -> Path:
+        index = self.get_route_index(route_uid)
+        return self.routes[index]
+
+    def get_route_index(self, route_uid):
+        return self.routes_hash_table[str(route_uid)]
+
+    def set_route(self, route):
+        index = self.get_route_index(route.uid)
+        self.routes[index] = route
 
     def calculate_start_nodes(self):
         nodes_uid = self.get_uid_list(self.nodes)
@@ -397,12 +396,19 @@ class Model:
     def get_route_uids(self):
         return [route.uid for route in self.routes]
 
-    def get_coordinates(self, vehicle_uid):
+    def get_paths_from_start_node(self, node_uid):
+        paths = []
+        for path in self.paths:
+            if path.start_node_uid == node_uid:
+                paths.append(path.uid)
+        return paths
+
+    def get_coordinates_on_path(self, vehicle_uid):
         vehicle = self.get_vehicle(vehicle_uid)
         path = self.get_path(self.get_route(vehicle.get_route_uid()).get_path_uid(vehicle.get_path_index()))
         path_distance_travelled = vehicle.get_path_distance_travelled()
 
-        index = math.floor(path_distance_travelled / path.discrete_length_increment_size)
+        index = floor(path_distance_travelled / path.discrete_length_increment_size)
         return path.discrete_path[index][1], path.discrete_path[index][2]
 
     def get_curvature(self, vehicle_uid):
@@ -410,7 +416,7 @@ class Model:
         path = self.get_path(self.get_route(vehicle.get_route_uid()).get_path_uid(vehicle.get_path_index()))
         path_distance_travelled = vehicle.get_path_distance_travelled()
 
-        index = math.floor(path_distance_travelled / path.discrete_length_increment_size)
+        index = floor(path_distance_travelled / path.discrete_length_increment_size)
         return path.discrete_path[index][4]
 
     def get_routes_with_starting_node(self, node_uid):

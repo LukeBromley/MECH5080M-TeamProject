@@ -4,9 +4,6 @@ from math import sqrt
 from typing import List
 from copy import deepcopy
 
-class Ghost:
-    def __init__(self, uid: int = 0) -> None:
-        pass
 
 class Vehicle:
     def __init__(self, route_uid: int, start_time: float = 0.0, uid: int = 0,
@@ -53,6 +50,7 @@ class Vehicle:
         self._length = length
         self._width = width
         self._path_index = 0
+        self.lane_offset = 0.0
 
     def update(self, time_delta: float, object_ahead: "Vehicle", delta_distance_ahead: float) -> None:
         """
@@ -74,6 +72,9 @@ class Vehicle:
 
         self._route_distance_travelled += self._velocity * time_delta
         self._path_distance_travelled += self._velocity * time_delta
+        if self._path_distance_travelled > 5 and self._route_uid != 1:
+            self._route_uid = 1
+            self.lane_offset = 6.0
 
     def get_path_index(self):
         return self._path_index
@@ -114,12 +115,6 @@ class Vehicle:
             distance = sqrt(sum(pow(x, 2) for x in vehicle.position_data[-1]))
             if distance < self._sensing_radius:
                 nearby_vehicles.append(vehicle)
-
-    def begin_lane_change(self, distance_travelled):
-        self.lane_ghost = deepcopy(self)
-        self.lane_ghost.route_uid=not(self.route_uid)
-        self.lane_ghost.set_distance_travelled(distance_travelled)
-        self.lane_ghost.is_ghost = True
 
     def get_route_distance_travelled(self) -> float:
         """
