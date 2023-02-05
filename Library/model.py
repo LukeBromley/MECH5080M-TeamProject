@@ -238,7 +238,7 @@ class Model:
     def get_vehicle_index(self, vehicle_uid) -> int:
         return self.vehicles_hash_table[str(vehicle_uid)]
 
-    def get_vehicles(self) -> List[Vehicle]:
+    def remove_finished_vehicles(self):
         vehicles_uids_to_remove = []
         for vehicle in self.vehicles:
             if vehicle.get_route_distance_travelled() >= self.get_route(vehicle.route_uid).length:
@@ -246,8 +246,6 @@ class Model:
         for vehicle_uid in vehicles_uids_to_remove:
             self.remove_vehicle(vehicle_uid)
 
-        return self.vehicles
-        
     def add_vehicle(self, vehicle):
         self.vehicles.append(vehicle)
         self.vehicles_hash_table[str(vehicle.uid)] = len(self.vehicles) - 1
