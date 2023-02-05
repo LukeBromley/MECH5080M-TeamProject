@@ -76,16 +76,17 @@ class DesignTab(QtWidgets.QWidget):
         # Re-add all paths
         for index, path in enumerate(reversed(self.model.paths)):
             self.path_widgets.append(PathWidget(self.path_box, self.path_box_scroll.v_box))
-            self.path_widgets[-1].set_info(path.uid, path.start_node, path.end_node, self.model.nodes)
+            self.path_widgets[-1].set_info(path.uid, path.start_node_uid, path.end_node_uid, self.model.nodes)
             self.path_widgets[-1].connect_delete(partial(self.remove_path, path.uid))
             self.path_widgets[-1].connect_change(partial(self.update_path_data, path.uid, index))
-            if path.start_node == path.end_node:
+            if path.start_node_uid == path.end_node_uid:
                 self.path_widgets[-1].highlight_error()
             else:
                 self.path_widgets[-1].unhighlight_error()
 
         # Enable / Disable paths
         self.add_path_button.setEnabled(True if len(self.model.nodes) > 1 else False)
+        self.gui.lane_changing.update_lane_widgets()
 
     def update_node_data(self, uid: int, widget_index: int) -> None:
         """
@@ -99,7 +100,7 @@ class DesignTab(QtWidgets.QWidget):
         y = self.node_widgets[widget_index].y_pos.value()
         angle = self.node_widgets[widget_index].angle.value() * ((2 * pi) / 360)
 
-        self.model.update_node(uid, x, y, angle)
+        self.model.update_node(uid, x, -y, angle)
 
     def add_node(self) -> None:
         """
@@ -130,12 +131,12 @@ class DesignTab(QtWidgets.QWidget):
         :return:
         """
 
-        start_node = int(self.path_widgets[widget_index].start_node.currentText())
-        end_node = int(self.path_widgets[widget_index].end_node.currentText())
+        start_node_uid = int(self.path_widgets[widget_index].start_node.currentText())
+        end_node_uid = int(self.path_widgets[widget_index].end_node.currentText())
 
-        self.model.update_path(uid, start_node, end_node)
+        self.model.update_path(uid, start_node_uid, end_node_uid)
 
-        if start_node == end_node:
+        if start_node_uid == end_node_uid:
             self.path_widgets[widget_index].highlight_error()
         else:
             self.path_widgets[widget_index].unhighlight_error()
@@ -177,13 +178,13 @@ class NodeWidget(QtWidgets.QWidget):
         self.uid_label = Text(self, "Node ID: ", self.h_box)
         self.uid_edit = Text(self, "", self.h_box)
         self.x_label = Text(self, "X: ", self.h_box)
-        self.x_pos = SpinBox(self, self.h_box, 1000, -1000)
+        self.x_pos = DecimalSpinBox(self, self.h_box, 1000, -1000)
         self.x_pos.setValue(0)
         self.y_label = Text(self, "Y: ", self.h_box)
-        self.y_pos = SpinBox(self, self.h_box, 1000, -1000)
+        self.y_pos = DecimalSpinBox(self, self.h_box, 1000, -1000)
         self.y_pos.setValue(0)
         self.ang_label = Text(self, "Angle: ", self.h_box)
-        self.angle = SpinBox(self, self.h_box, 360, 0)
+        self.angle = DecimalSpinBox(self, self.h_box, 360, 0)
         self.delete = Button(self, "Delete", self.h_box)
 
     def set_info(self, uid: int, x: int, y: int, ang: int) -> None:
@@ -198,7 +199,7 @@ class NodeWidget(QtWidgets.QWidget):
         """
         self.uid_edit.setText(str(uid))
         self.x_pos.setValue(int(x))
-        self.y_pos.setValue(int(y))
+        self.y_pos.setValue(int(-y))
         self.angle.setValue(int(ang))
 
     def connect_change(self, function) -> None:

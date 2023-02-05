@@ -1,5 +1,6 @@
 import math
-from math import sin, cos, sqrt, atan
+import random
+from math import sin, cos, sqrt, atan, pi
 from Library.maths import Vector, calculate_cross_product, calculate_vector_magnitude
 from typing import List
 from numpy import asarray, abs, argmin
@@ -19,10 +20,10 @@ class Node:
 
 
 class Path:
-    def __init__(self, uid: int, start_node: Node, end_node: Node, discrete_length_increment_size=0.01, discrete_iteration_qty=100000):
+    def __init__(self, uid: int, start_node_uid: int, end_node_uid: int, discrete_length_increment_size=0.01, discrete_iteration_qty=100000):
         self.uid = uid
-        self.start_node = start_node
-        self.end_node = end_node
+        self.start_node_uid = start_node_uid
+        self.end_node_uid = end_node_uid
         self.x_hermite_cubic_coeff = []
         self.y_hermite_cubic_coeff = []
 
@@ -31,11 +32,12 @@ class Path:
 
         self.discrete_path = []
         self.curvature = []
+        self.parallel_paths = []
 
     # Gets
     def get_euclidean_distance(self, model):
-        start_node = model.get_node(self.start_node)
-        end_node = model.get_node(self.end_node)
+        start_node = model.get_node(self.start_node_uid)
+        end_node = model.get_node(self.end_node_uid)
         return sqrt((start_node.x - end_node.x) ** 2 + (start_node.y - end_node.y) ** 2)
 
     def get_s(self, arc_length: float):
@@ -88,8 +90,8 @@ class Path:
         self.calculate_discrete_curvature_points()
 
     def calculate_hermite_spline_coefficients(self, model):
-        start_node = model.get_node(self.start_node)
-        end_node = model.get_node(self.end_node)
+        start_node = model.get_node(self.start_node_uid)
+        end_node = model.get_node(self.end_node_uid)
         p1x = start_node.x
         p1y = start_node.y
         p1tx, p1ty = start_node.get_tangents(self.get_euclidean_distance(model) * 1.5)
@@ -132,14 +134,11 @@ class Path:
     def calculate_direction(self, s: float):
         dy_ds = self.y_hermite_cubic_coeff[1] + 2 * self.y_hermite_cubic_coeff[2] * s + 3 * self.y_hermite_cubic_coeff[3] * s * s
         dx_ds = self.x_hermite_cubic_coeff[1] + 2 * self.x_hermite_cubic_coeff[2] * s + 3 * self.x_hermite_cubic_coeff[3] * s * s
-        if dx_ds != 0 :
+        if dx_ds != 0:
             dy_dx = dy_ds / dx_ds
-            a = 90-atan(dy_dx)
+            a = atan(dy_dx)
         else:
-            if dy_ds > 0:
-                a = 0
-            else:
-                a = 180
+            a = pi / 2
         return a
 
     def calculate_curvature(self, s: float):
@@ -160,67 +159,17 @@ class Path:
     def get_length(self):
         return len(self.discrete_path) * self.discrete_length_increment_size
 
-
 class Route:
-    def __init__(self, uid: int, paths: List[Path]):
-        discrete_length_increment_sizes = [path.discrete_length_increment_size for path in paths]
-        assert discrete_length_increment_sizes.count(discrete_length_increment_sizes[0]) == len(
-            discrete_length_increment_sizes)
-        self.discrete_length_increment_size = discrete_length_increment_sizes[0]
-
+    def __init__(self, uid: int, path_uids: list, length: float):
         self.uid = uid
-        self.length = 0.0
-        for path in paths:
-            self.length += path.get_length()
-        self._paths = paths
-        self._path_uids = [path.uid for path in paths]
-
-    def get_coordinates(self, route_distance_travelled: float):
-        path, index = self.get_path_and_index(route_distance_travelled)
-        return path.discrete_path[index][1], path.discrete_path[index][2]
-
-    def get_curvature(self, route_distance_travelled: float):
-        path, index = self.get_path_and_index(route_distance_travelled)
-        return path.discrete_path[index][4]
-
-    def get_path(self, route_distance_travelled: float):
-        path, _ = self.get_path_and_index(route_distance_travelled)
-        return path
+        self._path_uids = path_uids
+        self.length = length
 
     def get_path_uids(self):
         return self._path_uids
 
-    def get_route_distance_travelled_to_path(self, path_uid):
-        assert path_uid in self.get_path_uids()
-        distance_travelled = 0.0
-        for path in self._paths:
-            if path.uid == path_uid:
-                return distance_travelled
-            else:
-                distance_travelled += path.get_length()
-
-    def get_path_and_path_distance_travelled(self, route_distance_travelled: float):
-        index = math.floor(route_distance_travelled / self.discrete_length_increment_size)
-        index_offset = 0
-        for path in self._paths:
-            path_length = len(path.discrete_path)
-            if index_offset + path_length <= index:
-                index_offset += path_length
-                continue
-            else:
-                return path, (index - index_offset) * self.discrete_length_increment_size
-
-    def get_path_and_index(self, route_distance_travelled: float):
-        index = math.floor(route_distance_travelled / self.discrete_length_increment_size)
-        index_offset = 0
-        for path in self._paths:
-            path_length = len(path.discrete_path)
-            if index_offset + path_length <= index:
-                index_offset += path_length
-                continue
-            else:
-                return path, index - index_offset
-
+    def get_path_uid(self, index: int):
+        return self._path_uids[index]
 
 class TrafficLight:
     def __init__(self, uid, path_uids: list, cycle_length: float = 12.0, cycle_green: float = 0.5) -> None:
