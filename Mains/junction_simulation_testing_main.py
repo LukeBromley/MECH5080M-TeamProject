@@ -70,12 +70,10 @@ class Simulation:
             coordinates = []
             coordinates_angle_size = []
             for vehicle in self.model.vehicles:
-                route = self.model.get_route(vehicle.route_uid)
+                coord_x, coord_y = self.model.get_coordinates(vehicle.uid)
+                angle = self.model.get_angle(vehicle.uid)
 
-                coord_x, coord_y = route.get_coordinates(vehicle.get_route_distance_travelled())
-                angle = route.get_angle(vehicle.get_route_distance_travelled())
-
-                object_ahead, delta_distance_ahead = self.get_object_ahead(vehicle.uid)
+                object_ahead, delta_distance_ahead = self.model.get_object_ahead(vehicle.uid)
                 vehicle.update(self.model.tick_time, object_ahead, delta_distance_ahead)
                 vehicle.update_position_data([coord_x, coord_y])
 
@@ -93,48 +91,6 @@ class Simulation:
             # Increment Time
             self.model.tock()
             sleep(self.model.tick_time)
-
-    def get_object_ahead(self, vehicle_uid):
-        object_ahead = None
-
-        this_vehicle = self.model.get_vehicle(vehicle_uid)
-        this_route = self.model.get_route(this_vehicle.route_uid)
-        this_path, this_vehicle_path_distance_travelled = this_route.get_path_and_path_distance_travelled(this_vehicle.get_route_distance_travelled())
-
-        # Search the current path
-        min_path_distance_travelled = float('inf')
-        self.model.remove_finished_vehicles()
-        for that_vehicle in self.model.vehicles:
-            that_path, that_vehicle_path_distance_travelled = self.model.get_route(that_vehicle.route_uid).get_path_and_path_distance_travelled(that_vehicle.get_route_distance_travelled())
-            if that_path.uid == this_path.uid and min_path_distance_travelled > that_vehicle_path_distance_travelled > this_vehicle_path_distance_travelled:
-                min_path_distance_travelled = that_vehicle_path_distance_travelled
-                object_ahead = that_vehicle
-
-        if object_ahead is not None:
-            return object_ahead, min_path_distance_travelled - this_vehicle_path_distance_travelled
-
-        # Search the paths ahead
-        this_route_path_uids = self.model.get_route(this_vehicle.route_uid).get_path_uids()
-        path_uids_ahead = this_route_path_uids[this_route_path_uids.index(this_path.uid) + 1:]
-        distance_travelled_offset = this_path.get_length() - this_vehicle_path_distance_travelled
-        for path_uid in path_uids_ahead:
-            for light in self.model.get_lights():
-                if light.path_uids == path_uid and not light.allows_traffic():
-                    return light, distance_travelled_offset
-            self.model.remove_finished_vehicles()
-            for that_vehicle in self.model.vehicles:
-                that_path, that_vehicle_path_distance_travelled = self.model.get_route(that_vehicle.route_uid).get_path_and_path_distance_travelled(that_vehicle.get_route_distance_travelled())
-                if that_path.uid == path_uid and min_path_distance_travelled > that_vehicle_path_distance_travelled:
-                    min_path_distance_travelled = that_vehicle_path_distance_travelled
-                    object_ahead = that_vehicle
-
-            if object_ahead is not None:
-                return object_ahead, min_path_distance_travelled + distance_travelled_offset
-            else:
-                distance_travelled_offset += self.model.get_path(path_uid).get_length()
-                continue
-
-        return None, None
 
     def run(self):
         self.visualiser.open()
