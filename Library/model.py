@@ -249,7 +249,7 @@ class Model:
                 vehicles_uids_to_remove.append(vehicle.uid)
 
             if vehicle.get_path_distance_travelled() >= path.get_length():
-                vehicle.set_path_distance_travelled(vehicle.get_path_distance_travelled() - path.get_length())
+                vehicle.reset_path_distance_travelled(vehicle.get_path_distance_travelled() - path.get_length())
 
         for vehicle_uid in vehicles_uids_to_remove:
             self.remove_vehicle(vehicle_uid)

@@ -74,7 +74,6 @@ class Vehicle:
         self._path_distance_travelled += self._velocity * time_delta
         if self._path_distance_travelled > 5 and self._route_uid != 1:
             self._route_uid = 1
-            self.lane_offset = 6.0
 
     def get_path_index(self):
         return self._path_index
@@ -127,7 +126,10 @@ class Vehicle:
     def get_path_distance_travelled(self) -> float:
         return self._path_distance_travelled
 
-    def set_path_distance_travelled(self, path_distance_travelled: float):
+    def xset_path_distance_travelled(self, path_distance_travelled: float):
+        self._path_distance_travelled = path_distance_travelled
+
+    def reset_path_distance_travelled(self, path_distance_travelled: float):
         self._path_distance_travelled = path_distance_travelled
         self._path_index += 1
 

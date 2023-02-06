@@ -52,14 +52,12 @@ class Simulation:
 
             coordinates = []
             for vehicle in self.model.get_vehicles():
-                x,y = self.model.get_coordinates_on_path(vehicle.uid)
-                if vehicle.lane_offset > 0:
-                    x += vehicle.lane_offset
-                    vehicle.lane_offset -= vehicle.get_velocity()
-                else:
-                    vehicle.lane_offset = 0
-                coordinates.append([x,y])
-
+                new_x, new_y = self.model.get_coordinates_on_path(vehicle.uid)
+                old_x, old_y = vehicle.position_data[-1][0], vehicle.position_data[-1][1]
+                max_distance = vehicle.get_velocity() * self.model.tick_time
+                visual_x = old_x + (min(max_distance, new_x-old_x))
+                visual_y = old_y + (min(max_distance, new_y-old_y))
+                coordinates.append([visual_x, visual_y])
                 object_ahead, delta_distance_ahead = self.model.get_object_ahead(vehicle.uid)
                 vehicle.update(self.model.tick_time, object_ahead, delta_distance_ahead)
                 vehicle.update_position_data(coordinates[-1])
@@ -71,8 +69,6 @@ class Simulation:
             if i % 90000 == 0:
                 print(self.model.calculate_time_of_day())
 
-
-    
     def run(self):
         self.visualiser.open()
 
