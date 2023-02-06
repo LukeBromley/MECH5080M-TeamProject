@@ -382,7 +382,7 @@ class PygameGraphics:
                 rectangle_surface = pygame.transform.rotate(rectangle_surface, 180 * -vehicle[2] / pi)
                 self.surface.blit(rectangle_surface, (x - round(rectangle_surface.get_width() / 2), y - round(rectangle_surface.get_height() / 2)))
             else:
-                pygame.draw.circle(self.surface, (255, 130, 0), (x, y), 5)
+                pygame.draw.circle(self.surface, (100, 100, 100), (x, y), 1)
 
     def _draw_lights(self, traffic_lights: list) -> None:
         light_colours = []
