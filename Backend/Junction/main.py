@@ -1,4 +1,7 @@
 from platform import system
+
+from numpy import mean
+
 if system() == 'Windows':
     import sys
     sys.path.append('./')
@@ -21,12 +24,13 @@ class Simulation:
     def __init__(self, file_path: str):
         self.time = 0.0
         self.uid = 0
-
+        self.wait_time = []
         self.model = Model()
         self.model.load_junction(file_path)
 
         self.model.set_start_time_of_day(Time(8, 0, 0))
         self.model.set_tick_rate(100)
+
 
         self.visualiser = JunctionVisualiser()
         self.visualiser.define_main(self.main)
@@ -58,13 +62,24 @@ class Simulation:
                 object_ahead, delta_distance_ahead = self.model.get_object_ahead(vehicle_uid)
                 vehicle.update(self.model.tick_time, object_ahead, delta_distance_ahead)
                 vehicle.update_position_data(coordinates[-1])
+                if vehicle.get_velocity() < 5:
+                    vehicle.add_wait_time(self.model.tick_rate/1000)
+
+                route = self.model.get_route(vehicle.get_route_uid())
+                path = self.model.get_path(route.get_path_uid(vehicle.get_path_index()))
+                if vehicle.get_path_distance_travelled() >= path.get_length():
+                    if vehicle.get_path_index() + 1 == len(route.get_path_uids()):
+                        self.wait_time.append(vehicle.get_wait_time())
 
             self.visualiser.update_vehicle_positions(coordinates)
             self.visualiser.update_light_colours(self.model.lights)
             self.model.tock()
-            sleep(self.model.tick_time)
+            # sleep(self.model.tick_time)
             if i % 90000 == 0:
+                print(f"Mean wait time: {mean(self.wait_time)/60:.2f}min")
                 print(self.model.calculate_time_of_day())
+                self.wait_time = []
+
 
     def run(self):
         self.visualiser.open()
@@ -76,7 +91,7 @@ class Simulation:
                 uid=self.uid,
                 start_time=self.time,
                 route_uid=route_uid,
-                velocity=5.0,
+                velocity=10.0,
                 acceleration=0.0,
                 maximum_acceleration=3.0,
                 maximum_deceleration=9.0,

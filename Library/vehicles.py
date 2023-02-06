@@ -48,6 +48,7 @@ class Vehicle:
         self._preferred_time_gap = preferred_time_gap
         self._length = length
         self._width = width
+        self._wait_time = 0
         self._path_index = 0
 
     def update(self, time_delta: float, object_ahead: "Vehicle", delta_distance_ahead: float) -> None:
@@ -155,6 +156,12 @@ class Vehicle:
 
     def set_distance_travelled(self, distance_travelled: float) -> None:
         self._route_distance_travelled = distance_travelled
+
+    def add_wait_time(self, time):
+        self._wait_time += time
+
+    def get_wait_time(self):
+        return self._wait_time
 
     def set_velocity(self, velocity: float) -> None:
         self._velocity = velocity
