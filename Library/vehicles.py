@@ -72,8 +72,6 @@ class Vehicle:
 
         self._route_distance_travelled += self._velocity * time_delta
         self._path_distance_travelled += self._velocity * time_delta
-        if self._path_distance_travelled > 5 and self._route_uid != 1:
-            self._route_uid = 1
 
     def get_path_index(self):
         return self._path_index
@@ -171,6 +169,15 @@ class Vehicle:
 
     def get_route_uid(self):
         return self.route_uid
+
+
+class GhostVehicle:
+    def __init__(self, parent_vehicle_uid, path_uid, time_created):
+        self.parent_vehicle_uid = parent_vehicle_uid
+        self.path_uid = path_uid
+        self.time_created = time_created
+        self.x = 0
+        self.y = 0
 
 
 class VehicleResults:

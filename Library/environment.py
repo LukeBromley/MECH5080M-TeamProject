@@ -33,6 +33,9 @@ class Time:
     def total_seconds(self):
         return 60 * 60 * self.hour + 60 * self.minute + self.second
 
+    def total_milliseconds(self):
+        return (60 * 60 * self.hour + 60 * self.minute + self.second) * 1000 + self.millisecond
+
     def __add__(self, other):
         new_time = datetime(1, 1, 1, self.hour, self.minute, self.second) + timedelta(hours=other.hour, minutes=other.minute, seconds=other.second)
         return Time(new_time.hour, new_time.minute, new_time.second, self.millisecond)
