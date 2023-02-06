@@ -166,6 +166,13 @@ class Vehicle:
         return self.route_uid
 
 
+class GhostVehicle:
+    def __init__(self, uid, path_uid, time_created):
+        self.uid = uid
+        self.path_uid = path_uid
+        self.time_created = time_created
+
+
 class VehicleResults:
     def __init__(self, uid: int, start_time: float, position_data: list) -> None:
         self.uid = uid

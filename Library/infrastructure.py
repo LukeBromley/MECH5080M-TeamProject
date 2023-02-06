@@ -58,6 +58,18 @@ class Path:
         arc_length = round(arc_length / self.discrete_length_increment_size)
         return self.discrete_path[arc_length][4]
 
+    def get_arc_length_from_s(self, s: float):
+        for index, discrete_point in enumerate(self.discrete_path):
+            if discrete_point[0] > s:
+                return index * self.discrete_length_increment_size
+        return self.get_length()
+
+    def get_coordinates_from_s(self, s: float):
+        for index, discrete_point in enumerate(self.discrete_path):
+            if discrete_point[0] > s:
+                return discrete_point[1], discrete_point[2]
+        return self.discrete_path[-1][1], self.discrete_path[-1][2]
+
     def get_all_s(self):
         return [point[0] for point in self.discrete_path]
 
@@ -69,6 +81,9 @@ class Path:
 
     def get_all_curvature(self):
         return [point[4] for point in self.discrete_path]
+
+    def get_length(self):
+        return (len(self.discrete_path) - 1) * self.discrete_length_increment_size
 
     # Discrete Calculations
 

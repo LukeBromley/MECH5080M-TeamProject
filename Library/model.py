@@ -254,6 +254,8 @@ class Model:
         for vehicle_uid in vehicles_uids_to_remove:
             self.remove_vehicle(vehicle_uid)
 
+        return vehicles_uids_to_remove
+
     def get_object_ahead(self, vehicle_uid):
         object_ahead = None
 
@@ -264,7 +266,6 @@ class Model:
 
         # Search the current path
         min_path_distance_travelled = float('inf')
-        self.remove_finished_vehicles()
         for that_vehicle in self.vehicles:
             that_path = self.get_path(self.get_route(that_vehicle.get_route_uid()).get_path_uid(that_vehicle.get_path_index()))
             that_vehicle_path_distance_travelled = that_vehicle.get_path_distance_travelled()
@@ -284,7 +285,6 @@ class Model:
             for light in self.get_lights():
                 if light.path_uids[0] == path_uid and not light.allows_traffic():
                     return light, distance_travelled_offset
-            self.remove_finished_vehicles()
             for that_vehicle in self.vehicles:
                 that_path = self.get_path(self.get_route(that_vehicle.get_route_uid()).get_path_uid(that_vehicle.get_path_index()))
                 that_vehicle_path_distance_travelled = that_vehicle.get_path_distance_travelled()
@@ -308,6 +308,11 @@ class Model:
         index = self.get_vehicle_index(vehicle_uid)
         self.vehicles.pop(index)
         self.update_vehicle_hash_table()
+
+    def get_vehicle_path_uid(self, vehicle_uid):
+        vehicle = self.get_vehicle(vehicle_uid)
+        route = self.get_route(vehicle.route_uid)
+        return route.get_path_uid(vehicle.get_path_index())
 
     # GENERAL
     
@@ -392,7 +397,7 @@ class Model:
     def get_route_uids(self):
         return [route.uid for route in self.routes]
 
-    def get_coordinates(self, vehicle_uid):
+    def get_vehicle_coordinates(self, vehicle_uid):
         vehicle = self.get_vehicle(vehicle_uid)
         path = self.get_path(self.get_route(vehicle.get_route_uid()).get_path_uid(vehicle.get_path_index()))
         path_distance_travelled = vehicle.get_path_distance_travelled()
