@@ -19,7 +19,6 @@ from functools import partial
 import matplotlib.pyplot as plt
 
 
-
 class Simulation:
     def __init__(self, file_path: str):
         self.time = 0.0
