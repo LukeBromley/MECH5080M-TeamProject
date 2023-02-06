@@ -3,6 +3,7 @@ from math import sin, cos, pi
 from PyQt5 import QtCore
 from Library.maths import clamp, VisualPoint
 from copy import deepcopy as copy
+import requests
 
 
 class VisualLabel:
@@ -77,6 +78,8 @@ class PygameGraphics:
         self._path_labels = []
         self._path_label_colour = (0, 255, 0)
 
+        self.get_background_image()
+
     # Main function for drawing paths (from renders), nodes, labels, grid etc.
     def refresh(self, force_full_refresh, draw_grid=False, draw_hermite_paths=False, draw_nodes=False, draw_vehicles=False, draw_node_labels=False, draw_path_labels=False, draw_curvature=False, draw_lights=False) -> None:
         """
@@ -95,6 +98,7 @@ class PygameGraphics:
         if self._scroll_changed or force_full_refresh:
 
             self.surface.fill(self.background_colour)
+            self.draw_backgroun()
             if draw_grid: self._draw_grid()
             if draw_hermite_paths: self._draw_hermite_paths(draw_curvature)
             if draw_nodes: self._draw_nodes(self.model.nodes)
@@ -419,6 +423,21 @@ class PygameGraphics:
                     red_rgb = (255, 0, 0)
                 pygame.draw.circle(self.surface, red_rgb, self._position_offsetter((node.x * 100) + position_offset, (node.y * 100) + 37), 3)
                 pygame.draw.circle(self.surface, green_rgb, self._position_offsetter((node.x * 100) + position_offset, (node.y * 100) + 60), 3)
+
+    def draw_backgroun(self):
+        background = pygame.image.load("background.png").convert()
+        background = pygame.transform.scale(background, (self._surface_width, self._surface_height))
+        background = pygame.transform.rotate(background, 50)
+        self.surface.blit(background, (-self._scroll_offset_x - round(background.get_width() / 2), -self._scroll_offset_y - round(background.get_height() / 2)))  # paint to screen
+
+    def get_background_image(self):
+        width = round((500 / self._surface_height) * self._surface_width)
+        lattitude = 53.810705
+        longitude = -1.556358
+        URL = "https://maps.googleapis.com/maps/api/staticmap?" + "center=" + str(lattitude) + "," + str(longitude) + "&zoom=" + str(20) + "&size=" + str(width) + "x" + str(500) + "&maptype=satellite&key=" + "AIzaSyB-KS2wDmUBxRpjiD5Bg82Cbr9PvsyhDtM"
+        response = requests.get(URL)
+        with open('background.png', 'wb') as file:
+            file.write(response.content)
 
 
 class LightColour:
