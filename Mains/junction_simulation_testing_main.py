@@ -9,6 +9,7 @@ from Library.model import Model
 from Library.vehicles import Vehicle
 from Library.environment import Spawning, Time
 from Library.maths import calculate_rectangle_corner_coords, calculate_range_overlap, calculate_line_gradient_and_constant
+from math import sqrt
 from config import ROOT_DIR
 import os
 from math import cos, sin, atan2, pi
@@ -81,6 +82,12 @@ class Simulation:
                 coordinates_angle_size.append([coord_x, coord_y, angle, vehicle.length, vehicle.width, vehicle.uid])
 
             collision = self.check_colision(coordinates_angle_size)
+            if collision is not None:
+                vehicle1_velocity_x, vehicle1_velocity_y = self.model.get_vehicle_velocity(collision[0])
+                vehicle2_velocity_x, vehicle2_velocity_y = self.model.get_vehicle_velocity(collision[1])
+                velocity_x = vehicle1_velocity_x - vehicle2_velocity_x
+                velocity_y = vehicle1_velocity_y - vehicle2_velocity_y
+                collision_speed = sqrt((velocity_x**2) + (velocity_y**2))
 
             # Update visualiser
             self.visualiser.update_vehicle_positions(coordinates_angle_size)
@@ -102,7 +109,7 @@ class Simulation:
                 uid=self.uid,
                 start_time=self.time,
                 route_uid=route_uid,
-                velocity=5.0,
+                speed=5.0,
                 acceleration=0.0,
                 maximum_acceleration=3.0,
                 maximum_deceleration=9.0,

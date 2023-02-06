@@ -1,5 +1,5 @@
 from typing import List
-from math import floor
+from math import floor, sin, cos
 from .FileManagement import FileManagement
 from Library.infrastructure import Node, Path, TrafficLight, Route
 from Library.vehicles import Vehicle
@@ -308,6 +308,14 @@ class Model:
         index = self.get_vehicle_index(vehicle_uid)
         self.vehicles.pop(index)
         self.update_vehicle_hash_table()
+
+    def get_vehicle_velocity(self, vehicle_uid):
+        vehicle = self.get_vehicle(vehicle_uid)
+        speed = vehicle.get_speed()
+        angle = self.get_angle(vehicle.uid)
+        velocity_x = speed * sin(angle)
+        velocity_y = speed * cos(angle)
+        return velocity_x, velocity_y
 
     # GENERAL
     

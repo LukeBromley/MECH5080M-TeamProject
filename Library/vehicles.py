@@ -6,7 +6,7 @@ from typing import List
 
 class Vehicle:
     def __init__(self, route_uid: int, start_time: float = 0.0, uid: int = 0,
-                 velocity: float = 0.0, acceleration: float = 0.0,
+                 speed: float = 0.0, acceleration: float = 0.0,
                  direction: float = 0.0, sensing_radius: float = 0.0,
                  maximum_acceleration: float = 9.81, maximum_deceleration: float = 6.0,
                  maximum_velocity: float = 20.0, minimum_velocity: float = -20.0,
@@ -17,7 +17,7 @@ class Vehicle:
         :param uid: unique identifier for vehicle
         :param start_time: Simulation time when vehicle is spawned
         :param route: route instance that vehicle is on
-        :param velocity: initial velocity of the vehicle [m/s]
+        :param speed: initial velocity of the vehicle [m/s]
         :param acceleration: initial acceleration of the vehicle [m/s**2]
         :param direction: initial direction of the vehicle [radians]
         :param sensing_radius: distance vehicle can detect other vehicles [m]
@@ -35,7 +35,7 @@ class Vehicle:
         self.route_uid = route_uid
         self.start_time = start_time
         self.position_data = []
-        self._velocity = velocity
+        self._speed = speed
         self._acceleration = acceleration
         self._direction = direction
         self._sensing_radius = sensing_radius
@@ -61,15 +61,15 @@ class Vehicle:
             velocity_object_ahead = 100.0
             delta_distance_ahead = 100.0
         else:
-            velocity_object_ahead = object_ahead.get_velocity()
+            velocity_object_ahead = object_ahead.get_speed()
             delta_distance_ahead = delta_distance_ahead - 0.5 * (self.length + object_ahead.get_length())
 
         self._acceleration = self._calculate_acceleration(velocity_object_ahead, delta_distance_ahead)
-        self._velocity = clamp((self._velocity + (self._acceleration * time_delta)), self._minimum_velocity,
-                               self._maximum_velocity)
+        self._speed = clamp((self._speed + (self._acceleration * time_delta)), self._minimum_velocity,
+                            self._maximum_velocity)
 
-        self._route_distance_travelled += self._velocity * time_delta
-        self._path_distance_travelled += self._velocity * time_delta
+        self._route_distance_travelled += self._speed * time_delta
+        self._path_distance_travelled += self._speed * time_delta
 
     def get_path_index(self):
         return self._path_index
@@ -90,11 +90,11 @@ class Vehicle:
         else:
             anticipation_time = 1.0
 
-        acceleration = (velocity_vehicle_ahead ** 2 - self._velocity ** 2 + 2 * self._maximum_deceleration * (
+        acceleration = (velocity_vehicle_ahead ** 2 - self._speed ** 2 + 2 * self._maximum_deceleration * (
                 anticipation_time * (
-                velocity_vehicle_ahead - self._velocity) + delta_distance_ahead - self._velocity * self._preferred_time_gap)) / (
+                velocity_vehicle_ahead - self._speed) + delta_distance_ahead - self._speed * self._preferred_time_gap)) / (
                                anticipation_time * (
-                               2 * self._maximum_deceleration * self._preferred_time_gap + self._maximum_deceleration * anticipation_time + 2 * self._velocity))
+                               2 * self._maximum_deceleration * self._preferred_time_gap + self._maximum_deceleration * anticipation_time + 2 * self._speed))
 
         return clamp(acceleration, -self._maximum_deceleration, self._maximum_acceleration)
 
@@ -126,13 +126,13 @@ class Vehicle:
         self._path_distance_travelled = path_distance_travelled
         self._path_index += 1
 
-    def get_velocity(self) -> float:
+    def get_speed(self) -> float:
         """
 
         :rtype: float
         :return: velocity of vehicle [m/s]
         """
-        return self._velocity
+        return self._speed
 
     def get_length(self) -> float:
         return self.length
@@ -157,7 +157,7 @@ class Vehicle:
         self._route_distance_travelled = distance_travelled
 
     def set_velocity(self, velocity: float) -> None:
-        self._velocity = velocity
+        self._speed = velocity
 
     def set_acceleration(self, acceleration: float) -> None:
         self._acceleration = clamp(acceleration, -self._maximum_deceleration, self._maximum_acceleration)
