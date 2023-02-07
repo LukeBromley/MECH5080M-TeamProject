@@ -434,7 +434,7 @@ class PygameGraphics:
         width = round((500 / self._surface_height) * self._surface_width)
         lattitude = 53.810705
         longitude = -1.556358
-        URL = "https://maps.googleapis.com/maps/api/staticmap?" + "center=" + str(lattitude) + "," + str(longitude) + "&zoom=" + str(20) + "&size=" + str(width) + "x" + str(500) + "&maptype=satellite&key=" + "AIzaSyB-KS2wDmUBxRpjiD5Bg82Cbr9PvsyhDtM"
+        URL = "https://maps.googleapis.com/maps/api/staticmap?" + "center=" + str(lattitude) + "," + str(longitude) + "&zoom=" + str(20) + "&size=" + str(width) + "x" + str(500) + "&maptype=satellite&key=" + "APIKEY"
         response = requests.get(URL)
         with open('background.png', 'wb') as file:
             file.write(response.content)
