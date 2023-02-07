@@ -119,12 +119,18 @@ class Vehicle:
         """
         return self._route_distance_travelled
 
+    def set_route_distance_travelled(self, distance_travelled: float) -> None:
+        self._route_distance_travelled = distance_travelled
+
     def get_path_distance_travelled(self) -> float:
         return self._path_distance_travelled
 
     def set_path_distance_travelled(self, path_distance_travelled: float):
         self._path_distance_travelled = path_distance_travelled
-        self._path_index += 1
+
+    # def reset_path_distance_travelled(self, path_distance_travelled: float):
+    #     self._path_distance_travelled = path_distance_travelled
+    #     self._path_index += 1
 
     def get_velocity(self) -> float:
         """
@@ -152,9 +158,6 @@ class Vehicle:
         :return: time gap between vehicles [s]
         """
         return self._preferred_time_gap
-
-    def set_distance_travelled(self, distance_travelled: float) -> None:
-        self._route_distance_travelled = distance_travelled
 
     def set_velocity(self, velocity: float) -> None:
         self._velocity = velocity

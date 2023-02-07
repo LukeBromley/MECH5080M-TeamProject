@@ -249,7 +249,7 @@ class Model:
                 vehicles_uids_to_remove.append(vehicle.uid)
 
             if vehicle.get_path_distance_travelled() >= path.get_length():
-                vehicle.set_path_distance_travelled(vehicle.get_path_distance_travelled() - path.get_length())
+                vehicle.reset_path_distance_travelled(vehicle.get_path_distance_travelled() - path.get_length())
 
         for vehicle_uid in vehicles_uids_to_remove:
             self.remove_vehicle(vehicle_uid)
@@ -313,6 +313,44 @@ class Model:
         vehicle = self.get_vehicle(vehicle_uid)
         route = self.get_route(vehicle.route_uid)
         return route.get_path_uid(vehicle.get_path_index())
+
+    def get_vehicle_coordinates(self, vehicle_uid):
+        vehicle = self.get_vehicle(vehicle_uid)
+        route = self.get_route(vehicle.get_route_uid())
+        path_uid = route.get_path_uid(vehicle.get_path_index())
+        path = self.get_path(path_uid)
+        path_distance_travelled = vehicle.get_path_distance_travelled()
+
+        index = floor(path_distance_travelled / path.discrete_length_increment_size)
+        return path.discrete_path[index][1], path.discrete_path[index][2]
+
+    def get_vehicle_path_curvature(self, vehicle_uid):
+        vehicle = self.get_vehicle(vehicle_uid)
+        path = self.get_path(self.get_route(vehicle.get_route_uid()).get_path_uid(vehicle.get_path_index()))
+        path_distance_travelled = vehicle.get_path_distance_travelled()
+
+        index = floor(path_distance_travelled / path.discrete_length_increment_size)
+        return path.discrete_path[index][4]
+
+    def get_vehicle_direction(self, vehicle_uid):
+        vehicle = self.get_vehicle(vehicle_uid)
+        path = self.get_path(self.get_route(vehicle.get_route_uid()).get_path_uid(vehicle.get_path_index()))
+        path_distance_travelled = vehicle.get_path_distance_travelled()
+
+        index = floor(path_distance_travelled / path.discrete_length_increment_size)
+        return path.discrete_path[index][3]
+
+    def set_vehicle_path_distance_travelled(self, vehicle_uid, path_distance_travelled: float):
+        vehicle = self.get_vehicle(vehicle_uid)
+        route = self.get_route(vehicle.route_uid)
+        route_distance = 0
+        for path_uid in route.get_path_uids()[:vehicle.get_path_index()]:
+            path = self.get_path(path_uid)
+            route_distance += path.get_length()
+
+        vehicle._path_distance_travelled = path_distance_travelled
+        vehicle._route_distance_travelled = route_distance + path_distance_travelled
+
 
     # GENERAL
     
@@ -397,29 +435,6 @@ class Model:
     def get_route_uids(self):
         return [route.uid for route in self.routes]
 
-    def get_vehicle_coordinates(self, vehicle_uid):
-        vehicle = self.get_vehicle(vehicle_uid)
-        path = self.get_path(self.get_route(vehicle.get_route_uid()).get_path_uid(vehicle.get_path_index()))
-        path_distance_travelled = vehicle.get_path_distance_travelled()
-
-        index = floor(path_distance_travelled / path.discrete_length_increment_size)
-        return path.discrete_path[index][1], path.discrete_path[index][2]
-
-    def get_curvature(self, vehicle_uid):
-        vehicle = self.get_vehicle(vehicle_uid)
-        path = self.get_path(self.get_route(vehicle.get_route_uid()).get_path_uid(vehicle.get_path_index()))
-        path_distance_travelled = vehicle.get_path_distance_travelled()
-
-        index = floor(path_distance_travelled / path.discrete_length_increment_size)
-        return path.discrete_path[index][4]
-
-    def get_angle(self, vehicle_uid):
-        vehicle = self.get_vehicle(vehicle_uid)
-        path = self.get_path(self.get_route(vehicle.get_route_uid()).get_path_uid(vehicle.get_path_index()))
-        path_distance_travelled = vehicle.get_path_distance_travelled()
-
-        index = floor(path_distance_travelled / path.discrete_length_increment_size)
-        return path.discrete_path[index][3]
 
     def get_routes_with_starting_node(self, node_uid):
         routes = []

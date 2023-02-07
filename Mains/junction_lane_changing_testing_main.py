@@ -53,7 +53,7 @@ class Simulation:
                 # print the time every 15 simulation mins
                 print(time)
 
-            if i % 200 == 0:
+            if i % 250 == 0:
                 self.add_vehicle(2, 3, 2)
 
             # Remove finished vehicles
@@ -64,9 +64,9 @@ class Simulation:
 
             for vehicle in self.model.vehicles:
                 coord_x, coord_y = self.model.get_vehicle_coordinates(vehicle.uid)
-                angle = self.model.get_angle(vehicle.uid)
+                angle = self.model.get_vehicle_direction(vehicle.uid)
 
-                if time.total_seconds() % 3 == 0:
+                if time.total_seconds() > 43200 and time.total_seconds() % 2 == 0:
 
                     if vehicle.route_uid == 2:
                         old_path_uid = self.model.get_vehicle_path_uid(vehicle.uid)
@@ -80,7 +80,7 @@ class Simulation:
                         new_path_uid = self.model.get_vehicle_path_uid(vehicle.uid)
                         new_path = self.model.get_path(new_path_uid)
                         arc_length = new_path.get_arc_length_from_s(s)
-                        vehicle.set_distance_travelled(arc_length)
+                        vehicle.set_vehicle_path_distance_travelled(arc_length)
 
                 object_ahead, delta_distance_ahead = self.model.get_object_ahead(vehicle.uid)
                 vehicle.update(self.model.tick_time, object_ahead, delta_distance_ahead)
@@ -101,7 +101,7 @@ class Simulation:
                     old_path = self.model.get_path(ghost_vehicle.path_uid)
                     from_x, from_y = old_path.get_coordinates_from_s(s)
                     to_x, to_y = self.model.get_vehicle_coordinates(ghost_vehicle.uid)
-                    angle = self.model.get_angle(ghost_vehicle.uid)
+                    angle = self.model.get_vehicle_direction(ghost_vehicle.uid)
 
                     x = (t_delta / 2000) * (to_x - from_x) + from_x
                     y = (t_delta / 2000) * (to_y - from_y) + from_y

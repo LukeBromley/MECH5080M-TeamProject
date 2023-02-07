@@ -59,9 +59,17 @@ class Path:
         return self.discrete_path[arc_length][4]
 
     def get_arc_length_from_s(self, s: float):
-        for index, discrete_point in enumerate(self.discrete_path):
-            if discrete_point[0] > s:
-                return index * self.discrete_length_increment_size
+        if s == 0:
+            return 0
+
+        for index in range(1, len(self.discrete_path)):
+            if self.discrete_path[index][0] > s:
+                pos_dif = abs(self.discrete_path[index][0] - s)
+                neg_dif = abs(self.discrete_path[index - 1][0] - s)
+                if pos_dif < neg_dif:
+                    return index * self.discrete_length_increment_size
+                else:
+                    return (index - 1) * self.discrete_length_increment_size
         return self.get_length()
 
     def get_coordinates_from_s(self, s: float):
@@ -160,9 +168,6 @@ class Path:
         c = calculate_vector_magnitude(calculate_cross_product(dR_ds, dR2_ds2)) / (calculate_vector_magnitude(dR_ds)**3)
         return c
 
-    def get_length(self):
-        return len(self.discrete_path) * self.discrete_length_increment_size
-
 
 class Route:
     def __init__(self, uid: int, path_uids: list, length: float):
@@ -175,6 +180,7 @@ class Route:
 
     def get_path_uid(self, index: int):
         return self._path_uids[index]
+
 
 class TrafficLight:
     def __init__(self, uid, path_uids: list, cycle_length: float = 12.0, cycle_green: float = 0.5) -> None:
