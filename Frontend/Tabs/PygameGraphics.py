@@ -3,6 +3,7 @@ from math import sin, cos, pi
 from PyQt5 import QtCore
 from Library.maths import clamp, VisualPoint
 from copy import deepcopy as copy
+import requests
 
 
 class VisualLabel:
@@ -56,6 +57,11 @@ class PygameGraphics:
         # Background parameters
         self.background_colour = (255, 255, 255)
 
+        # Map parameters
+        self.map_surface = None
+        self.map_surface_scaled = None
+        self._map_scale = self._scale
+
         # Grid Parameters
         self._grid_colour = (230, 230, 230)
         self._grid_range_x, self._grid_range_y = 100, 100
@@ -78,7 +84,7 @@ class PygameGraphics:
         self._path_label_colour = (0, 255, 0)
 
     # Main function for drawing paths (from renders), nodes, labels, grid etc.
-    def refresh(self, force_full_refresh, draw_grid=False, draw_hermite_paths=False, draw_nodes=False, draw_vehicles=False, draw_node_labels=False, draw_path_labels=False, draw_curvature=False, draw_lights=False) -> None:
+    def refresh(self, force_full_refresh, draw_map=False, draw_grid=False, draw_hermite_paths=False, draw_nodes=False, draw_vehicles=False, draw_node_labels=False, draw_path_labels=False, draw_curvature=False, draw_lights=False) -> None:
         """
 
         This function manages what "layers" are displayed on the pygame surface.
@@ -95,6 +101,7 @@ class PygameGraphics:
         if self._scroll_changed or force_full_refresh:
 
             self.surface.fill(self.background_colour)
+            if draw_map: self.draw_map()
             if draw_grid: self._draw_grid()
             if draw_hermite_paths: self._draw_hermite_paths(draw_curvature)
             if draw_nodes: self._draw_nodes(self.model.nodes)
@@ -419,6 +426,24 @@ class PygameGraphics:
                     red_rgb = (255, 0, 0)
                 pygame.draw.circle(self.surface, red_rgb, self._position_offsetter((node.x * 100) + position_offset, (node.y * 100) + 37), 3)
                 pygame.draw.circle(self.surface, green_rgb, self._position_offsetter((node.x * 100) + position_offset, (node.y * 100) + 60), 3)
+
+    def draw_map(self):
+        if self.map_surface is not None:
+
+            self.map_surface_scaled = pygame.transform.scale(self.map_surface, (self._surface_width * self._scale * self._map_scale, self._surface_height * self._scale * self._map_scale))
+            self.surface.blit(self.map_surface_scaled, (-self._scroll_offset_x - round(self.map_surface_scaled.get_width() / 2), -self._scroll_offset_y - round(self.map_surface_scaled.get_height() / 2)))  # paint to screen
+
+    def update_map_image(self, latitude, longitude, heading, scale, key):
+        width = round((500 / self._surface_height) * self._surface_width)
+        request_scale = 19
+        URL = "https://maps.googleapis.com/maps/api/staticmap?" + "center=" + str(longitude) + "," + str(latitude) + "&zoom=" + str(request_scale) + "&size=" + str(width) + "x" + str(500) + "&maptype=satellite&key=" + key
+        response = requests.get(URL)
+        with open('background.png', 'wb') as file:
+            file.write(response.content)
+        self.map_surface = pygame.image.load("background.png").convert()
+        self.map_surface = pygame.transform.rotate(self.map_surface, heading)
+        self._map_scale = scale
+        self.map_surface_scaled = pygame.transform.scale(self.map_surface, (self._surface_width * self._scale * self._map_scale, self._surface_height * self._scale * self._map_scale))
 
 
 class LightColour:

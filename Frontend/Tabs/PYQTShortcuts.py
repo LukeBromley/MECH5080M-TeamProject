@@ -149,7 +149,7 @@ class SpinBox(QtWidgets.QSpinBox):
 
 
 class DecimalSpinBox(QtWidgets.QDoubleSpinBox):
-    def __init__(self, parent_widget, layout=None, max=None, min=None):
+    def __init__(self, parent_widget, layout=None, max=None, min=None, number_of_decimal_places=2):
         super().__init__(parent_widget)
         if layout is not None:
             layout.addWidget(self)
@@ -157,6 +157,7 @@ class DecimalSpinBox(QtWidgets.QDoubleSpinBox):
             self.setMaximum(max)
         if min is not None:
             self.setMinimum(min)
+        self.setDecimals(number_of_decimal_places)
 
     def wheelEvent(self, event):
         event.ignore()

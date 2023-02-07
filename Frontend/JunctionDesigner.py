@@ -77,7 +77,7 @@ class DesignerMainWindow(QtWidgets.QMainWindow):
         self.tabs.addTab(self.design_tab, "Design")
 
         # View tab
-        self.view_tab = ViewTab(self, self.pygame_graphics.set_scale)
+        self.view_tab = ViewTab(self, self.pygame_graphics.set_scale, self.pygame_graphics.update_map_image)
         self.tabs.addTab(self.view_tab, "View")
 
         # Control tab
@@ -103,6 +103,7 @@ class DesignerMainWindow(QtWidgets.QMainWindow):
         """
         self.pygame_graphics.refresh(
             force_full_refresh=force_full_refresh,
+            draw_map=self.view_tab.show_layer_map,
             draw_grid=self.view_tab.show_layer_grid,
             draw_hermite_paths=self.view_tab.show_layer_hermite_paths,
             draw_nodes=self.view_tab.show_layer_nodes,
