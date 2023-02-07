@@ -68,14 +68,14 @@ class Simulation:
 
                 if time.total_seconds() > 43200 and time.total_seconds() % 2 == 0:
 
-                    if vehicle.route_uid == 2:
+                    if self.model.next_action_a_lane_change(): #if vehicle.route_uid == 2:
                         old_path_uid = self.model.get_vehicle_path_uid(vehicle.uid)
                         old_path = self.model.get_path(old_path_uid)
                         s = old_path.get_s(vehicle.get_path_distance_travelled())
 
                         self.ghost_vehicles.append(GhostVehicle(vehicle.uid, old_path_uid, time))
 
-                        vehicle.route_uid = 1
+                        self.model.change_vehicle_lane()  #vehicle.route_uid = 1
 
                         new_path_uid = self.model.get_vehicle_path_uid(vehicle.uid)
                         new_path = self.model.get_path(new_path_uid)
