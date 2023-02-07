@@ -50,15 +50,17 @@ class Simulation:
             for light in self.model.get_lights():
                 light.update(self.model.tick_time)
 
+            self.model.remove_finished_vehicles()
             coordinates = []
-            for vehicle in self.model.get_vehicles():
+            for vehicle in self.model.vehicles:
                 #new_x, new_y = self.model.get_coordinates_on_path(vehicle.uid)
                 #old_x, old_y = vehicle.position_data[-1][0], vehicle.position_data[-1][1]
                 #max_distance = vehicle.get_velocity() * self.model.tick_time
                 #visual_x = old_x + (min(max_distance, new_x-old_x))
                 #visual_y = old_y + (min(max_distance, new_y-old_y))
                 
-                coordinates.append([visual_x, visual_y])
+                coordinates.append(
+                    self.model.get_coordinates_on_path(vehicle.uid))
                 object_ahead, delta_distance_ahead = self.model.get_object_ahead(vehicle.uid)
                 vehicle.update(self.model.tick_time, object_ahead, delta_distance_ahead)
                 vehicle.update_position_data(coordinates[-1])

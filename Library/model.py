@@ -223,13 +223,6 @@ class Model:
         self.lights.pop(index)
         self.update_light_hash_table()
 
-    def get_route(self, route_uid) -> Route:
-        index = self.get_route_index(route_uid)
-        return self.routes[index]
-
-    def get_route_index(self, route_uid) -> int:
-        return self.routes_hash_table[str(route_uid)]
-
     # VEHICLES
     
     def get_vehicle(self, vehicle_uid) -> Vehicle:
@@ -239,7 +232,7 @@ class Model:
     def get_vehicle_index(self, vehicle_uid) -> int:
         return self.vehicles_hash_table[str(vehicle_uid)]
 
-    def get_vehicles(self) -> List[Vehicle]:
+    def remove_finished_vehicles(self):
         vehicles_uids_to_remove = []
         for vehicle in self.vehicles:
             route = self.get_route(vehicle.get_route_uid())
@@ -254,8 +247,6 @@ class Model:
         for vehicle_uid in vehicles_uids_to_remove:
             self.remove_vehicle(vehicle_uid)
 
-        return self.vehicles
-
     def get_object_ahead(self, vehicle_uid):
         object_ahead = None
 
@@ -266,7 +257,8 @@ class Model:
 
         # Search the current path
         min_path_distance_travelled = float('inf')
-        for that_vehicle in self.get_vehicles():
+        self.remove_finished_vehicles()
+        for that_vehicle in self.vehicles:
             that_path = self.get_path(self.get_route(that_vehicle.get_route_uid()).get_path_uid(that_vehicle.get_path_index()))
             that_vehicle_path_distance_travelled = that_vehicle.get_path_distance_travelled()
 
@@ -285,7 +277,8 @@ class Model:
             for light in self.get_lights():
                 if light.path_uids[0] == path_uid and not light.allows_traffic():
                     return light, distance_travelled_offset
-            for that_vehicle in self.get_vehicles():
+            self.remove_finished_vehicles()
+            for that_vehicle in self.vehicles:
                 that_path = self.get_path(self.get_route(that_vehicle.get_route_uid()).get_path_uid(that_vehicle.get_path_index()))
                 that_vehicle_path_distance_travelled = that_vehicle.get_path_distance_travelled()
                 if that_path.uid == path_uid and min_path_distance_travelled > that_vehicle_path_distance_travelled:
@@ -418,6 +411,14 @@ class Model:
 
         index = floor(path_distance_travelled / path.discrete_length_increment_size)
         return path.discrete_path[index][4]
+
+    def get_angle(self, vehicle_uid):
+        vehicle = self.get_vehicle(vehicle_uid)
+        path = self.get_path(self.get_route(vehicle.get_route_uid()).get_path_uid(vehicle.get_path_index()))
+        path_distance_travelled = vehicle.get_path_distance_travelled()
+
+        index = floor(path_distance_travelled / path.discrete_length_increment_size)
+        return path.discrete_path[index][3]
 
     def get_routes_with_starting_node(self, node_uid):
         routes = []

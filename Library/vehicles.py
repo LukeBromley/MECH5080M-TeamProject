@@ -33,7 +33,7 @@ class Vehicle:
         """
 
         self.uid = uid
-        self._route_uid = route_uid
+        self.route_uid = route_uid
         self.start_time = start_time
         self.position_data = []
         self._velocity = velocity
@@ -47,8 +47,8 @@ class Vehicle:
         self._route_distance_travelled = distance_travelled
         self._path_distance_travelled = 0.0
         self._preferred_time_gap = preferred_time_gap
-        self._length = length
-        self._width = width
+        self.length = length
+        self.width = width
         self._path_index = 0
         self.lane_offset = 0.0
 
@@ -64,7 +64,7 @@ class Vehicle:
             delta_distance_ahead = 100.0
         else:
             velocity_object_ahead = object_ahead.get_velocity()
-            delta_distance_ahead = delta_distance_ahead - 0.5 * (self._length + object_ahead.get_length())
+            delta_distance_ahead = delta_distance_ahead - 0.5 * (self.length + object_ahead.get_length())
 
         self._acceleration = self._calculate_acceleration(velocity_object_ahead, delta_distance_ahead)
         self._velocity = clamp((self._velocity + (self._acceleration * time_delta)), self._minimum_velocity,
@@ -72,8 +72,8 @@ class Vehicle:
 
         self._route_distance_travelled += self._velocity * time_delta
         self._path_distance_travelled += self._velocity * time_delta
-        if self._path_distance_travelled > 5 and self._route_uid != 1:
-            self._route_uid = 1
+        if self._path_distance_travelled > 5 and self.route_uid != 1:
+            self.route_uid = 1
 
     def get_path_index(self):
         return self._path_index
@@ -142,7 +142,7 @@ class Vehicle:
         return self._velocity
 
     def get_length(self) -> float:
-        return self._length
+        return self.length
 
     def get_acceleration(self) -> float:
         """
@@ -170,7 +170,7 @@ class Vehicle:
         self._acceleration = clamp(acceleration, -self._maximum_deceleration, self._maximum_acceleration)
 
     def get_route_uid(self):
-        return self._route_uid
+        return self.route_uid
 
 
 class VehicleResults:
