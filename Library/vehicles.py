@@ -128,9 +128,9 @@ class Vehicle:
     def set_path_distance_travelled(self, path_distance_travelled: float):
         self._path_distance_travelled = path_distance_travelled
 
-    # def reset_path_distance_travelled(self, path_distance_travelled: float):
-    #     self._path_distance_travelled = path_distance_travelled
-    #     self._path_index += 1
+    def increment_path(self, path_distance_travelled: float):
+        self._path_distance_travelled = path_distance_travelled
+        self._path_index += 1
 
     def get_velocity(self) -> float:
         """

@@ -80,7 +80,7 @@ class Simulation:
                         new_path_uid = self.model.get_vehicle_path_uid(vehicle.uid)
                         new_path = self.model.get_path(new_path_uid)
                         arc_length = new_path.get_arc_length_from_s(s)
-                        vehicle.set_vehicle_path_distance_travelled(arc_length)
+                        self.model.set_vehicle_path_distance_travelled(vehicle.uid, arc_length)
 
                 object_ahead, delta_distance_ahead = self.model.get_object_ahead(vehicle.uid)
                 vehicle.update(self.model.tick_time, object_ahead, delta_distance_ahead)

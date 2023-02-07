@@ -249,7 +249,7 @@ class Model:
                 vehicles_uids_to_remove.append(vehicle.uid)
 
             if vehicle.get_path_distance_travelled() >= path.get_length():
-                vehicle.reset_path_distance_travelled(vehicle.get_path_distance_travelled() - path.get_length())
+                vehicle.increment_path(vehicle.get_path_distance_travelled() - path.get_length())
 
         for vehicle_uid in vehicles_uids_to_remove:
             self.remove_vehicle(vehicle_uid)
@@ -347,7 +347,6 @@ class Model:
         for path_uid in route.get_path_uids()[:vehicle.get_path_index()]:
             path = self.get_path(path_uid)
             route_distance += path.get_length()
-
         vehicle._path_distance_travelled = path_distance_travelled
         vehicle._route_distance_travelled = route_distance + path_distance_travelled
 
