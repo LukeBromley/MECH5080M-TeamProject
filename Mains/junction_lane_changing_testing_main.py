@@ -67,26 +67,14 @@ class Simulation:
                 angle = self.model.get_vehicle_direction(vehicle.uid)
 
                 if time.total_seconds() > 43200 and time.total_seconds() % 2 == 0:
-
-                    if self.model.next_action_a_lane_change(): #if vehicle.route_uid == 2:
-                        old_path_uid = self.model.get_vehicle_path_uid(vehicle.uid)
-                        old_path = self.model.get_path(old_path_uid)
-                        s = old_path.get_s(vehicle.get_path_distance_travelled())
-
-                        self.ghost_vehicles.append(GhostVehicle(vehicle.uid, old_path_uid, time))
-
-                        self.model.change_vehicle_lane()  #vehicle.route_uid = 1
-
-                        new_path_uid = self.model.get_vehicle_path_uid(vehicle.uid)
-                        new_path = self.model.get_path(new_path_uid)
-                        arc_length = new_path.get_arc_length_from_s(s)
-                        self.model.set_vehicle_path_distance_travelled(vehicle.uid, arc_length)
+                    if self.model.next_action_a_lane_change(vehicle.uid):
+                        self.model.change_vehicle_lane(vehicle.uid, time)  #vehicle.route_uid = 1
 
                 object_ahead, delta_distance_ahead = self.model.get_object_ahead(vehicle.uid)
                 vehicle.update(self.model.tick_time, object_ahead, delta_distance_ahead)
                 vehicle.update_position_data([coord_x, coord_y])
 
-                if vehicle.uid in [ghost.uid for ghost in self.ghost_vehicles]:
+                if vehicle.uid in [ghost.uid for ghost in self.model.ghost_vehicles]:
                     coordinates_angle_size.append([coord_x, coord_y])
                 else:
                     coordinates_angle_size.append([coord_x, coord_y, angle, vehicle.length, vehicle.width, vehicle.uid])
@@ -156,5 +144,5 @@ class Simulation:
 
 
 if __name__ == "__main__":
-    sim = Simulation(os.path.join(ROOT_DIR, "Junction_Designs", "Lane_Changing_2.junc"))
+    sim = Simulation(os.path.join(ROOT_DIR, "Junction_Designs", "Lane_changing.junc"))
     sim.run()

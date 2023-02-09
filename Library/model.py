@@ -2,7 +2,7 @@ from typing import List
 from math import floor
 from .FileManagement import FileManagement
 from Library.infrastructure import Node, Path, TrafficLight, Route
-from Library.vehicles import Vehicle
+from Library.vehicles import Vehicle, GhostVehicle
 
 
 class Model:
@@ -14,6 +14,7 @@ class Model:
         self.paths = []
         self.lights = []
         self.vehicles = []
+        self.ghost_vehicles = []
 
         self.routes = []
         self.vehicle_results = []
@@ -350,7 +351,27 @@ class Model:
         vehicle._path_distance_travelled = path_distance_travelled
         vehicle._route_distance_travelled = route_distance + path_distance_travelled
 
+    def is_lane_change_required(self, vehicle_uid):
+        vehicle = self.get_vehicle(vehicle_uid)
+        route = self.get_route(vehicle.route_uid)
+        if (vehicle.get_path_index() < len(route.get_path_uids)) and (route.get_path_uid(vehicle.get_path_index()+1) in self.get_path(route.get_path_uid(vehicle.get_path_index())).parallel_paths):
+            print("Lane change required")
+            return True
+        else:
+            print("No lane change")
+            return False
 
+    def change_vehicle_lane(self, vehicle_uid, time):
+        old_path_uid = self.get_vehicle_path_uid(vehicle_uid)
+        old_path = self.get_path(old_path_uid)
+        s = old_path.get_s(self.get_vehicle(vehicle_uid).get_path_distance_travelled())
+
+        self.ghost_vehicles.append(GhostVehicle(vehicle_uid, old_path_uid, time))
+
+        new_path_uid = self.get_vehicle_path_uid(vehicle_uid)
+        new_path = self.get_path(new_path_uid)
+        arc_length = new_path.get_arc_length_from_s(s)
+        self.set_vehicle_path_distance_travelled(vehicle_uid, arc_length)
     # GENERAL
     
     def get_uid_list(self, object_list=None):
