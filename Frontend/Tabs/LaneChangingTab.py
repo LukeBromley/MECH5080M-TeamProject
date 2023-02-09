@@ -116,7 +116,7 @@ class PathWidget(QtWidgets.QWidget):
             self.other_lanes.set_ticked(str(path_uid))
 
     def connect_change(self, function) -> None:
-        self.other_lanes.currentIndexChanged.connect(function)
+        self.other_lanes.model().itemChanged.connect(function)
 
     def connect_identify(self, function) -> None:
         self.identify.pressed.connect(function)

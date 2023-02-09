@@ -19,7 +19,7 @@ class Node:
 
 
 class Path:
-    def __init__(self, uid: int, start_node_uid: int, end_node_uid: int, discrete_length_increment_size=0.01, discrete_iteration_qty=100000):
+    def __init__(self, uid: int, start_node_uid: int, end_node_uid: int, discrete_length_increment_size=0.01, discrete_iteration_qty=100000, parallel_paths: List = []):
         self.uid = uid
         self.start_node_uid = start_node_uid
         self.end_node_uid = end_node_uid
@@ -31,7 +31,7 @@ class Path:
 
         self.discrete_path = []
         self.curvature = []
-        self.parallel_paths = []
+        self.parallel_paths = parallel_paths
 
     # Gets
     def get_euclidean_distance(self, model):

@@ -248,8 +248,12 @@ class Model:
 
             if vehicle.get_route_distance_travelled() >= route.length:
                 vehicles_uids_to_remove.append(vehicle.uid)
+            
 
             if vehicle.get_path_distance_travelled() >= path.get_length():
+                #if vehicle.get_path_index() == len(self.get_route(vehicle.route_uid).get_path_uids):
+                    #vehicles_uids_to_remove.append(vehicle.uid)
+                #else:
                 vehicle.increment_path(vehicle.get_path_distance_travelled() - path.get_length())
 
         for vehicle_uid in vehicles_uids_to_remove:
@@ -452,8 +456,6 @@ class Model:
             for route in potential_routes:
                 current_route = route.copy()
                 new_start_node = (self.get_path(route[-1])).end_node_uid
-                print("Path_uid: ", self.get_path(route[-1]).uid)
-                print("\nParallel_paths: ", self.get_path(route[-1]).parallel_paths)
                 following_paths = self.get_paths_from_start_node(new_start_node)
                 following_paths += self.get_path(route[-1]).parallel_paths
                 for i, path in enumerate(following_paths):
@@ -482,6 +484,7 @@ class Model:
         for index, path_sequence in enumerate(path_sequences):
             route_length = sum([self.get_path(path_uid).get_length() for path_uid in path_sequence])
             self.routes.append(Route(index + 1, path_sequence, route_length))
+            
 
     def get_route_uids(self):
         return [route.uid for route in self.routes]

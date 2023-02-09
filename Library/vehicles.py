@@ -49,6 +49,7 @@ class Vehicle:
         self.length = length
         self.width = width
         self._path_index = 0
+        self.changing_lane = False
 
     def update(self, time_delta: float, object_ahead: "Vehicle", delta_distance_ahead: float) -> None:
         """

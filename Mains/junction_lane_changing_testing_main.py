@@ -73,9 +73,9 @@ class Simulation:
                 coord_x, coord_y = self.model.get_vehicle_coordinates(vehicle.uid)
                 angle = self.model.get_vehicle_direction(vehicle.uid)
 
-                if time.total_seconds() > 43200 and time.total_seconds() % 2 == 0:
+                if vehicle.get_path_distance_travelled() > 10 and not vehicle.changing_lane:
                     if self.model.is_lane_change_required(vehicle.uid):
-                        self.model.change_vehicle_lane(vehicle.uid, time)  #vehicle.route_uid = 1
+                        self.model.change_vehicle_lane(vehicle.uid, time)
 
                 object_ahead, delta_distance_ahead = self.model.get_object_ahead(vehicle.uid)
                 vehicle.update(self.model.tick_time, object_ahead, delta_distance_ahead)
@@ -85,8 +85,8 @@ class Simulation:
                     coordinates_angle_size.append([coord_x, coord_y])
                 else:
                     coordinates_angle_size.append([coord_x, coord_y, angle, vehicle.length, vehicle.width, vehicle.uid])
-
-            self.model.remove_ghosts(time, coordinates_angle_size)
+            if self.model.ghost_vehicles:
+                self.model.remove_ghosts(time, coordinates_angle_size)
             
             # Update visualiser
             self.visualiser.update_vehicle_positions(coordinates_angle_size)
