@@ -3,6 +3,7 @@ from math import floor
 from .FileManagement import FileManagement
 from Library.infrastructure import Node, Path, TrafficLight, Route
 from Library.vehicles import Vehicle, GhostVehicle
+from copy import deepcopy
 
 
 class Model:
@@ -435,38 +436,44 @@ class Model:
         for node in start_nodes:
             paths = self.get_paths_from_start_node(node)
             for path in paths:
+                if self.get_path(path).end_node_uid in end_nodes:
+                    path_sequences.append([path])
                 potential_routes.append([path])
         while len(potential_routes):
+            print("\n\nwhile")
             to_remove = []
-            for route in potential_routes:
-                current_route = route.copy()
-                new_start_node = (self.get_path(route[-1])).end_node_uid
+            for potential_route in potential_routes:
+                current_route = deepcopy(potential_route)
+                to_remove.append(potential_route)
+                new_start_node = (self.get_path(potential_route[-1])).end_node_uid
                 following_paths = self.get_paths_from_start_node(new_start_node)
-                following_paths += self.get_path(route[-1]).parallel_paths
+                following_paths += self.get_path(potential_route[-1]).parallel_paths
                 for i, path in enumerate(following_paths):
-                    if path not in route:
-                        if i == 0:
-                            route.append(path)
-                        else:
-                            new_route = current_route.copy()
-                            new_route.append(path)
-                            potential_routes.append(new_route)
-                    elif i == 0:
-                        to_remove.append(route)
+                    if path not in potential_route:
+                        new_route = deepcopy(current_route)
+                        new_route.append(path)
+                        potential_routes.append(new_route)
 
-            for route in potential_routes:
-                if (self.get_path(route[-1])).end_node_uid in end_nodes:
-                    shorter_path = False
+            for save_route in potential_routes:
+                if (self.get_path(save_route[-1])).end_node_uid in end_nodes:   
+                    better_path = False
                     for existing_route in path_sequences:
-                        if (self.get_path(existing_route[0]).start_node_uid) == (self.get_path(route[0]).start_node_uid) and (self.get_path(existing_route[-1]).end_node_uid) == (self.get_path(route[-1]).end_node_uid):
-                            shorter_path = True
-                    if shorter_path == False:
-                        path_sequences.append(route)
-                    to_remove.append(route)
-            for route in to_remove:
-                potential_routes.remove(route)
+                        print(save_route, existing_route)
+                        if (self.get_path(existing_route[0]).start_node_uid) == (self.get_path(save_route[0]).start_node_uid) and (self.get_path(existing_route[-1]).end_node_uid) == (self.get_path(save_route[-1]).end_node_uid):
+                            better_path = True
+                    print(save_route, better_path, path_sequences)
+                    if better_path == False and save_route not in path_sequences:
+                        print("appending")
+                        path_sequences.append(save_route)
+                    if not (self.get_path(save_route[-1])).parallel_paths:
+                        to_remove.append(save_route)
+            for remove_route in to_remove:
+                potential_routes.remove(remove_route)
+            print("\n", path_sequences)
+            print("\n", potential_routes)
+        print("complete")
         for index, path_sequence in enumerate(path_sequences):
-            print(path_sequence)
+            print("-",path_sequence)
             route_length = sum([self.get_path(path_uid).get_length() for path_uid in path_sequence])
             self.routes.append(Route(index + 1, path_sequence, route_length))
             
