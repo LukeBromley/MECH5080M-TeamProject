@@ -354,6 +354,7 @@ class Model:
     def is_lane_change_required(self, vehicle_uid):
         vehicle = self.get_vehicle(vehicle_uid)
         route = self.get_route(vehicle.route_uid)
+        print(route.get_path_uids())
         if (vehicle.get_path_index() < (len(route.get_path_uids())-1)) and (route.get_path_uid(vehicle.get_path_index()+1) in self.get_path(route.get_path_uid(vehicle.get_path_index())).parallel_paths):
             print("Lane change required")
             return True
@@ -451,6 +452,8 @@ class Model:
             for route in potential_routes:
                 current_route = route.copy()
                 new_start_node = (self.get_path(route[-1])).end_node_uid
+                print("Path_uid: ", self.get_path(route[-1]).uid)
+                print("\nParallel_paths: ", self.get_path(route[-1]).parallel_paths)
                 following_paths = self.get_paths_from_start_node(new_start_node)
                 following_paths += self.get_path(route[-1]).parallel_paths
                 for i, path in enumerate(following_paths):

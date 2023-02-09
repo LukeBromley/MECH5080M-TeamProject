@@ -45,6 +45,10 @@ class Simulation:
         self.ghost_vehicles = []
 
     def main(self):
+        #for route in self.model.routes:
+            #print("Route_uid =", route.uid)
+            #print("\nPaths =", route.get_path_uids())
+            #print("\n\n")
         for i in range(8640000):  # 24 simulation hours
 
             # Current Time
@@ -53,8 +57,11 @@ class Simulation:
                 # print the time every 15 simulation mins
                 print(time)
 
-            if i % 250 == 0:
-                self.add_vehicle(2, 3, 2)
+            time = self.model.calculate_time_of_day()
+            for index, node_uid in enumerate(self.model.calculate_start_nodes()):
+                if self.spawning[index].nudge(time):
+                    route_uid = self.spawning[index].select_route(self.model.get_routes_with_starting_node(node_uid))
+                    self.add_vehicle(route_uid, 2, 2)
 
             # Remove finished vehicles
             self.remove_finished_vehicles()
