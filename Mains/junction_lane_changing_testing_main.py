@@ -67,7 +67,7 @@ class Simulation:
                 angle = self.model.get_vehicle_direction(vehicle.uid)
 
                 if time.total_seconds() > 43200 and time.total_seconds() % 2 == 0:
-                    if self.model.next_action_a_lane_change(vehicle.uid):
+                    if self.model.is_lane_change_required(vehicle.uid):
                         self.model.change_vehicle_lane(vehicle.uid, time)  #vehicle.route_uid = 1
 
                 object_ahead, delta_distance_ahead = self.model.get_object_ahead(vehicle.uid)
@@ -79,31 +79,8 @@ class Simulation:
                 else:
                     coordinates_angle_size.append([coord_x, coord_y, angle, vehicle.length, vehicle.width, vehicle.uid])
 
-            ghost_vehicle_uids_to_remove = []
-            for ghost_vehicle in self.ghost_vehicles:
-                t_delta = time.total_milliseconds() - ghost_vehicle.time_created.total_milliseconds()
-                if t_delta < 2000:
-                    new_path = self.model.get_path(self.model.get_vehicle_path_uid(ghost_vehicle.uid))
-                    vehicle = self.model.get_vehicle(ghost_vehicle.uid)
-                    s = new_path.get_s(vehicle.get_path_distance_travelled())
-                    old_path = self.model.get_path(ghost_vehicle.path_uid)
-                    from_x, from_y = old_path.get_coordinates_from_s(s)
-                    to_x, to_y = self.model.get_vehicle_coordinates(ghost_vehicle.uid)
-                    angle = self.model.get_vehicle_direction(ghost_vehicle.uid)
-
-                    x = (t_delta / 2000) * (to_x - from_x) + from_x
-                    y = (t_delta / 2000) * (to_y - from_y) + from_y
-
-                    coordinates_angle_size.append([x, y, angle, vehicle.length, vehicle.width, vehicle.uid])
-                else:
-                    ghost_vehicle_uids_to_remove.append(ghost_vehicle.uid)
-
-            for ghost_vehicle_uid in ghost_vehicle_uids_to_remove:
-                for index, ghost_vehicle in enumerate(self.ghost_vehicles):
-                    if ghost_vehicle.uid == ghost_vehicle_uid:
-                        self.ghost_vehicles.pop(index)
-                        break
-
+            self.model.remove_ghosts(time, coordinates_angle_size)
+            
             # Update visualiser
             self.visualiser.update_vehicle_positions(coordinates_angle_size)
             self.visualiser.update_light_colours(self.model.lights)

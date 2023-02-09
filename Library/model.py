@@ -354,7 +354,7 @@ class Model:
     def is_lane_change_required(self, vehicle_uid):
         vehicle = self.get_vehicle(vehicle_uid)
         route = self.get_route(vehicle.route_uid)
-        if (vehicle.get_path_index() < len(route.get_path_uids)) and (route.get_path_uid(vehicle.get_path_index()+1) in self.get_path(route.get_path_uid(vehicle.get_path_index())).parallel_paths):
+        if (vehicle.get_path_index() < (len(route.get_path_uids())-1)) and (route.get_path_uid(vehicle.get_path_index()+1) in self.get_path(route.get_path_uid(vehicle.get_path_index())).parallel_paths):
             print("Lane change required")
             return True
         else:
@@ -372,6 +372,32 @@ class Model:
         new_path = self.get_path(new_path_uid)
         arc_length = new_path.get_arc_length_from_s(s)
         self.set_vehicle_path_distance_travelled(vehicle_uid, arc_length)
+
+    def remove_ghosts(self, time, coordinates_angle_size):
+        ghost_vehicle_uids_to_remove = []
+        for ghost_vehicle in self.ghost_vehicles:
+            t_delta = time.total_milliseconds() - ghost_vehicle.time_created.total_milliseconds()
+            if t_delta < 2000:
+                new_path = self.get_path(self.get_vehicle_path_uid(ghost_vehicle.uid))
+                vehicle = self.get_vehicle(ghost_vehicle.uid)
+                s = new_path.get_s(vehicle.get_path_distance_travelled())
+                old_path = self.get_path(ghost_vehicle.path_uid)
+                from_x, from_y = old_path.get_coordinates_from_s(s)
+                to_x, to_y = self.get_vehicle_coordinates(ghost_vehicle.uid)
+                angle = self.get_vehicle_direction(ghost_vehicle.uid)
+
+                x = (t_delta / 2000) * (to_x - from_x) + from_x
+                y = (t_delta / 2000) * (to_y - from_y) + from_y
+
+                coordinates_angle_size.append([x, y, angle, vehicle.length, vehicle.width, vehicle.uid])
+            else:
+                ghost_vehicle_uids_to_remove.append(ghost_vehicle.uid)
+        
+        for ghost_vehicle_uid in ghost_vehicle_uids_to_remove:
+                for index, ghost_vehicle in enumerate(self.ghost_vehicles):
+                    if ghost_vehicle.uid == ghost_vehicle_uid:
+                        self.ghost_vehicles.pop(index)
+                        break
     # GENERAL
     
     def get_uid_list(self, object_list=None):
@@ -426,16 +452,18 @@ class Model:
                 current_route = route.copy()
                 new_start_node = (self.get_path(route[-1])).end_node_uid
                 following_paths = self.get_paths_from_start_node(new_start_node)
-                for k, path in enumerate(following_paths):
+                following_paths += self.get_path(route[-1]).parallel_paths
+                for i, path in enumerate(following_paths):
                     if path not in route:
-                        if k == 0:
+                        if i == 0:
                             route.append(path)
                         else:
                             new_route = current_route.copy()
                             new_route.append(path)
                             potential_routes.append(new_route)
-                    elif k == 0:
+                    elif i == 0:
                         to_remove.append(route)
+
             for route in potential_routes:
                 if (self.get_path(route[-1])).end_node_uid in end_nodes:
                     shorter_path = False
