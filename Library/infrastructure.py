@@ -194,7 +194,6 @@ class TrafficLight:
 
         self.uid = uid
         self.path_uids = path_uids  # was path_uids[0]. Vilius needs to fix this on his end.
-        self.route_distance_travelled = None
         self.colour = "green"
         self.cycle_time = 0.0
 

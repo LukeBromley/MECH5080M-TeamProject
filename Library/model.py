@@ -246,15 +246,11 @@ class Model:
             route = self.get_route(vehicle.get_route_uid())
             path = self.get_path(route.get_path_uid(vehicle.get_path_index()))
 
-            if vehicle.get_route_distance_travelled() >= route.length:
-                vehicles_uids_to_remove.append(vehicle.uid)
-            
-
             if vehicle.get_path_distance_travelled() >= path.get_length():
-                #if vehicle.get_path_index() == len(self.get_route(vehicle.route_uid).get_path_uids):
-                    #vehicles_uids_to_remove.append(vehicle.uid)
-                #else:
-                vehicle.increment_path(vehicle.get_path_distance_travelled() - path.get_length())
+                if vehicle.get_path_index() >= len(self.get_route(vehicle.route_uid).get_path_uids())-1:
+                    vehicles_uids_to_remove.append(vehicle.uid)
+                else:
+                    vehicle.increment_path(vehicle.get_path_distance_travelled() - path.get_length())
 
         for vehicle_uid in vehicles_uids_to_remove:
             self.remove_vehicle(vehicle_uid)
@@ -345,25 +341,12 @@ class Model:
         index = floor(path_distance_travelled / path.discrete_length_increment_size)
         return path.discrete_path[index][3]
 
-    def set_vehicle_path_distance_travelled(self, vehicle_uid, path_distance_travelled: float):
-        vehicle = self.get_vehicle(vehicle_uid)
-        route = self.get_route(vehicle.route_uid)
-        route_distance = 0
-        for path_uid in route.get_path_uids()[:vehicle.get_path_index()]:
-            path = self.get_path(path_uid)
-            route_distance += path.get_length()
-        vehicle._path_distance_travelled = path_distance_travelled
-        vehicle._route_distance_travelled = route_distance + path_distance_travelled
-
     def is_lane_change_required(self, vehicle_uid):
         vehicle = self.get_vehicle(vehicle_uid)
         route = self.get_route(vehicle.route_uid)
-        print(route.get_path_uids())
         if (vehicle.get_path_index() < (len(route.get_path_uids())-1)) and (route.get_path_uid(vehicle.get_path_index()+1) in self.get_path(route.get_path_uid(vehicle.get_path_index())).parallel_paths):
-            print("Lane change required")
             return True
         else:
-            print("No lane change")
             return False
 
     def change_vehicle_lane(self, vehicle_uid, time):
@@ -376,13 +359,13 @@ class Model:
         new_path_uid = self.get_vehicle_path_uid(vehicle_uid)
         new_path = self.get_path(new_path_uid)
         arc_length = new_path.get_arc_length_from_s(s)
-        self.set_vehicle_path_distance_travelled(vehicle_uid, arc_length)
+        self.get_vehicle(vehicle_uid).increment_path(arc_length)
 
     def remove_ghosts(self, time, coordinates_angle_size):
         ghost_vehicle_uids_to_remove = []
         for ghost_vehicle in self.ghost_vehicles:
             t_delta = time.total_milliseconds() - ghost_vehicle.time_created.total_milliseconds()
-            if t_delta < 2000:
+            if t_delta < 1000:
                 new_path = self.get_path(self.get_vehicle_path_uid(ghost_vehicle.uid))
                 vehicle = self.get_vehicle(ghost_vehicle.uid)
                 s = new_path.get_s(vehicle.get_path_distance_travelled())
@@ -391,8 +374,8 @@ class Model:
                 to_x, to_y = self.get_vehicle_coordinates(ghost_vehicle.uid)
                 angle = self.get_vehicle_direction(ghost_vehicle.uid)
 
-                x = (t_delta / 2000) * (to_x - from_x) + from_x
-                y = (t_delta / 2000) * (to_y - from_y) + from_y
+                x = (t_delta / 1000) * (to_x - from_x) + from_x
+                y = (t_delta / 1000) * (to_y - from_y) + from_y
 
                 coordinates_angle_size.append([x, y, angle, vehicle.length, vehicle.width, vehicle.uid])
             else:

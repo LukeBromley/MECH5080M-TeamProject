@@ -43,7 +43,6 @@ class Vehicle:
         self._maximum_deceleration = maximum_deceleration
         self._maximum_velocity = maximum_velocity
         self._minimum_velocity = minimum_velocity
-        self._route_distance_travelled = distance_travelled
         self._path_distance_travelled = 0.0
         self._preferred_time_gap = preferred_time_gap
         self.length = length
@@ -69,7 +68,6 @@ class Vehicle:
         self._velocity = clamp((self._velocity + (self._acceleration * time_delta)), self._minimum_velocity,
                                self._maximum_velocity)
 
-        self._route_distance_travelled += self._velocity * time_delta
         self._path_distance_travelled += self._velocity * time_delta
 
     def get_path_index(self):
@@ -111,17 +109,6 @@ class Vehicle:
             distance = sqrt(sum(pow(x, 2) for x in vehicle.position_data[-1]))
             if distance < self._sensing_radius:
                 nearby_vehicles.append(vehicle)
-
-    def get_route_distance_travelled(self) -> float:
-        """
-
-        :rtype: float
-        :return: distanced travelled along path [m]
-        """
-        return self._route_distance_travelled
-
-    def set_route_distance_travelled(self, distance_travelled: float) -> None:
-        self._route_distance_travelled = distance_travelled
 
     def get_path_distance_travelled(self) -> float:
         return self._path_distance_travelled
