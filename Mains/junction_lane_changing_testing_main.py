@@ -95,7 +95,7 @@ class Simulation:
 
             # Increment Time
             self.model.tock()
-            sleep((self.model.tick_time)/3)
+            sleep((self.model.tick_time)/5)
 
     def run(self):
         self.visualiser.open()
@@ -128,5 +128,5 @@ class Simulation:
 
 
 if __name__ == "__main__":
-    sim = Simulation(os.path.join(ROOT_DIR, "Junction_Designs", "Lane_changing.junc"))
+    sim = Simulation(os.path.join(ROOT_DIR, "Junction_Designs", "example_junction_with_lanes.junc"))
     sim.run()

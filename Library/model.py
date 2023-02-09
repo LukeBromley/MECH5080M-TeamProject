@@ -440,7 +440,6 @@ class Model:
                     path_sequences.append([path])
                 potential_routes.append([path])
         while len(potential_routes):
-            print("\n\nwhile")
             to_remove = []
             for potential_route in potential_routes:
                 current_route = deepcopy(potential_route)
@@ -458,22 +457,17 @@ class Model:
                 if (self.get_path(save_route[-1])).end_node_uid in end_nodes:   
                     better_path = False
                     for existing_route in path_sequences:
-                        print(save_route, existing_route)
                         if (self.get_path(existing_route[0]).start_node_uid) == (self.get_path(save_route[0]).start_node_uid) and (self.get_path(existing_route[-1]).end_node_uid) == (self.get_path(save_route[-1]).end_node_uid):
-                            better_path = True
-                    print(save_route, better_path, path_sequences)
+                            if len(save_route) > len(existing_route):
+                                better_path = True
                     if better_path == False and save_route not in path_sequences:
-                        print("appending")
                         path_sequences.append(save_route)
                     if not (self.get_path(save_route[-1])).parallel_paths:
                         to_remove.append(save_route)
             for remove_route in to_remove:
-                potential_routes.remove(remove_route)
-            print("\n", path_sequences)
-            print("\n", potential_routes)
-        print("complete")
+                if remove_route in potential_routes:
+                    potential_routes.remove(remove_route)
         for index, path_sequence in enumerate(path_sequences):
-            print("-",path_sequence)
             route_length = sum([self.get_path(path_uid).get_length() for path_uid in path_sequence])
             self.routes.append(Route(index + 1, path_sequence, route_length))
             
