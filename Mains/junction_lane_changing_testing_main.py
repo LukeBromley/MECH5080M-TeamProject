@@ -73,7 +73,7 @@ class Simulation:
                 coord_x, coord_y = self.model.get_vehicle_coordinates(vehicle.uid)
                 angle = self.model.get_vehicle_direction(vehicle.uid)
 
-                if vehicle.get_path_distance_travelled() > 7 and not vehicle.changing_lane:
+                if vehicle.get_path_distance_travelled() > 0 and not vehicle.changing_lane:
                     if self.model.is_lane_change_required(vehicle.uid):
                         self.model.change_vehicle_lane(vehicle.uid, time)
 

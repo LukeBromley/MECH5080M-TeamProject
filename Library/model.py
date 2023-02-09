@@ -41,9 +41,10 @@ class Model:
         self.update_hash_tables()
         for path in self.paths:
             path.calculate_all(self)
-
-        self.generate_routes()
+        
         self.update_route_hash_table()
+
+        
 
     def save_junction(self, junction_file_location):
         self.file_manager.save_to_junction_file(
@@ -426,6 +427,7 @@ class Model:
         start_nodes = self.calculate_start_nodes()
         end_nodes = self.calculate_end_nodes()
         self.find_routes(start_nodes, end_nodes)
+        self.update_route_hash_table()
 
     def find_routes(self, start_nodes, end_nodes):
         path_sequences = []
@@ -463,8 +465,8 @@ class Model:
                     to_remove.append(route)
             for route in to_remove:
                 potential_routes.remove(route)
-
         for index, path_sequence in enumerate(path_sequences):
+            print(path_sequence)
             route_length = sum([self.get_path(path_uid).get_length() for path_uid in path_sequence])
             self.routes.append(Route(index + 1, path_sequence, route_length))
             
