@@ -71,7 +71,7 @@ class Simulation:
             coordinates_angle_size = []
             for vehicle in self.model.vehicles:
                 coord_x, coord_y = self.model.get_coordinates(vehicle.uid)
-                angle = self.model.get_angle(vehicle.uid)
+                angle = self.model.get_vehicle_direction(vehicle.uid)
 
                 object_ahead, delta_distance_ahead = self.model.get_object_ahead(vehicle.uid)
                 vehicle.update(self.model.tick_time, object_ahead, delta_distance_ahead)
@@ -204,5 +204,5 @@ class Simulation:
 
 
 if __name__ == "__main__":
-    sim = Simulation(os.path.join(ROOT_DIR, "Junction_Designs", "roundabout4.junc"))
+    sim = Simulation(os.path.join(ROOT_DIR, "Junction_Designs", "example_junction.junc"))
     sim.run()

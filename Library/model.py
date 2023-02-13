@@ -4,7 +4,8 @@ from typing import List
 from math import floor
 from .FileManagement import FileManagement
 from Library.infrastructure import Node, Path, TrafficLight, Route
-from Library.vehicles import Vehicle
+from Library.vehicles import Vehicle, GhostVehicle
+from copy import deepcopy
 
 
 class Model:
@@ -16,6 +17,7 @@ class Model:
         self.paths = []
         self.lights = []
         self.vehicles = []
+        self.ghost_vehicles = []
 
         self.routes = []
         self.vehicle_results = []
@@ -37,8 +39,7 @@ class Model:
     # SAVING AND LOADING DATA
 
     def load_junction(self, junction_file_location, quick_load=False):
-        self.nodes, self.paths, self.lights = self.file_manager.load_from_junction_file(junction_file_location,
-                                                                                        quick_load=quick_load)
+        self.nodes, self.paths, self.lights = self.file_manager.load_from_junction_file(junction_file_location, quick_load=quick_load)
 
         self.update_hash_tables()
         for path in self.paths:
@@ -165,7 +166,7 @@ class Model:
             if path.start_node_uid == node_uid:
                 paths.append(path.uid)
         return paths
-
+    
     # PATHS
 
     def get_path(self, path_uid) -> Path:
@@ -201,7 +202,7 @@ class Model:
         self.update_path_hash_table()
 
     # LIGHTS
-
+    
     def get_light(self, light_uid) -> TrafficLight:
         index = self.get_light_index(light_uid)
         return self.lights[index]
@@ -256,10 +257,12 @@ class Model:
                 if vehicle.get_path_index() + 1 == len(route.get_path_uids()):
                     vehicles_uids_to_remove.append(vehicle.uid)
                 else:
-                    vehicle.set_path_distance_travelled(vehicle.get_path_distance_travelled() - path.get_length())
+                    vehicle.increment_path(vehicle.get_path_distance_travelled() - path.get_length())
 
         for vehicle_uid in vehicles_uids_to_remove:
             self.remove_vehicle(vehicle_uid)
+
+        return vehicles_uids_to_remove
 
     def get_object_ahead(self, vehicle_uid):
         object_ahead = None
@@ -271,10 +274,8 @@ class Model:
 
         # Search the current path
         min_path_distance_travelled = float('inf')
-
         for that_vehicle in self.vehicles:
-            that_path = self.get_path(
-                self.get_route(that_vehicle.get_route_uid()).get_path_uid(that_vehicle.get_path_index()))
+            that_path = self.get_path(self.get_route(that_vehicle.get_route_uid()).get_path_uid(that_vehicle.get_path_index()))
             that_vehicle_path_distance_travelled = that_vehicle.get_path_distance_travelled()
 
             if that_path.uid == this_path.uid and min_path_distance_travelled > that_vehicle_path_distance_travelled > this_vehicle_path_distance_travelled:
@@ -294,8 +295,7 @@ class Model:
                     return light, distance_travelled_offset
 
             for that_vehicle in self.vehicles:
-                that_path = self.get_path(
-                    self.get_route(that_vehicle.get_route_uid()).get_path_uid(that_vehicle.get_path_index()))
+                that_path = self.get_path(self.get_route(that_vehicle.get_route_uid()).get_path_uid(that_vehicle.get_path_index()))
                 that_vehicle_path_distance_travelled = that_vehicle.get_path_distance_travelled()
                 if that_path.uid == path_uid and min_path_distance_travelled > that_vehicle_path_distance_travelled:
                     min_path_distance_travelled = that_vehicle_path_distance_travelled
@@ -318,8 +318,84 @@ class Model:
         self.vehicles.pop(index)
         self.update_vehicle_hash_table()
 
-    # GENERAL
+    def get_vehicle_path_uid(self, vehicle_uid):
+        vehicle = self.get_vehicle(vehicle_uid)
+        route = self.get_route(vehicle.route_uid)
+        return route.get_path_uid(vehicle.get_path_index())
 
+    def get_vehicle_coordinates(self, vehicle_uid):
+        vehicle = self.get_vehicle(vehicle_uid)
+        route = self.get_route(vehicle.get_route_uid())
+        path_uid = route.get_path_uid(vehicle.get_path_index())
+        path = self.get_path(path_uid)
+        path_distance_travelled = vehicle.get_path_distance_travelled()
+
+        index = floor(path_distance_travelled / path.discrete_length_increment_size)
+        return path.discrete_path[index][1], path.discrete_path[index][2]
+
+    def get_vehicle_path_curvature(self, vehicle_uid):
+        vehicle = self.get_vehicle(vehicle_uid)
+        path = self.get_path(self.get_route(vehicle.get_route_uid()).get_path_uid(vehicle.get_path_index()))
+        path_distance_travelled = vehicle.get_path_distance_travelled()
+
+        index = floor(path_distance_travelled / path.discrete_length_increment_size)
+        return path.discrete_path[index][4]
+
+    def get_vehicle_direction(self, vehicle_uid):
+        vehicle = self.get_vehicle(vehicle_uid)
+        path = self.get_path(self.get_route(vehicle.get_route_uid()).get_path_uid(vehicle.get_path_index()))
+        path_distance_travelled = vehicle.get_path_distance_travelled()
+
+        index = floor(path_distance_travelled / path.discrete_length_increment_size)
+        return path.discrete_path[index][3]
+
+    def is_lane_change_required(self, vehicle_uid):
+        vehicle = self.get_vehicle(vehicle_uid)
+        route = self.get_route(vehicle.route_uid)
+        if (vehicle.get_path_index() < (len(route.get_path_uids())-1)) and (route.get_path_uid(vehicle.get_path_index()+1) in self.get_path(route.get_path_uid(vehicle.get_path_index())).parallel_paths):
+            return True
+        else:
+            return False
+
+    def change_vehicle_lane(self, vehicle_uid, time):
+        old_path_uid = self.get_vehicle_path_uid(vehicle_uid)
+        old_path = self.get_path(old_path_uid)
+        s = old_path.get_s(self.get_vehicle(vehicle_uid).get_path_distance_travelled())
+
+        self.ghost_vehicles.append(GhostVehicle(vehicle_uid, old_path_uid, time))
+
+        new_path_uid = self.get_vehicle_path_uid(vehicle_uid)
+        new_path = self.get_path(new_path_uid)
+        arc_length = new_path.get_arc_length_from_s(s)
+        self.get_vehicle(vehicle_uid).increment_path(arc_length)
+
+    def remove_ghosts(self, time, coordinates_angle_size):
+        ghost_vehicle_uids_to_remove = []
+        for ghost_vehicle in self.ghost_vehicles:
+            t_delta = time.total_milliseconds() - ghost_vehicle.time_created.total_milliseconds()
+            if t_delta < 1000:
+                new_path = self.get_path(self.get_vehicle_path_uid(ghost_vehicle.uid))
+                vehicle = self.get_vehicle(ghost_vehicle.uid)
+                s = new_path.get_s(vehicle.get_path_distance_travelled())
+                old_path = self.get_path(ghost_vehicle.path_uid)
+                from_x, from_y = old_path.get_coordinates_from_s(s)
+                to_x, to_y = self.get_vehicle_coordinates(ghost_vehicle.uid)
+                angle = self.get_vehicle_direction(ghost_vehicle.uid)
+
+                x = (t_delta / 1000) * (to_x - from_x) + from_x
+                y = (t_delta / 1000) * (to_y - from_y) + from_y
+
+                coordinates_angle_size.append([x, y, angle, vehicle.length, vehicle.width, vehicle.uid])
+            else:
+                ghost_vehicle_uids_to_remove.append(ghost_vehicle.uid)
+
+        for ghost_vehicle_uid in ghost_vehicle_uids_to_remove:
+                for index, ghost_vehicle in enumerate(self.ghost_vehicles):
+                    if ghost_vehicle.uid == ghost_vehicle_uid:
+                        self.ghost_vehicles.pop(index)
+                        break
+    # GENERAL
+    
     def get_uid_list(self, object_list=None):
         if object_list is None:
             object_list = []
@@ -358,6 +434,7 @@ class Model:
         start_nodes = self.calculate_start_nodes()
         end_nodes = self.calculate_end_nodes()
         self.find_routes(start_nodes, end_nodes)
+        self.update_route_hash_table()
 
     def find_routes(self, start_nodes, end_nodes):
         path_sequences = []
@@ -365,38 +442,41 @@ class Model:
         for node in start_nodes:
             paths = self.get_paths_from_start_node(node)
             for path in paths:
+                if self.get_path(path).end_node_uid in end_nodes:
+                    path_sequences.append([path])
                 potential_routes.append([path])
         while len(potential_routes):
             to_remove = []
-            for route in potential_routes:
-                current_route = route.copy()
-                new_start_node = (self.get_path(route[-1])).end_node_uid
+            for potential_route in potential_routes:
+                current_route = deepcopy(potential_route)
+                to_remove.append(potential_route)
+                new_start_node = (self.get_path(potential_route[-1])).end_node_uid
                 following_paths = self.get_paths_from_start_node(new_start_node)
-                for k, path in enumerate(following_paths):
-                    if path not in route:
-                        if k == 0:
-                            route.append(path)
-                        else:
-                            new_route = current_route.copy()
-                            new_route.append(path)
-                            potential_routes.append(new_route)
-                    elif k == 0:
-                        to_remove.append(route)
-            for route in potential_routes:
-                if (self.get_path(route[-1])).end_node_uid in end_nodes:
-                    shorter_path = False
-                    for existing_route in path_sequences:
-                        if (self.get_path(existing_route[0]).start_node_uid) == (
-                        self.get_path(route[0]).start_node_uid) and (
-                        self.get_path(existing_route[-1]).end_node_uid) == (self.get_path(route[-1]).end_node_uid):
-                            shorter_path = True
-                    if shorter_path == False:
-                        path_sequences.append(route)
-                    to_remove.append(route)
-            for route in to_remove:
-                potential_routes.remove(route)
+                following_paths += self.get_path(potential_route[-1]).parallel_paths
+                for i, path in enumerate(following_paths):
+                    if path not in potential_route:
+                        new_route = deepcopy(current_route)
+                        new_route.append(path)
+                        potential_routes.append(new_route)
 
-        self.routes = [Route(index + 1, path_sequence) for index, path_sequence in enumerate(path_sequences)]
+            for save_route in potential_routes:
+                if (self.get_path(save_route[-1])).end_node_uid in end_nodes:
+                    better_path = False
+                    for existing_route in path_sequences:
+                        if (self.get_path(existing_route[0]).start_node_uid) == (self.get_path(save_route[0]).start_node_uid) and (self.get_path(existing_route[-1]).end_node_uid) == (self.get_path(save_route[-1]).end_node_uid):
+                            if len(save_route) > len(existing_route):
+                                better_path = True
+                    if better_path == False and save_route not in path_sequences:
+                        path_sequences.append(save_route)
+                    if not (self.get_path(save_route[-1])).parallel_paths:
+                        to_remove.append(save_route)
+            for remove_route in to_remove:
+                if remove_route in potential_routes:
+                    potential_routes.remove(remove_route)
+        for index, path_sequence in enumerate(path_sequences):
+            route_length = sum([self.get_path(path_uid).get_length() for path_uid in path_sequence])
+            self.routes.append(Route(index + 1, path_sequence, route_length))
+
 
     def get_route_uids(self):
         return [route.uid for route in self.routes]

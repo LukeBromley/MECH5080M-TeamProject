@@ -19,7 +19,7 @@ class Node:
 
 
 class Path:
-    def __init__(self, uid: int, start_node_uid: int, end_node_uid: int, discrete_length_increment_size=0.01, discrete_iteration_qty=100000):
+    def __init__(self, uid: int, start_node_uid: int, end_node_uid: int, discrete_length_increment_size=0.01, discrete_iteration_qty=100000, parallel_paths: List = []):
         self.uid = uid
         self.start_node_uid = start_node_uid
         self.end_node_uid = end_node_uid
@@ -31,7 +31,7 @@ class Path:
 
         self.discrete_path = []
         self.curvature = []
-        self.parallel_paths = []
+        self.parallel_paths = parallel_paths
 
     # Gets
     def get_euclidean_distance(self, model):
@@ -58,6 +58,26 @@ class Path:
         arc_length = round(arc_length / self.discrete_length_increment_size)
         return self.discrete_path[arc_length][4]
 
+    def get_arc_length_from_s(self, s: float):
+        if s == 0:
+            return 0
+
+        for index in range(1, len(self.discrete_path)):
+            if self.discrete_path[index][0] > s:
+                pos_dif = abs(self.discrete_path[index][0] - s)
+                neg_dif = abs(self.discrete_path[index - 1][0] - s)
+                if pos_dif < neg_dif:
+                    return index * self.discrete_length_increment_size
+                else:
+                    return (index - 1) * self.discrete_length_increment_size
+        return self.get_length()
+
+    def get_coordinates_from_s(self, s: float):
+        for index, discrete_point in enumerate(self.discrete_path):
+            if discrete_point[0] > s:
+                return discrete_point[1], discrete_point[2]
+        return self.discrete_path[-1][1], self.discrete_path[-1][2]
+
     def get_all_s(self):
         return [point[0] for point in self.discrete_path]
 
@@ -69,6 +89,9 @@ class Path:
 
     def get_all_curvature(self):
         return [point[4] for point in self.discrete_path]
+
+    def get_length(self):
+        return (len(self.discrete_path) - 1) * self.discrete_length_increment_size
 
     # Discrete Calculations
 
@@ -145,9 +168,6 @@ class Path:
         c = calculate_vector_magnitude(calculate_cross_product(dR_ds, dR2_ds2)) / (calculate_vector_magnitude(dR_ds)**3)
         return c
 
-    def get_length(self):
-        return len(self.discrete_path) * self.discrete_length_increment_size
-
 
 class Route:
     def __init__(self, uid: int, path_uids: list):
@@ -159,6 +179,7 @@ class Route:
 
     def get_path_uid(self, index: int):
         return self._path_uids[index]
+
 
 class TrafficLight:
     def __init__(self, uid, path_uids: list, cycle_length: float = 12.0, cycle_green: float = 0.25) -> None:
@@ -172,7 +193,6 @@ class TrafficLight:
 
         self.uid = uid
         self.path_uids = path_uids  # was path_uids[0]. Vilius needs to fix this on his end.
-        self.route_distance_travelled = None
         self.colour = "green"
         self.cycle_time = 0.0
 

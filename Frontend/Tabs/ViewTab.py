@@ -4,7 +4,7 @@ from PyQt5.QtWidgets import QFileDialog
 
 
 class ViewTab(QtWidgets.QWidget):
-    def __init__(self, gui, set_scale_function) -> None:
+    def __init__(self, gui, set_scale_function, update_map_function) -> None:
         """
         View tab that allows the user to show and hide layers, set scaling and reset
         :param gui: parent gui class
@@ -16,6 +16,7 @@ class ViewTab(QtWidgets.QWidget):
         # Functions
         self.gui = gui
         self.set_scale_function = set_scale_function
+        self.update_map_function = update_map_function
 
         # Widgets + Layouts
         self.v_box = VBox(self, align=Qt.AlignTop)
@@ -29,9 +30,33 @@ class ViewTab(QtWidgets.QWidget):
         self.scale.setValue(100)
         self.recenter_button = Button(self, "Recenter", layout=self.view_h_box)
 
+        #   View
+        self._latitude = -1.556358
+        self._longitude = 53.810705
+        self._heading = 50
+        self._map_scale = 200
+
+        self.map_box = GroupBox(self, "Map", layout=self.v_box)
+
+        self.map_h_box = HBox(self, self.map_box.v_box, align=Qt.AlignLeft)
+        self.map_latitude_label = Text(self, "Latitude: ", self.map_h_box)
+        self.map_latitude = DecimalSpinBox(self, self.map_h_box, min=-90, max=90, number_of_decimal_places=6)
+        self.map_longitude_label = Text(self, "Longitude: ", self.map_h_box)
+        self.map_longitude = DecimalSpinBox(self, self.map_h_box, min=-180, max=180, number_of_decimal_places=6)
+        self.map_heading_label = Text(self, "Heading: ", self.map_h_box)
+        self.map_heading = SpinBox(self, self.map_h_box, min=0, max=359)
+        self.map_scale_label = Text(self, "scale: ", self.map_h_box)
+        self.map_scale = SpinBox(self, self.map_h_box, min=50, max=400)
+        self.map_update_button = Button(self, "Update", layout=self.map_h_box)
+        self.maps_api_key_label = Text(self, "Google Maps API Key", self.map_box.v_box)
+        self.maps_api_key = TextEdit(self, self.map_box.v_box)
+        self.map_box.setDisabled(True)
+        self.set_map_coords()
+
         #   Layers
         self.layers_box = GroupBox(self, "Layers", layout=self.v_box)
 
+        self.show_layer_map = False
         self.show_layer_grid = False
         self.show_layer_hermite_paths = True
         self.show_layer_nodes = True
@@ -39,6 +64,7 @@ class ViewTab(QtWidgets.QWidget):
         self.show_layer_curvature = True
         self.show_layer_vehicles = True
 
+        self.layer_map = TickBox(self, "Map", layout=self.layers_box.v_box)
         self.layer_grid = TickBox(self, "Grid", layout=self.layers_box.v_box)
         self.layer_hermite_paths = TickBox(self, "Hermite Paths", layout=self.layers_box.v_box)
         self.layer_nodes = TickBox(self, "Nodes", layout=self.layers_box.v_box)
@@ -76,6 +102,9 @@ class ViewTab(QtWidgets.QWidget):
         self.recenter_button.pressed.connect(self.gui.recenter)
         self.scale.valueChanged.connect(self.set_scale)
 
+        self.map_update_button.pressed.connect(self.update_map_coords)
+
+        self.layer_map.stateChanged.connect(self.update_layer_states)
         self.layer_grid.stateChanged.connect(self.update_layer_states)
         self.layer_hermite_paths.stateChanged.connect(self.update_layer_states)
         self.layer_nodes.stateChanged.connect(self.update_layer_states)
@@ -89,12 +118,33 @@ class ViewTab(QtWidgets.QWidget):
         self.playback_play_pause.pressed.connect(self.play_pause)
         self.playback_scrub_bar.valueChanged.connect(self.scrub)
 
+    def update_map_coords(self):
+        self._latitude = self.map_latitude.value()
+        self._longitude = self.map_longitude.value()
+        self._heading = self.map_heading.value()
+        self._map_scale = (self.map_scale.value() / 20) + 5
+        maps_api_key = self.maps_api_key.text()
+        self.update_map_function(self._latitude, self._longitude, self._heading, self._map_scale, maps_api_key)
+        self.gui.refresh_pygame_widget()
+
+    def set_map_coords(self):
+        self.map_latitude.setValue(self._latitude)
+        self.map_longitude.setValue(self._longitude)
+        self.map_heading.setValue(self._heading)
+        self.map_scale.setValue(self._map_scale)
+
     def update_layer_states(self) -> None:
         """
 
         Update the layer state variables with the state of the tick box widgets
         :return: None
         """
+
+        self.show_layer_map = self.layer_map.isChecked()
+        if self.show_layer_map:
+            self.map_box.setEnabled(True)
+        else:
+            self.map_box.setDisabled(True)
 
         self.show_layer_grid = self.layer_grid.isChecked()
         self.show_layer_hermite_paths = self.layer_hermite_paths.isChecked()
@@ -118,6 +168,7 @@ class ViewTab(QtWidgets.QWidget):
         Set tick box widgets with the state of the layer state variables
         :return: None
         """
+        self.layer_map.setChecked(self.show_layer_map)
         self.layer_grid.setChecked(self.show_layer_grid)
         self.layer_hermite_paths.setChecked(self.show_layer_hermite_paths)
         self.layer_nodes.setChecked(self.show_layer_nodes)

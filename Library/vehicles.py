@@ -50,6 +50,7 @@ class Vehicle:
         self.width = width
         self._wait_time = 0
         self._path_index = 0
+        self.changing_lane = False
 
     def update(self, time_delta: float, object_ahead: "Vehicle", delta_distance_ahead: float) -> None:
         """
@@ -66,7 +67,8 @@ class Vehicle:
             delta_distance_ahead = delta_distance_ahead - 0.5 * (self.length + object_ahead.get_length())
 
         self._acceleration = self._calculate_acceleration(velocity_object_ahead, delta_distance_ahead)
-        self._velocity = clamp((self._velocity + (self._acceleration * time_delta)), self._minimum_velocity, self._maximum_velocity)
+        self._velocity = clamp((self._velocity + (self._acceleration * time_delta)), self._minimum_velocity,
+                               self._maximum_velocity)
 
         self._route_distance_travelled += self._velocity * time_delta
         self._path_distance_travelled += self._velocity * time_delta
@@ -122,7 +124,7 @@ class Vehicle:
     def get_path_distance_travelled(self) -> float:
         return self._path_distance_travelled
 
-    def set_path_distance_travelled(self, path_distance_travelled: float):
+    def increment_path(self, path_distance_travelled: float):
         self._path_distance_travelled = path_distance_travelled
         self._path_index += 1
 
@@ -170,6 +172,13 @@ class Vehicle:
 
     def get_route_uid(self):
         return self.route_uid
+
+
+class GhostVehicle:
+    def __init__(self, uid, path_uid, time_created):
+        self.uid = uid
+        self.path_uid = path_uid
+        self.time_created = time_created
 
 
 class VehicleResults:
