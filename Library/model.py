@@ -1,4 +1,5 @@
 import math
+from collections import Counter
 from typing import List
 from math import floor
 from .FileManagement import FileManagement
@@ -36,7 +37,8 @@ class Model:
     # SAVING AND LOADING DATA
 
     def load_junction(self, junction_file_location, quick_load=False):
-        self.nodes, self.paths, self.lights = self.file_manager.load_from_junction_file(junction_file_location, quick_load=quick_load)
+        self.nodes, self.paths, self.lights = self.file_manager.load_from_junction_file(junction_file_location,
+                                                                                        quick_load=quick_load)
 
         self.update_hash_tables()
         for path in self.paths:
@@ -163,7 +165,7 @@ class Model:
             if path.start_node_uid == node_uid:
                 paths.append(path.uid)
         return paths
-    
+
     # PATHS
 
     def get_path(self, path_uid) -> Path:
@@ -199,7 +201,7 @@ class Model:
         self.update_path_hash_table()
 
     # LIGHTS
-    
+
     def get_light(self, light_uid) -> TrafficLight:
         index = self.get_light_index(light_uid)
         return self.lights[index]
@@ -232,13 +234,17 @@ class Model:
         self.update_light_hash_table()
 
     # VEHICLES
-    
+
     def get_vehicle(self, vehicle_uid) -> Vehicle:
         index = self.get_vehicle_index(vehicle_uid)
         return self.vehicles[index]
 
     def get_vehicle_index(self, vehicle_uid) -> int:
         return self.vehicles_hash_table[str(vehicle_uid)]
+
+    def get_vehicles(self):
+        self.remove_finished_vehicles()
+        return self.vehicles
 
     def remove_finished_vehicles(self):
         vehicles_uids_to_remove = []
@@ -265,9 +271,10 @@ class Model:
 
         # Search the current path
         min_path_distance_travelled = float('inf')
-        self.remove_finished_vehicles()
+
         for that_vehicle in self.vehicles:
-            that_path = self.get_path(self.get_route(that_vehicle.get_route_uid()).get_path_uid(that_vehicle.get_path_index()))
+            that_path = self.get_path(
+                self.get_route(that_vehicle.get_route_uid()).get_path_uid(that_vehicle.get_path_index()))
             that_vehicle_path_distance_travelled = that_vehicle.get_path_distance_travelled()
 
             if that_path.uid == this_path.uid and min_path_distance_travelled > that_vehicle_path_distance_travelled > this_vehicle_path_distance_travelled:
@@ -285,9 +292,10 @@ class Model:
             for light in self.get_lights():
                 if light.path_uids[0] == path_uid and not light.allows_traffic():
                     return light, distance_travelled_offset
-            self.remove_finished_vehicles()
+
             for that_vehicle in self.vehicles:
-                that_path = self.get_path(self.get_route(that_vehicle.get_route_uid()).get_path_uid(that_vehicle.get_path_index()))
+                that_path = self.get_path(
+                    self.get_route(that_vehicle.get_route_uid()).get_path_uid(that_vehicle.get_path_index()))
                 that_vehicle_path_distance_travelled = that_vehicle.get_path_distance_travelled()
                 if that_path.uid == path_uid and min_path_distance_travelled > that_vehicle_path_distance_travelled:
                     min_path_distance_travelled = that_vehicle_path_distance_travelled
@@ -311,7 +319,7 @@ class Model:
         self.update_vehicle_hash_table()
 
     # GENERAL
-    
+
     def get_uid_list(self, object_list=None):
         if object_list is None:
             object_list = []
@@ -378,7 +386,9 @@ class Model:
                 if (self.get_path(route[-1])).end_node_uid in end_nodes:
                     shorter_path = False
                     for existing_route in path_sequences:
-                        if (self.get_path(existing_route[0]).start_node_uid) == (self.get_path(route[0]).start_node_uid) and (self.get_path(existing_route[-1]).end_node_uid) == (self.get_path(route[-1]).end_node_uid):
+                        if (self.get_path(existing_route[0]).start_node_uid) == (
+                        self.get_path(route[0]).start_node_uid) and (
+                        self.get_path(existing_route[-1]).end_node_uid) == (self.get_path(route[-1]).end_node_uid):
                             shorter_path = True
                     if shorter_path == False:
                         path_sequences.append(route)
@@ -422,3 +432,9 @@ class Model:
             if self.get_path(path_uid).start_node_uid == node_uid:
                 routes.append(route.uid)
         return routes
+
+    def get_number_of_vehicles_on_path(self) -> dict:
+        path_uids = []
+        for vehicle in self.get_vehicles():
+            path_uids.append(self.get_path(self.get_route(vehicle.get_route_uid()).get_path_uid(vehicle.get_path_index())).uid)
+        return dict(Counter(path_uids))

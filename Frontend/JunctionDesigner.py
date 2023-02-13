@@ -4,8 +4,6 @@ if system() == 'Windows':
     sys.path.append('./')
 
 import sys
-from PyQt5.QtWidgets import QStyleFactory
-
 from Library.model import Model
 
 from Frontend.Tabs.PygameGraphics import *

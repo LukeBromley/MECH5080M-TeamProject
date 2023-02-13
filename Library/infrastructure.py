@@ -161,7 +161,7 @@ class Route:
         return self._path_uids[index]
 
 class TrafficLight:
-    def __init__(self, uid, path_uids: list, cycle_length: float = 12.0, cycle_green: float = 0.5) -> None:
+    def __init__(self, uid, path_uids: list, cycle_length: float = 12.0, cycle_green: float = 0.25) -> None:
         """
 
         :param cycle_length: time it takes for the traffic light to complete a single light cycle [s]

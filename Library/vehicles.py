@@ -9,7 +9,7 @@ class Vehicle:
                  velocity: float = 0.0, acceleration: float = 0.0,
                  direction: float = 0.0, sensing_radius: float = 0.0,
                  maximum_acceleration: float = 9.81, maximum_deceleration: float = 6.0,
-                 maximum_velocity: float = 20.0, minimum_velocity: float = -20.0,
+                 maximum_velocity: float = 20.0, minimum_velocity: float = 0.0,
                  distance_travelled: float = 0.0, preferred_time_gap: float = 2.0,
                  length: float = 4.4, width: float = 1.82) -> None:
         """
@@ -66,8 +66,7 @@ class Vehicle:
             delta_distance_ahead = delta_distance_ahead - 0.5 * (self.length + object_ahead.get_length())
 
         self._acceleration = self._calculate_acceleration(velocity_object_ahead, delta_distance_ahead)
-        self._velocity = clamp((self._velocity + (self._acceleration * time_delta)), self._minimum_velocity,
-                               self._maximum_velocity)
+        self._velocity = clamp((self._velocity + (self._acceleration * time_delta)), self._minimum_velocity, self._maximum_velocity)
 
         self._route_distance_travelled += self._velocity * time_delta
         self._path_distance_travelled += self._velocity * time_delta
