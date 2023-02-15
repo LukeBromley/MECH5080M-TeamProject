@@ -165,6 +165,7 @@ class GhostVehicle:
         self.uid = uid
         self.path_uid = path_uid
         self.time_created = time_created
+        self.change_time = 1000
 
 
 class VehicleResults:
