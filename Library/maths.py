@@ -30,6 +30,8 @@ def calculate_vector_magnitude(A: Vector):
 def calculate_cross_product(A: Vector, B: Vector):
     return Vector(0, 0, A.i * B.j - A.j * B.i)
 
+def calculate_magnitude(A: float, B: float):
+    return sqrt(A**2 + B**2)
 
 def clamp(n: Union[int, float], minn: Union[int, float], maxn: Union[int, float]) -> Union[int, float]:
     """

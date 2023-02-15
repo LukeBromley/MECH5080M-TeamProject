@@ -1,10 +1,10 @@
 from typing import List
-from math import floor
+from math import floor, sin, cos
 from .FileManagement import FileManagement
 from Library.infrastructure import Node, Path, TrafficLight, Route
 from Library.vehicles import Vehicle, GhostVehicle
 from copy import deepcopy
-
+from Library.maths import calculate_magnitude
 
 class Model:
     def __init__(self):
@@ -242,6 +242,14 @@ class Model:
     def get_vehicle_index(self, vehicle_uid) -> int:
         return self.vehicles_hash_table[str(vehicle_uid)]
 
+    def get_vehicle_velocity(self, vehicle_uid):
+        vehicle = self.get_vehicle(vehicle_uid)
+        speed = vehicle.get_speed()
+        angle = self.get_angle(vehicle.uid)
+        velocity_x = speed * sin(angle)
+        velocity_y = speed * cos(angle)
+        return velocity_x, velocity_y
+    
     def remove_finished_vehicles(self):
         vehicles_uids_to_remove = []
         for vehicle in self.vehicles:
@@ -363,7 +371,7 @@ class Model:
         arc_length = new_path.get_arc_length_from_s(s)
         self.get_vehicle(vehicle_uid).increment_path(arc_length)
 
-    def remove_ghosts(self, time, coordinates_angle_size):
+    def update_ghosts(self, time, coordinates_angle_size):
         ghost_vehicle_uids_to_remove = []
         for ghost_vehicle in self.ghost_vehicles:
             t_delta = time.total_milliseconds() - ghost_vehicle.time_created.total_milliseconds()

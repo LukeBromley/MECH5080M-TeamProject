@@ -21,8 +21,8 @@ class Configuration:
         self.start_time_of_day = Time(12, 0, 0)  # ticks per second
 
         self.lanes = None
-        self.min_start_velocity = None
-        self.max_start_velocity = None
+        self.min_start_speed = None
+        self.max_start_speed = None
         self.min_start_acceleration = None
         self.max_start_acceleration = None
         self.min_length = None
@@ -44,8 +44,8 @@ class FileManagement:
         self.start_time_of_day_key = "start_time_of_day"
 
         self.lanes_key = "lanes"
-        self.min_start_velocity_key = "min_start_velocity"
-        self.max_start_velocity_key = "max_start_velocity"
+        self.min_start_speed_key = "min_start_speed"
+        self.max_start_speed_key = "max_start_speed"
         self.min_start_acceleration_key = "min_start_acceleration"
         self.max_start_acceleration_key = "max_start_acceleration"
         self.min_length_key = "min_car_length"
@@ -81,21 +81,25 @@ class FileManagement:
         nodes = []
         for uid in file_dict[self.nodes_key]:
             node_data = file_dict[self.nodes_key][uid]
-            nodes.append(Node(int(uid), node_data[0], node_data[1], node_data[2]))
+            nodes.append(
+                Node(int(uid), node_data[0], node_data[1], node_data[2]))
 
         # Load path data
         paths = []
         for uid in file_dict[self.paths_key]:
             path_data = file_dict[self.paths_key][uid]
             if quick_load:
-                paths.append(Path(int(uid), path_data[0], path_data[1], discrete_length_increment_size=0.1, discrete_iteration_qty=1000, parallel_paths=path_data[2]))
+                paths.append(Path(int(uid), path_data[0], path_data[1], discrete_length_increment_size=0.1,
+                             discrete_iteration_qty=1000, parallel_paths=path_data[2]))
             else:
-                paths.append(Path(int(uid), path_data[0], path_data[1], parallel_paths=path_data[2]))
+                paths.append(
+                    Path(int(uid), path_data[0], path_data[1], parallel_paths=path_data[2]))
 
         # Load light data
         lights = []
         for uid in file_dict[self.lights_key]:
-            lights.append(TrafficLight(int(uid), file_dict[self.lights_key][uid][0]))
+            lights.append(TrafficLight(
+                int(uid), file_dict[self.lights_key][uid][0]))
 
         # Return the data
         return nodes, paths, lights
@@ -110,11 +114,13 @@ class FileManagement:
         :return: None
         """
         # Create dictionary structure
-        file_dict = {self.nodes_key: {}, self.paths_key: {}, self.lights_key: {}}
+        file_dict = {self.nodes_key: {},
+                     self.paths_key: {}, self.lights_key: {}}
 
         # Add node data
         for node in nodes:
-            file_dict[self.nodes_key][str(node.uid)] = [node.x, node.y, node.angle]
+            file_dict[self.nodes_key][str(node.uid)] = [
+                node.x, node.y, node.angle]
 
         # Add path data
         for path in paths:
@@ -171,11 +177,12 @@ class FileManagement:
         file_dict = {}
 
         file_dict[self.tick_rate_key] = config.tick_rate
-        file_dict[self.start_time_of_day_key] = [config.start_time_of_day.hour, config.start_time_of_day.minute, config.start_time_of_day.second]
+        file_dict[self.start_time_of_day_key] = [config.start_time_of_day.hour,
+                                                 config.start_time_of_day.minute, config.start_time_of_day.second]
 
         file_dict[self.lanes_key] = config.lanes
-        file_dict[self.min_start_velocity_key] = config.min_start_velocity
-        file_dict[self.max_start_velocity_key] = config.max_start_velocity
+        file_dict[self.min_start_speed_key] = config.min_start_speed
+        file_dict[self.max_start_speed_key] = config.max_start_speed
         file_dict[self.min_start_acceleration_key] = config.min_start_acceleration
         file_dict[self.max_start_acceleration_key] = config.max_start_acceleration
         file_dict[self.min_length_key] = config.min_length
@@ -199,11 +206,12 @@ class FileManagement:
         config = Configuration()
 
         config.tick_rate = file_dict[self.tick_rate_key]
-        config.start_time_of_day = Time(file_dict[self.start_time_of_day_key][0], file_dict[self.start_time_of_day_key][1], file_dict[self.start_time_of_day_key][2])
+        config.start_time_of_day = Time(file_dict[self.start_time_of_day_key][0],
+                                        file_dict[self.start_time_of_day_key][1], file_dict[self.start_time_of_day_key][2])
 
         config.lanes = file_dict[self.lanes_key]
-        config.min_start_velocity = file_dict[self.min_start_velocity_key]
-        config.max_start_velocity = file_dict[self.max_start_velocity_key]
+        config.min_start_speed = file_dict[self.min_start_speed_key]
+        config.max_start_speed = file_dict[self.max_start_speed_key]
         config.min_start_acceleration = file_dict[self.min_start_acceleration_key]
         config.max_start_acceleration = file_dict[self.max_start_acceleration_key]
         config.min_length = file_dict[self.min_length_key]
@@ -226,8 +234,10 @@ class FileManagement:
 
         for vehicle in vehicles:
             file_dict[str(vehicle.uid)] = {}
-            file_dict[str(vehicle.uid)][self.start_time_key] = vehicle.start_time
-            file_dict[str(vehicle.uid)][self.position_data_key] = vehicle.position_data
+            file_dict[str(vehicle.uid)
+                      ][self.start_time_key] = vehicle.start_time
+            file_dict[str(vehicle.uid)
+                      ][self.position_data_key] = vehicle.position_data
 
         with open(file_path, "w") as file:
             json.dump(file_dict, file)
@@ -245,7 +255,7 @@ class FileManagement:
             for uid in file_dict:
                 start_time = file_dict[uid][self.start_time_key]
                 position_data = file_dict[uid][self.position_data_key]
-                vehicles.append(VehicleResults(int(uid), start_time, position_data))
+                vehicles.append(VehicleResults(
+                    int(uid), start_time, position_data))
 
             return vehicles
-
