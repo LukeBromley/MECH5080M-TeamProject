@@ -216,10 +216,14 @@ class Model:
         index = self.get_light_index(light.uid)
         self.lights[index] = light
 
-    def update_light(self, light_uid, colour=None):
+    def set_state(self, light_uid, colour=None):
         index = self.get_light_index(light_uid)
         if colour is not None:
-            self.lights[index].colour = colour
+            self.lights[index].set_state(colour)
+
+    def update_light(self, time_delta):
+        for light in self.lights:
+            light.update(time_delta)
 
     def add_light(self, path_uids):
         light_uid = 1

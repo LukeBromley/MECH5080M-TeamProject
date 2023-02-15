@@ -183,7 +183,7 @@ class Route:
 
 
 class TrafficLight:
-    def __init__(self, uid, path_uids: list, cycle_length: float = 12.0, cycle_green: float = 0.5) -> None:
+    def __init__(self, uid, path_uids: list) -> None:
         """
 
         :param cycle_length: time it takes for the traffic light to complete a single light cycle [s]
@@ -195,19 +195,27 @@ class TrafficLight:
         self.uid = uid
         self.path_uids = path_uids  # was path_uids[0]. Vilius needs to fix this on his end.
         self.colour = "green"
+        assert self.colour == "green" or self.colour == "amber" or self.colour == "red" or self.colour == "red_amber"
         self.cycle_time = 0.0
 
-        assert 0.0 <= cycle_green <= 1.0
-        self.cycle_green = cycle_green
-        self.cycle_length = cycle_length
+        self.red_amber_time = 2
+        self.amber_time = 3
 
     def set_state(self, colour: str):
         if colour == "green":
-            self.cycle_time = 0.0
-            self.colour = "green"
+            self.set_green()
         elif colour == "red":
-            self.cycle_time = self.cycle_length * self.cycle_green
-            self.colour = "red"
+            self.set_red()
+
+    def set_green(self):
+        if self.colour != "red_amber":
+            self.cycle_time = 0.0
+        self.colour = "red_amber"
+
+    def set_red(self):
+        if self.colour != "amber":
+            self.cycle_time = 0.0
+        self.colour = "amber"
 
     def update(self, time_delta: float = 0.1) -> None:
         """
@@ -216,12 +224,13 @@ class TrafficLight:
         :param time_delta: iteration length [s]
         """
         self.cycle_time += time_delta
-        if self.cycle_time < self.cycle_green * self.cycle_length:
-            self.colour = "green"
-        elif self.cycle_time < self.cycle_length:
-            self.colour = "red"
-        else:
-            self.cycle_time = 0.0
+
+        if self.colour == "red_amber":
+            if self.cycle_time > self.red_amber_time:
+                self.colour = "green"
+        elif self.colour == "amber":
+            if self.cycle_time > self.amber_time:
+                self.colour = "red"
 
     def get_velocity(self) -> float:
         return 0.0
@@ -230,7 +239,7 @@ class TrafficLight:
         return 0.0
 
     def allows_traffic(self) -> bool:
-        if self.colour == "red":
+        if self.colour == "red" or self.colour == "amber":
             return False
         elif self.colour == "green":
             return True
