@@ -8,10 +8,9 @@ from Frontend.JunctionVisualiser import JunctionVisualiser
 from Library.model import Model
 from Library.vehicles import Vehicle
 from Library.environment import Spawning, Time
-from Library.maths import calculate_rectangle_corner_coords, calculate_range_overlap, calculate_line_gradient_and_constant
+from Library.maths import calculate_rectangle_corner_coords, calculate_range_overlap, calculate_line_gradient_and_constant, clamp
 from config import ROOT_DIR
 import os
-from math import cos, sin, atan2, pi
 
 import matplotlib as plt
 
@@ -29,6 +28,15 @@ class Simulation:
         # Time
         self.model.set_start_time_of_day(Time(12, 0, 0))
         self.model.set_tick_rate(100)
+
+        # Spawning system
+        self.model.set_random_seed(1)
+        # self.model.setup_random_spawning()
+        self.model.setup_fixed_spawning(2)
+
+        # Lights
+        self.model.add_light([2])
+        self.model.set_state(1, colour='red')
 
         # Visualiser
         self.visualiser = JunctionVisualiser()
@@ -53,6 +61,12 @@ class Simulation:
                 # print the time every 15 simulation mins
                 print(time)
 
+            if i > 0:
+                if i % 2000 == 0:
+                    self.model.set_state(1, 'green')
+                if i % 2500 == 0:
+                    self.model.set_state(1, 'red')
+
             # Spawn vehicles
             for index, node_uid in enumerate(self.model.calculate_start_nodes()):
                 if self.spawning[index].nudge(time):
@@ -73,7 +87,7 @@ class Simulation:
             coordinates = []
             coordinates_angle_size = []
             for vehicle in self.model.vehicles:
-                coord_x, coord_y = self.model.get_coordinates(vehicle.uid)
+                coord_x, coord_y = self.model.get_vehicle_coordinates(vehicle.uid)
                 angle = self.model.get_vehicle_direction(vehicle.uid)
 
                 object_ahead, delta_distance_ahead = self.model.get_object_ahead(
@@ -97,13 +111,14 @@ class Simulation:
 
             # Increment Time
             self.model.tock()
-            sleep(self.model.tick_time)
+            sleep(self.model.tick_time * 0.1)
 
     def run(self):
         self.visualiser.open()
 
-    def add_vehicle(self, route_uid: int, length, width):
+    def add_vehicle(self, route_uid: int, length, width, didstance_delta):
         self.uid += 1
+        speed = clamp(didstance_delta * 0.2, 0, 5)
         self.model.add_vehicle(
             Vehicle(
                 uid=self.uid,
@@ -116,7 +131,8 @@ class Simulation:
                 preferred_time_gap=2.0,
                 maximum_speed=30.0,
                 length=length,
-                width=width
+                width=width,
+                min_creep_distance=1
             )
         )
 

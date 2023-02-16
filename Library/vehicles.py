@@ -11,7 +11,9 @@ class Vehicle:
                  maximum_acceleration: float = 9.81, maximum_deceleration: float = 6.0,
                  maximum_speed: float = 20.0, minimum_speed: float = -20.0,
                  distance_travelled: float = 0.0, preferred_time_gap: float = 2.0,
-                 length: float = 4.4, width: float = 1.82) -> None:
+                 length: float = 4.4, width: float = 1.82,
+                 min_creep_distance: float = 0
+                 ) -> None:
         """
 
         :param uid: unique identifier for vehicle
@@ -49,6 +51,7 @@ class Vehicle:
         self.width = width
         self._path_index = 0
         self.changing_lane = False
+        self._min_creep_distance = min_creep_distance
 
     def update(self, time_delta: float, object_ahead: "Vehicle", delta_distance_ahead: float) -> None:
         """
@@ -131,7 +134,7 @@ class Vehicle:
         return self._speed
 
     def get_length(self) -> float:
-        return self.length
+        return self.length + self._min_creep_distance
 
     def get_acceleration(self) -> float:
         """
