@@ -7,11 +7,10 @@ from time import sleep
 from Frontend.JunctionVisualiser import JunctionVisualiser
 from Library.model import Model
 from Library.vehicles import Vehicle
-from Library.environment import Spawning, Time
-from Library.maths import calculate_rectangle_corner_coords, calculate_range_overlap, calculate_line_gradient_and_constant
+from Library.environment import Time
+from Library.maths import calculate_rectangle_corner_coords, calculate_range_overlap, calculate_line_gradient_and_constant, clamp
 from config import ROOT_DIR
 import os
-from math import cos, sin, atan2, pi
 
 import matplotlib as plt
 
@@ -30,6 +29,15 @@ class Simulation:
         self.model.set_start_time_of_day(Time(12, 0, 0))
         self.model.set_tick_rate(100)
 
+        # Spawning system
+        self.model.set_random_seed(1)
+        # self.model.setup_random_spawning()
+        self.model.setup_fixed_spawning(2)
+
+        # Lights
+        self.model.add_light([2])
+        self.model.set_state(1, colour='red')
+
         # Visualiser
         self.visualiser = JunctionVisualiser()
         self.visualiser.define_main(self.main)
@@ -37,9 +45,6 @@ class Simulation:
         self.visualiser.set_scale(100)
 
         # Spawning system
-        self.spawning = []
-        for node_uid in self.model.calculate_start_nodes():
-            self.spawning.append(Spawning(node_uid, self.model.start_time_of_day))
 
     def main(self):
         a = 0
@@ -52,12 +57,18 @@ class Simulation:
                 # print the time every 15 simulation mins
                 print(time)
 
+            if i > 0:
+                if i % 2000 == 0:
+                    self.model.set_state(1, 'green')
+                if i % 2500 == 0:
+                    self.model.set_state(1, 'red')
+
             # Spawn vehicles
             for index, node_uid in enumerate(self.model.calculate_start_nodes()):
-                if self.spawning[index].nudge(time):
-                    route_uid = self.spawning[index].select_route(self.model.get_routes_with_starting_node(node_uid))
-                    length, width = self.spawning[index].get_random_vehicle_size()
-                    self.add_vehicle(route_uid, length, width)
+                spawn_info = self.model.nudge_spawner(node_uid, time)
+                if spawn_info is not None:
+                    route_uid, length, width, distance_delta = spawn_info
+                    self.add_vehicle(route_uid, length, width, distance_delta)
 
             # Control lights
             for light in self.model.get_lights():
@@ -70,7 +81,7 @@ class Simulation:
             coordinates = []
             coordinates_angle_size = []
             for vehicle in self.model.vehicles:
-                coord_x, coord_y = self.model.get_coordinates(vehicle.uid)
+                coord_x, coord_y = self.model.get_vehicle_coordinates(vehicle.uid)
                 angle = self.model.get_vehicle_direction(vehicle.uid)
 
                 object_ahead, delta_distance_ahead = self.model.get_object_ahead(vehicle.uid)
@@ -90,26 +101,28 @@ class Simulation:
 
             # Increment Time
             self.model.tock()
-            sleep(self.model.tick_time)
+            sleep(self.model.tick_time * 0.1)
 
     def run(self):
         self.visualiser.open()
 
-    def add_vehicle(self, route_uid: int, length, width):
+    def add_vehicle(self, route_uid: int, length, width, didstance_delta):
         self.uid += 1
+        speed = clamp(didstance_delta * 0.2, 0, 5)
         self.model.add_vehicle(
             Vehicle(
                 uid=self.uid,
                 start_time=self.time,
                 route_uid=route_uid,
-                velocity=5.0,
+                velocity=speed,
                 acceleration=0.0,
                 maximum_acceleration=3.0,
                 maximum_deceleration=9.0,
                 preferred_time_gap=2.0,
                 maximum_velocity=30.0,
                 length=length,
-                width=width
+                width=width,
+                min_creep_distance=1
             )
         )
 
@@ -204,5 +217,5 @@ class Simulation:
 
 
 if __name__ == "__main__":
-    sim = Simulation(os.path.join(ROOT_DIR, "Junction_Designs", "example_junction.junc"))
+    sim = Simulation(os.path.join(ROOT_DIR, "Junction_Designs", "Spawning_Test.junc"))
     sim.run()

@@ -33,8 +33,8 @@ class Simulation:
                     minimum_velocity=-30.0,
                     distance_travelled=0,
                     preferred_time_gap=2.0,
-                    vehicle_length=4.4,
-                    vehicle_width=1.82
+                    length=4.4,
+                    width=1.82
                 )
             )
 
@@ -51,7 +51,7 @@ class Simulation:
             for vehicle in self.vehicles:
                 vehicle.update(dt, self.vehicles)
                 coordinates.append(vehicle.get_position())
-            self.visualiser.update_car_positions(coordinates)
+            self.visualiser.update_vehicle_positions(coordinates)
             time.sleep(0.01)
 
     def run(self):

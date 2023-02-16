@@ -8,7 +8,7 @@ from Frontend.JunctionVisualiser import JunctionVisualiser
 from Library.infrastructure import Route
 from Library.model import Model
 from Library.vehicles import Vehicle
-from Library.environment import Spawning, Time
+from Library.environment import SpawningRandom, Time
 from config import ROOT_DIR
 import os
 import random
@@ -32,27 +32,27 @@ class Simulation:
         self.visualiser.load_junction(file_path)
         self.visualiser.set_scale(50)
 
-        self.spawning = []
+        self.model.setup_random_spawning()
 
-        for node_uid in self.model.calculate_start_nodes():
-            self.spawning.append(Spawning(node_uid, self.model.start_time_of_day))
+        self.model.generate_routes()
 
     def main(self):
         for i in range(8640000):
 
             time = self.model.calculate_time_of_day()
             for index, node_uid in enumerate(self.model.calculate_start_nodes()):
-                if self.spawning[index].nudge(time):
-                    route_uid = self.spawning[index].select_route(self.model.get_routes_with_starting_node(node_uid))
+                spawn_info = self.model.nudge_spawner(node_uid, time)
+                if spawn_info is not None:
+                    route_uid, length, width, distance_delta = spawn_info
                     self.add_vehicle(route_uid)
 
             for light in self.model.get_lights():
                 light.update(self.model.tick_time)
 
             coordinates = []
-            for vehicle in self.model.get_vehicles():
+            for vehicle in self.model.vehicles:
                 vehicle_uid = vehicle.uid
-                coordinates.append(self.model.get_coordinates(vehicle_uid))
+                coordinates.append(self.model.get_vehicle_coordinates(vehicle_uid))
 
                 object_ahead, delta_distance_ahead = self.model.get_object_ahead(vehicle_uid)
                 vehicle.update(self.model.tick_time, object_ahead, delta_distance_ahead)

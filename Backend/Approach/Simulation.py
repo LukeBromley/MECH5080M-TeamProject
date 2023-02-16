@@ -1,4 +1,4 @@
-from Library.vehicles import Car
+from Library.vehicles import Vehicle
 from Frontend.JunctionVisualiser import JunctionVisualiser
 from Library.FileManagement import FileManagement
 
