@@ -122,7 +122,6 @@ class Simulation:
                 maximum_velocity=30.0,
                 length=length,
                 width=width,
-                min_creep_velocity=1,
                 min_creep_distance=1
             )
         )
