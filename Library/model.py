@@ -1,8 +1,10 @@
 from typing import List
 from math import floor
+import random
 from .FileManagement import FileManagement
 from Library.infrastructure import Node, Path, TrafficLight, Route
 from Library.vehicles import Vehicle, GhostVehicle
+from Library.environment import SpawningRandom, SpawningFixed, SpawningStats
 from copy import deepcopy
 
 
@@ -25,12 +27,15 @@ class Model:
         self.lights_hash_table = {}
         self.vehicles_hash_table = {}
         self.routes_hash_table = {}
+        self.spawners_hash_table = {}
 
         self.tick = 0
         self.tick_rate = None
         self.tick_time = None
         self.start_time_of_day = None
         self.time_of_day = None
+
+        self.spawners = []
 
         self.prev_num_cars = 0
 
@@ -44,8 +49,6 @@ class Model:
             path.calculate_all(self)
         
         self.update_route_hash_table()
-
-        
 
     def save_junction(self, junction_file_location):
         self.file_manager.save_to_junction_file(
@@ -93,6 +96,10 @@ class Model:
         for index, route in enumerate(self.routes):
             self.routes_hash_table[str(route.uid)] = index
 
+    def update_spawner_hash_table(self):
+        for index, spawner in enumerate(self.spawners):
+            self.spawners_hash_table[str(spawner.node_uid)] = index
+
     # ENVIRONMENT VARIABLES
 
     def tock(self):
@@ -116,6 +123,42 @@ class Model:
 
     def calculate_time_of_day(self):
         return self.start_time_of_day.add_milliseconds(self.calculate_milliseconds_elapsed())
+
+    # SPAWNING
+
+    def get_random_state(self):
+        return random.getstate()
+
+    def set_random_state(self, state):
+        return random.setstate(state)
+
+    def set_random_seed(self, seed):
+        random.seed(seed)
+
+    def setup_random_spawning(self):
+        for node_uid in self.calculate_start_nodes():
+            self.spawners.append(SpawningRandom(node_uid, self.start_time_of_day, SpawningStats()))
+        self.update_spawner_hash_table()
+
+    def setup_fixed_spawning(self, spawning_time, vehicle_size=(3, 1.8)):
+        for node_uid in self.calculate_start_nodes():
+            self.spawners.append(SpawningFixed(node_uid, self.start_time_of_day, spawning_time, vehicle_size))
+        self.update_spawner_hash_table()
+
+    def nudge_spawner(self, node_uid, time):
+        index = self.get_spawner_index(node_uid)
+        return self.spawners[index].nudge(time)
+
+    def get_spawner_route(self, node_uid):
+        index = self.get_spawner_index(node_uid)
+        return self.spawners[index].select_route(self.get_routes_with_starting_node(node_uid))
+
+    def get_spawner_vehicle_size(self, node_uid):
+        index = self.get_spawner_index(node_uid)
+        return self.spawners[index].get_random_vehicle_size()
+
+    def get_spawner_index(self, node_uid):
+        return self.spawners_hash_table[str(node_uid)]
 
     # NODES
 

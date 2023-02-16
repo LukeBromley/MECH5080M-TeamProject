@@ -45,87 +45,57 @@ class Time:
         return Time(new_time.hour, new_time.minute, new_time.second, self.millisecond)
 
 
-class Spawning:
-    def __init__(self, node_uid, start_time_of_day):
+class SpawningStats:
+    def __init__(self,
+                 max_spawn_time=300,
+                 min_spawn_time=2,
+                 mean_spawn_time_per_hour=5,
+                 sdev_spawn_time_per_hour=3,
+
+                 max_car_length=10,
+                 min_car_length=2,
+                 max_car_width=2.5,
+                 min_car_width=1.5,
+
+                 mean_car_lengths=(3, 5, 8),
+                 mean_car_widths=(1.8, 2, 2.2),
+                 sdev_car_lengths=(0.5, 1, 2),
+                 sdev_car_widths=(0.2, 0.2, 0.2),
+                 ):
+        # SPAWNING TIMING
+        # Max/Min
+        self.max_spawn_time = max_spawn_time
+        self.min_spawn_time = min_spawn_time
+        # Statistics
+        self.mean_spawn_time_per_hour = mean_spawn_time_per_hour
+        self.sdev_spawn_time_per_hour = sdev_spawn_time_per_hour
+
+        # CAR SIZE
+        # Max/Min
+        self.max_car_length = max_car_length
+        self.min_car_length = min_car_length
+        self.max_car_width = max_car_width
+        self.min_car_width = min_car_width
+        # Statistics
+        self.mean_car_lengths = mean_car_lengths
+        self.mean_car_widths = mean_car_widths
+        self.sdev_car_lengths = sdev_car_lengths
+        self.sdev_car_widths = sdev_car_widths
+
+
+class SpawningRandom:
+    def __init__(self, node_uid, start_time_of_day, spawning_stats: SpawningStats):
         # https://math.mit.edu/research/highschool/primes/materials/2015/Yi.pdf
 
+        # Standard Spawning Variables
         self.node_uid = node_uid
-
         self.time_of_last_spawn = start_time_of_day
         self.next_spawn_time_delta = 0
 
-        self.time_between_spawns_mean = 0
-        self.time_between_spawns_sdev = 0
-        self.time_between_spawns_min = 1
-
-        self.time_between_spawns_mean_over_time = [
-            60,  # 00:00
-            60,  # 01:00
-            60,  # 02:00
-            80,  # 03:00
-            60,  # 04:00
-            40,  # 05:00
-            20,  # 06:00
-            10,  # 07:00
-            5,  # 08:00
-            3,  # 09:00
-            5,  # 10:00
-            10,  # 11:00
-            5,  # 12:00
-            5,  # 13:00
-            10,  # 14:00
-            10,  # 15:00
-            5,  # 16:00
-            3,  # 17:00
-            3,  # 18:00
-            5,  # 19:00
-            10,  # 20:00
-            20,  # 21:00
-            30,  # 22:00
-            40,  # 23:00
-        ]
-
-        self.time_between_spawns_sdev_over_time = [
-            120,  # 00:00
-            120,  # 01:00
-            120,  # 02:00
-            160,  # 03:00
-            120,  # 04:00
-            80,  # 05:00
-            40,  # 06:00
-            20,  # 07:00
-            10,  # 08:00
-            6,  # 09:00
-            10,  # 10:00
-            20,  # 11:00
-            10,  # 12:00
-            10,  # 13:00
-            20,  # 14:00
-            20,  # 15:00
-            10,  # 16:00
-            6,  # 17:00
-            6,  # 18:00
-            10,  # 19:00
-            20,  # 20:00
-            40,  # 21:00
-            60,  # 22:00
-            80,  # 23:00
-        ]
-
-        self.vehicle_length_mean_small = 3.5
-        self.vehicle_width_mean_small = 1.7
-        self.vehicle_length_sdev_small = 0.75
-        self.vehicle_width_sdev_small = 0.2
-
-        self.vehicle_length_mean_big = 7
-        self.vehicle_width_mean_big = 2
-        self.vehicle_length_sdev_big = 2
-        self.vehicle_width_sdev_big = 0.2
-
-        self.vehicle_length_max = 10
-        self.vehicle_length_min = 2
-        self.vehicle_width_max = 2.2
-        self.vehicle_width_min = 1.5
+        # Vehicle Size
+        self.spawning_stats = spawning_stats
+        self.current_mean_spawn_time = 0
+        self.current_sdev_spawn_time = 0
 
         self.calculate_spawn_probabilities(start_time_of_day)
         self.calculate_next_spawn_time()
@@ -133,24 +103,30 @@ class Spawning:
     def nudge(self, time: Time):
         time_delta = time - self.time_of_last_spawn
         if time_delta.total_seconds() > self.next_spawn_time_delta:
-            self.calculate_spawn_probabilities(time)
             self.time_of_last_spawn = time
             self.calculate_next_spawn_time()
             return True
         return False
 
     def get_random_vehicle_size(self):
-        w = randint(0, 1)
-        length = w * normal(self.vehicle_length_mean_small, self.vehicle_length_sdev_small) + (1 - w) * normal(self.vehicle_length_mean_big, self.vehicle_length_sdev_big)
-        width = w * normal(self.vehicle_width_mean_small, self.vehicle_width_sdev_small) + (1 - w) * normal(self.vehicle_width_mean_big, self.vehicle_width_sdev_big)
-        length = clamp(length, self.vehicle_length_min, self.vehicle_length_max)
-        width = clamp(width, self.vehicle_width_min, self.vehicle_width_max)
+        i = randint(0, len(self.spawning_stats.mean_car_lengths) - 1)
+        length = self._calculate_multi_modal_distribution(i, self.spawning_stats.mean_car_lengths, self.spawning_stats.sdev_car_lengths)
+        width = self._calculate_multi_modal_distribution(i, self.spawning_stats.mean_car_widths, self.spawning_stats.mean_car_widths)
+        length = clamp(length, self.spawning_stats.min_car_length, self.spawning_stats.max_car_length)
+        width = clamp(width, self.spawning_stats.min_car_width, self.spawning_stats.max_car_width)
         return length, width
 
+    def _calculate_multi_modal_distribution(self, i, means, sdevs):
+        assert len(means) == len(sdevs)
+        return normal(means[i], sdevs[i])
+
     def calculate_next_spawn_time(self):
-        self.next_spawn_time_delta = normal(self.time_between_spawns_mean, self.time_between_spawns_sdev)
-        if self.next_spawn_time_delta < self.time_between_spawns_min:
-            self.next_spawn_time_delta = self.time_between_spawns_min
+        self.next_spawn_time_delta = normal(self.current_mean_spawn_time, self.current_sdev_spawn_time)
+        if self.next_spawn_time_delta < self.spawning_stats.min_spawn_time:
+            self.next_spawn_time_delta = self.spawning_stats.min_spawn_time
+        if self.spawning_stats.max_spawn_time is not None:
+            if self.next_spawn_time_delta > self.spawning_stats.max_spawn_time:
+                self.next_spawn_time_delta = self.spawning_stats.max_spawn_time
 
     def calculate_spawn_probabilities(self, time: Time):
         last_hour = time.hour
@@ -158,14 +134,45 @@ class Spawning:
         if next_hour >= 24:
             next_hour = 0
 
-        last_mean = self.time_between_spawns_mean_over_time[last_hour]
-        next_mean = self.time_between_spawns_mean_over_time[next_hour]
-        self.time_between_spawns_mean = (last_mean * (60 - time.minute) + next_mean * time.minute) / 60
+        if type(self.spawning_stats.mean_spawn_time_per_hour) == list:
+            last_mean = self.spawning_stats.mean_spawn_time_per_hour[last_hour]
+            next_mean = self.spawning_stats.mean_spawn_time_per_hour[next_hour]
+        else:
+            last_mean = self.spawning_stats.mean_spawn_time_per_hour
+            next_mean = self.spawning_stats.mean_spawn_time_per_hour
+        self.current_mean_spawn_time = (last_mean * (60 - time.minute) + next_mean * time.minute) / 60
 
-        last_sdev = self.time_between_spawns_sdev_over_time[last_hour]
-        next_sdev = self.time_between_spawns_sdev_over_time[next_hour]
-        self.time_between_spawns_sdev = (last_sdev * (60 - time.minute) + next_sdev * time.minute) / 60
+        if type(self.spawning_stats.sdev_spawn_time_per_hour) == list:
+            last_sdev = self.spawning_stats.sdev_spawn_time_per_hour[last_hour]
+            next_sdev = self.spawning_stats.sdev_spawn_time_per_hour[next_hour]
+        else:
+            last_sdev = self.spawning_stats.sdev_spawn_time_per_hour
+            next_sdev = self.spawning_stats.sdev_spawn_time_per_hour
+        self.current_sdev_spawn_time = (last_sdev * (60 - time.minute) + next_sdev * time.minute) / 60
 
     def select_route(self, routes):
         index = randint(0, len(routes) - 1)
         return routes[index]
+
+
+class SpawningFixed(SpawningRandom):
+    def __init__(self, node_uid, start_time_of_day, spawning_time=3, vehicle_size=(3, 1.8)):
+
+        spawning_stats = SpawningStats(
+            max_spawn_time=spawning_time,
+            min_spawn_time=spawning_time,
+            mean_spawn_time_per_hour=spawning_time,
+            sdev_spawn_time_per_hour=0,
+
+            max_car_length=vehicle_size[0],
+            min_car_length=vehicle_size[0],
+            max_car_width=vehicle_size[1],
+            min_car_width=vehicle_size[1],
+
+            mean_car_lengths=[vehicle_size[0]],
+            mean_car_widths=[vehicle_size[1]],
+            sdev_car_lengths=[0],
+            sdev_car_widths=[0]
+        )
+
+        super().__init__(node_uid, start_time_of_day, spawning_stats)

@@ -7,7 +7,7 @@ from time import sleep
 from Frontend.JunctionVisualiser import JunctionVisualiser
 from Library.model import Model
 from Library.vehicles import Vehicle
-from Library.environment import Spawning, Time
+from Library.environment import Time
 from Library.maths import calculate_rectangle_corner_coords, calculate_range_overlap, calculate_line_gradient_and_constant
 from config import ROOT_DIR
 import os
@@ -30,6 +30,10 @@ class Simulation:
         self.model.set_start_time_of_day(Time(12, 0, 0))
         self.model.set_tick_rate(100)
 
+        # Spawning system
+        self.model.set_random_seed(0)
+        self.model.setup_random_spawning()
+
         # Visualiser
         self.visualiser = JunctionVisualiser()
         self.visualiser.define_main(self.main)
@@ -37,9 +41,6 @@ class Simulation:
         self.visualiser.set_scale(100)
 
         # Spawning system
-        self.spawning = []
-        for node_uid in self.model.calculate_start_nodes():
-            self.spawning.append(Spawning(node_uid, self.model.start_time_of_day))
 
     def main(self):
         a = 0
@@ -54,9 +55,9 @@ class Simulation:
 
             # Spawn vehicles
             for index, node_uid in enumerate(self.model.calculate_start_nodes()):
-                if self.spawning[index].nudge(time):
-                    route_uid = self.spawning[index].select_route(self.model.get_routes_with_starting_node(node_uid))
-                    length, width = self.spawning[index].get_random_vehicle_size()
+                if self.model.nudge_spawner(node_uid, time):
+                    route_uid = self.model.get_spawner_route(node_uid)
+                    length, width = self.model.get_spawner_vehicle_size(node_uid)
                     self.add_vehicle(route_uid, length, width)
 
             # Control lights
@@ -70,7 +71,7 @@ class Simulation:
             coordinates = []
             coordinates_angle_size = []
             for vehicle in self.model.vehicles:
-                coord_x, coord_y = self.model.get_coordinates(vehicle.uid)
+                coord_x, coord_y = self.model.get_vehicle_coordinates(vehicle.uid)
                 angle = self.model.get_vehicle_direction(vehicle.uid)
 
                 object_ahead, delta_distance_ahead = self.model.get_object_ahead(vehicle.uid)
