@@ -12,7 +12,7 @@ class Vehicle:
                  maximum_velocity: float = 20.0, minimum_velocity: float = -20.0,
                  distance_travelled: float = 0.0, preferred_time_gap: float = 2.0,
                  length: float = 4.4, width: float = 1.82,
-                 min_creep_velocity: float = 0, min_creep_distance: float = 0
+                 min_creep_distance: float = 0
                  ) -> None:
         """
 
@@ -51,7 +51,6 @@ class Vehicle:
         self.width = width
         self._path_index = 0
         self.changing_lane = False
-        self._min_creep_velocity = min_creep_velocity
         self._min_creep_distance = min_creep_distance
 
     def update(self, time_delta: float, object_ahead: "Vehicle", delta_distance_ahead: float) -> None:
@@ -69,11 +68,6 @@ class Vehicle:
             delta_distance_ahead = delta_distance_ahead - 0.5 * (self.length + object_ahead.get_length())
 
         self._acceleration = self._calculate_acceleration(velocity_object_ahead, delta_distance_ahead)
-
-        if type(object_ahead) != TrafficLight:
-            if self._velocity < self._min_creep_velocity and delta_distance_ahead < self._min_creep_distance:
-                if self._velocity > 0:
-                    self._acceleration = -1
 
         self._velocity = clamp((self._velocity + (self._acceleration * time_delta)), self._minimum_velocity,
                                self._maximum_velocity)
@@ -139,7 +133,7 @@ class Vehicle:
         return self._velocity
 
     def get_length(self) -> float:
-        return self.length
+        return self.length + self._min_creep_distance
 
     def get_acceleration(self) -> float:
         """
