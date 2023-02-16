@@ -40,7 +40,8 @@ class Path:
         return sqrt((start_node.x - end_node.x) ** 2 + (start_node.y - end_node.y) ** 2)
 
     def get_s(self, arc_length: float):
-        arc_length = round(arc_length * (1 / self.discrete_length_increment_size))
+        arc_length = round(
+            arc_length * (1 / self.discrete_length_increment_size))
         return self.discrete_path[arc_length][0]
 
     def get_coordinates(self, arc_length: float):
@@ -106,14 +107,18 @@ class Path:
         end_node = model.get_node(self.end_node_uid)
         p1x = start_node.x
         p1y = start_node.y
-        p1tx, p1ty = start_node.get_tangents(self.get_euclidean_distance(model) * 1.5)
+        p1tx, p1ty = start_node.get_tangents(
+            self.get_euclidean_distance(model) * 1.5)
         p2x = end_node.x
         p2y = end_node.y
-        p2tx, p2ty = end_node.get_tangents(self.get_euclidean_distance(model) * 1.5)
+        p2tx, p2ty = end_node.get_tangents(
+            self.get_euclidean_distance(model) * 1.5)
         p2tx = -p2tx
         p2ty = -p2ty
-        self.x_hermite_cubic_coeff = [p1x, p1tx, -3 * p1x + 3 * p2x - 2 * p1tx + p2tx, 2 * p1x - 2 * p2x + p1tx - p2tx]
-        self.y_hermite_cubic_coeff = [p1y, p1ty, -3 * p1y + 3 * p2y - 2 * p1ty + p2ty, 2 * p1y - 2 * p2y + p1ty - p2ty]
+        self.x_hermite_cubic_coeff = [
+            p1x, p1tx, -3 * p1x + 3 * p2x - 2 * p1tx + p2tx, 2 * p1x - 2 * p2x + p1tx - p2tx]
+        self.y_hermite_cubic_coeff = [
+            p1y, p1ty, -3 * p1y + 3 * p2y - 2 * p1ty + p2ty, 2 * p1y - 2 * p2y + p1ty - p2ty]
 
     def calculate_discrete_arc_length_points(self):
         x_start, y_start = self.calculate_coords(0)
@@ -139,13 +144,19 @@ class Path:
     # Hermite Calculations
 
     def calculate_coords(self, s: float):
-        x = self.x_hermite_cubic_coeff[0] + self.x_hermite_cubic_coeff[1] * s + self.x_hermite_cubic_coeff[2] * (s * s) + self.x_hermite_cubic_coeff[3] * (s * s * s)
-        y = self.y_hermite_cubic_coeff[0] + self.y_hermite_cubic_coeff[1] * s + self.y_hermite_cubic_coeff[2] * (s * s) + self.y_hermite_cubic_coeff[3] * (s * s * s)
+        x = self.x_hermite_cubic_coeff[0] + self.x_hermite_cubic_coeff[1] * s + \
+            self.x_hermite_cubic_coeff[2] * (s * s) + \
+            self.x_hermite_cubic_coeff[3] * (s * s * s)
+        y = self.y_hermite_cubic_coeff[0] + self.y_hermite_cubic_coeff[1] * s + \
+            self.y_hermite_cubic_coeff[2] * (s * s) + \
+            self.y_hermite_cubic_coeff[3] * (s * s * s)
         return x, y
 
     def calculate_direction(self, s: float):
-        dy_ds = self.y_hermite_cubic_coeff[1] + 2 * self.y_hermite_cubic_coeff[2] * s + 3 * self.y_hermite_cubic_coeff[3] * s * s
-        dx_ds = self.x_hermite_cubic_coeff[1] + 2 * self.x_hermite_cubic_coeff[2] * s + 3 * self.x_hermite_cubic_coeff[3] * s * s
+        dy_ds = self.y_hermite_cubic_coeff[1] + 2 * self.y_hermite_cubic_coeff[2] * \
+            s + 3 * self.y_hermite_cubic_coeff[3] * s * s
+        dx_ds = self.x_hermite_cubic_coeff[1] + 2 * self.x_hermite_cubic_coeff[2] * \
+            s + 3 * self.x_hermite_cubic_coeff[3] * s * s
         if dx_ds != 0:
             dy_dx = dy_ds / dx_ds
             a = atan(dy_dx)
@@ -154,18 +165,25 @@ class Path:
         return a
 
     def calculate_curvature(self, s: float):
-        ## Source: https://math.libretexts.org/Bookshelves/Calculus/Supplemental_Modules_(Calculus)/Vector_Calculus/2%3A_Vector-Valued_Functions_and_Motion_in_Space/2.3%3A_Curvature_and_Normal_Vectors_of_a_Curve
+        # Source: https://math.libretexts.org/Bookshelves/Calculus/Supplemental_Modules_(Calculus)/Vector_Calculus/2%3A_Vector-Valued_Functions_and_Motion_in_Space/2.3%3A_Curvature_and_Normal_Vectors_of_a_Curve
 
-        dy_ds = self.y_hermite_cubic_coeff[1] + 2 * self.y_hermite_cubic_coeff[2] * s + 3 * self.y_hermite_cubic_coeff[3] * s * s
-        dy2_ds2 = 2 * self.y_hermite_cubic_coeff[2] + 6 * self.y_hermite_cubic_coeff[3] * s
+        dy_ds = self.y_hermite_cubic_coeff[1] + 2 * self.y_hermite_cubic_coeff[2] * \
+            s + 3 * self.y_hermite_cubic_coeff[3] * s * s
+        dy2_ds2 = 2 * \
+            self.y_hermite_cubic_coeff[2] + 6 * \
+            self.y_hermite_cubic_coeff[3] * s
 
-        dx_ds = self.x_hermite_cubic_coeff[1] + 2 * self.x_hermite_cubic_coeff[2] * s + 3 * self.x_hermite_cubic_coeff[3] * (s * s)
-        dx2_ds2 = 2 * self.x_hermite_cubic_coeff[2] + 6 * self.x_hermite_cubic_coeff[3] * s
+        dx_ds = self.x_hermite_cubic_coeff[1] + 2 * self.x_hermite_cubic_coeff[2] * \
+            s + 3 * self.x_hermite_cubic_coeff[3] * (s * s)
+        dx2_ds2 = 2 * \
+            self.x_hermite_cubic_coeff[2] + 6 * \
+            self.x_hermite_cubic_coeff[3] * s
 
         dR_ds = Vector(dx_ds, dy_ds, 0)
         dR2_ds2 = Vector(dx2_ds2, dy2_ds2, 0)
 
-        c = calculate_vector_magnitude(calculate_cross_product(dR_ds, dR2_ds2)) / (calculate_vector_magnitude(dR_ds)**3)
+        c = calculate_vector_magnitude(calculate_cross_product(
+            dR_ds, dR2_ds2)) / (calculate_vector_magnitude(dR_ds)**3)
         return c
 
 
@@ -193,7 +211,8 @@ class TrafficLight:
         """
 
         self.uid = uid
-        self.path_uids = path_uids  # was path_uids[0]. Vilius needs to fix this on his end.
+        # was path_uids[0]. Vilius needs to fix this on his end.
+        self.path_uids = path_uids
         self.colour = "green"
         assert self.colour == "green" or self.colour == "amber" or self.colour == "red" or self.colour == "red_amber"
         self.cycle_time = 0.0
@@ -232,7 +251,7 @@ class TrafficLight:
             if self.cycle_time > self.amber_time:
                 self.colour = "red"
 
-    def get_velocity(self) -> float:
+    def get_speed(self) -> float:
         return 0.0
 
     def get_length(self) -> float:

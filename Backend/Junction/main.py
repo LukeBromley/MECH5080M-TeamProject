@@ -75,12 +75,12 @@ class Simulation:
                 uid=self.uid,
                 start_time=self.time,
                 route_uid=route_uid,
-                velocity=5.0,
+                speed=5.0,
                 acceleration=0.0,
                 maximum_acceleration=3.0,
                 maximum_deceleration=9.0,
                 preferred_time_gap=2.0,
-                maximum_velocity=30.0,
+                maximum_speed=30.0,
                 length=2.5
             )
         )

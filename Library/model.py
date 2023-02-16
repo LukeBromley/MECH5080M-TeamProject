@@ -1,12 +1,12 @@
 from typing import List
-from math import floor
+from math import floor, sin, cos
 import random
 from .FileManagement import FileManagement
 from Library.infrastructure import Node, Path, TrafficLight, Route
 from Library.vehicles import Vehicle, GhostVehicle
 from Library.environment import SpawningRandom, SpawningFixed, SpawningStats
 from copy import deepcopy
-
+from Library.maths import calculate_magnitude
 
 class Model:
     def __init__(self):
@@ -327,6 +327,14 @@ class Model:
     def get_vehicle_index(self, vehicle_uid) -> int:
         return self.vehicles_hash_table[str(vehicle_uid)]
 
+    def get_vehicle_velocity(self, vehicle_uid):
+        vehicle = self.get_vehicle(vehicle_uid)
+        speed = vehicle.get_speed()
+        angle = self.get_angle(vehicle.uid)
+        velocity_x = speed * sin(angle)
+        velocity_y = speed * cos(angle)
+        return velocity_x, velocity_y
+    
     def remove_finished_vehicles(self):
         vehicles_uids_to_remove = []
         for vehicle in self.vehicles:
@@ -448,21 +456,15 @@ class Model:
         arc_length = new_path.get_arc_length_from_s(s)
         self.get_vehicle(vehicle_uid).increment_path(arc_length)
 
-    def remove_ghosts(self, time, coordinates_angle_size):
+    def update_ghosts(self, time, coordinates_angle_size):
         ghost_vehicle_uids_to_remove = []
         for ghost_vehicle in self.ghost_vehicles:
             t_delta = time.total_milliseconds() - ghost_vehicle.time_created.total_milliseconds()
-            if t_delta < 1000:
-                new_path = self.get_path(self.get_vehicle_path_uid(ghost_vehicle.uid))
+            if t_delta < ghost_vehicle.change_time:
                 vehicle = self.get_vehicle(ghost_vehicle.uid)
-                s = new_path.get_s(vehicle.get_path_distance_travelled())
-                old_path = self.get_path(ghost_vehicle.path_uid)
-                from_x, from_y = old_path.get_coordinates_from_s(s)
-                to_x, to_y = self.get_vehicle_coordinates(ghost_vehicle.uid)
-                angle = self.get_vehicle_direction(ghost_vehicle.uid)
-
-                x = (t_delta / 1000) * (to_x - from_x) + from_x
-                y = (t_delta / 1000) * (to_y - from_y) + from_y
+                delta_x, delta_y, angle, from_x, from_y = self.calculate_delta_xy_for_ghosts(vehicle, ghost_vehicle)
+                x = (t_delta / ghost_vehicle.change_time) * delta_x + from_x
+                y = (t_delta / ghost_vehicle.change_time) * delta_y + from_y
 
                 coordinates_angle_size.append([x, y, angle, vehicle.length, vehicle.width, vehicle.uid])
             else:
@@ -473,6 +475,17 @@ class Model:
                     if ghost_vehicle.uid == ghost_vehicle_uid:
                         self.ghost_vehicles.pop(index)
                         break
+    
+    def calculate_delta_xy_for_ghosts(self, vehicle, ghost_vehicle):
+        new_path = self.get_path(self.get_vehicle_path_uid(ghost_vehicle.uid))
+        s = new_path.get_s(vehicle.get_path_distance_travelled())
+        old_path = self.get_path(ghost_vehicle.path_uid)
+        from_x, from_y = old_path.get_coordinates_from_s(s)
+        to_x, to_y = self.get_vehicle_coordinates(ghost_vehicle.uid)
+        angle = self.get_vehicle_direction(ghost_vehicle.uid)
+        delta_x = (to_x - from_x)
+        delta_y = (to_y - from_y)
+        return delta_x, delta_y, angle, from_x, from_y
     # GENERAL
     
     def get_uid_list(self, object_list=None):
