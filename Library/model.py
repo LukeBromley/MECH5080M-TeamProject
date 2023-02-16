@@ -135,9 +135,9 @@ class Model:
     def set_random_seed(self, seed):
         random.seed(seed)
 
-    def setup_random_spawning(self):
+    def setup_random_spawning(self, spawning_stats=None):
         for node_uid in self.calculate_start_nodes():
-            self.spawners.append(SpawningRandom(node_uid, self.start_time_of_day, SpawningStats()))
+            self.spawners.append(SpawningRandom(node_uid, self.start_time_of_day, SpawningStats() if spawning_stats is None else spawning_stats))
         self.update_spawner_hash_table()
 
     def setup_fixed_spawning(self, spawning_time, vehicle_size=(3, 1.8)):
@@ -147,7 +147,16 @@ class Model:
 
     def nudge_spawner(self, node_uid, time):
         index = self.get_spawner_index(node_uid)
-        return self.spawners[index].nudge(time)
+        if self.spawners[index].nudge(time):
+            length, width = self.get_spawner_vehicle_size(node_uid)
+            distance = self.distance_of_first_vehicle_from_start_node(node_uid)
+            if distance > length:
+                route_uid = self.get_spawner_route(node_uid)
+                distance_delta = distance - (length/2)
+                return route_uid, length, width, distance_delta
+        else:
+            return None
+        # return self.spawners[index].nudge(time)
 
     def get_spawner_route(self, node_uid):
         index = self.get_spawner_index(node_uid)
@@ -208,6 +217,17 @@ class Model:
             if path.start_node_uid == node_uid:
                 paths.append(path.uid)
         return paths
+
+    def distance_of_first_vehicle_from_start_node(self, node_uid):
+        paths_uids = self.get_paths_from_start_node(node_uid)
+        distances = []
+        for path_uid in paths_uids:
+            distance_ahead = self.distance_of_first_vehicle_from_path_start(path_uid)
+            if distance_ahead is None:
+                distances.append(float('inf'))
+            else:
+                distances.append(distance_ahead)
+        return min(distances)
     
     # PATHS
 
@@ -242,6 +262,24 @@ class Model:
         index = self.get_path_index(path_uid)
         self.paths.pop(index)
         self.update_path_hash_table()
+
+    def distance_of_first_vehicle_from_path_start(self, path_uid):
+        this_path = self.get_path(path_uid)
+
+        # Search the current path
+        object_ahead = None
+        min_path_distance_travelled = float('inf')
+        for vehicle in self.vehicles:
+            that_path = self.get_path(self.get_route(vehicle.get_route_uid()).get_path_uid(vehicle.get_path_index()))
+            that_vehicle_path_distance_travelled = vehicle.get_path_distance_travelled()
+
+            if that_path.uid == this_path.uid and min_path_distance_travelled > that_vehicle_path_distance_travelled > 0:
+                min_path_distance_travelled = that_vehicle_path_distance_travelled
+                object_ahead = vehicle
+
+        if object_ahead is not None:
+            return min_path_distance_travelled - 0
+        return None
 
     # LIGHTS
     
