@@ -14,7 +14,7 @@ from time import sleep
 from Frontend.JunctionVisualiser import JunctionVisualiser
 from Library.model import Model
 from Library.vehicles import Vehicle
-from Library.environment import Spawning, Time
+from Library.environment import SpawningRandom, Time
 from config import ROOT_DIR
 import os
 
@@ -49,10 +49,9 @@ class Simulation:
         self.model.set_start_time_of_day(Time(8, 0, 0))
         self.model.set_tick_rate(10)
 
-        self.spawning = []
+        self.model.setup_random_spawning()
 
-        for node_uid in self.model.calculate_start_nodes():
-            self.spawning.append(Spawning(node_uid, self.model.start_time_of_day))
+        self.model.generate_routes()
 
         if self.visualise:
             self.visualiser = JunctionVisualiser()
@@ -69,10 +68,10 @@ class Simulation:
     def update(self, i: int):
         time = self.model.calculate_time_of_day()
         for index, node_uid in enumerate(self.model.calculate_start_nodes()):
-            if self.spawning[index].nudge(time):
-                length, width = self.spawning[index].get_random_vehicle_size()
-                route_uid = self.spawning[index].select_route(self.model.get_routes_with_starting_node(node_uid))
-                self.add_vehicle(route_uid, length, width)
+            spawn_info = self.model.nudge_spawner(node_uid, time)
+            if spawn_info is not None:
+                route_uid, length, width, distance_delta = spawn_info
+                self.add_vehicle(route_uid)
 
         if self.dqn_agent is not None:
             lights = self.model.get_lights()
@@ -177,12 +176,12 @@ class Simulation:
                 uid=self.uid,
                 start_time=self.time,
                 route_uid=route_uid,
-                velocity=10.0,
+                speed=5.0,
                 acceleration=0.0,
                 maximum_acceleration=5.0,
                 maximum_deceleration=9.0,
                 preferred_time_gap=1.5,
-                maximum_velocity=30.0,
+                maximum_speed=30.0,
                 length=length,
                 width=width
             )

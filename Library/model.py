@@ -1,12 +1,14 @@
 import math
 from collections import Counter
 from typing import List
-from math import floor
+from math import floor, sin, cos
+import random
 from .FileManagement import FileManagement
 from Library.infrastructure import Node, Path, TrafficLight, Route
 from Library.vehicles import Vehicle, GhostVehicle
+from Library.environment import SpawningRandom, SpawningFixed, SpawningStats
 from copy import deepcopy
-
+from Library.maths import calculate_magnitude
 
 class Model:
     def __init__(self):
@@ -27,12 +29,15 @@ class Model:
         self.lights_hash_table = {}
         self.vehicles_hash_table = {}
         self.routes_hash_table = {}
+        self.spawners_hash_table = {}
 
         self.tick = 0
         self.tick_rate = None
         self.tick_time = None
         self.start_time_of_day = None
         self.time_of_day = None
+
+        self.spawners = []
 
         self.prev_num_cars = 0
 
@@ -44,8 +49,7 @@ class Model:
         self.update_hash_tables()
         for path in self.paths:
             path.calculate_all(self)
-
-        self.generate_routes()
+        
         self.update_route_hash_table()
 
     def save_junction(self, junction_file_location):
@@ -94,6 +98,10 @@ class Model:
         for index, route in enumerate(self.routes):
             self.routes_hash_table[str(route.uid)] = index
 
+    def update_spawner_hash_table(self):
+        for index, spawner in enumerate(self.spawners):
+            self.spawners_hash_table[str(spawner.node_uid)] = index
+
     # ENVIRONMENT VARIABLES
 
     def tock(self):
@@ -117,6 +125,51 @@ class Model:
 
     def calculate_time_of_day(self):
         return self.start_time_of_day.add_milliseconds(self.calculate_milliseconds_elapsed())
+
+    # SPAWNING
+
+    def get_random_state(self):
+        return random.getstate()
+
+    def set_random_state(self, state):
+        return random.setstate(state)
+
+    def set_random_seed(self, seed):
+        random.seed(seed)
+
+    def setup_random_spawning(self, spawning_stats=None):
+        for node_uid in self.calculate_start_nodes():
+            self.spawners.append(SpawningRandom(node_uid, self.start_time_of_day, SpawningStats() if spawning_stats is None else spawning_stats))
+        self.update_spawner_hash_table()
+
+    def setup_fixed_spawning(self, spawning_time, vehicle_size=(3, 1.8)):
+        for node_uid in self.calculate_start_nodes():
+            self.spawners.append(SpawningFixed(node_uid, self.start_time_of_day, spawning_time, vehicle_size))
+        self.update_spawner_hash_table()
+
+    def nudge_spawner(self, node_uid, time):
+        index = self.get_spawner_index(node_uid)
+        if self.spawners[index].nudge(time):
+            length, width = self.get_spawner_vehicle_size(node_uid)
+            distance = self.distance_of_first_vehicle_from_start_node(node_uid)
+            if distance > length:
+                route_uid = self.get_spawner_route(node_uid)
+                distance_delta = distance - (length/2)
+                return route_uid, length, width, distance_delta
+        else:
+            return None
+        # return self.spawners[index].nudge(time)
+
+    def get_spawner_route(self, node_uid):
+        index = self.get_spawner_index(node_uid)
+        return self.spawners[index].select_route(self.get_routes_with_starting_node(node_uid))
+
+    def get_spawner_vehicle_size(self, node_uid):
+        index = self.get_spawner_index(node_uid)
+        return self.spawners[index].get_random_vehicle_size()
+
+    def get_spawner_index(self, node_uid):
+        return self.spawners_hash_table[str(node_uid)]
 
     # NODES
 
@@ -167,6 +220,18 @@ class Model:
                 paths.append(path.uid)
         return paths
 
+
+    def distance_of_first_vehicle_from_start_node(self, node_uid):
+        paths_uids = self.get_paths_from_start_node(node_uid)
+        distances = []
+        for path_uid in paths_uids:
+            distance_ahead = self.distance_of_first_vehicle_from_path_start(path_uid)
+            if distance_ahead is None:
+                distances.append(float('inf'))
+            else:
+                distances.append(distance_ahead)
+        return min(distances)
+
     # PATHS
 
     def get_path(self, path_uid) -> Path:
@@ -201,6 +266,24 @@ class Model:
         self.paths.pop(index)
         self.update_path_hash_table()
 
+    def distance_of_first_vehicle_from_path_start(self, path_uid):
+        this_path = self.get_path(path_uid)
+
+        # Search the current path
+        object_ahead = None
+        min_path_distance_travelled = float('inf')
+        for vehicle in self.vehicles:
+            that_path = self.get_path(self.get_route(vehicle.get_route_uid()).get_path_uid(vehicle.get_path_index()))
+            that_vehicle_path_distance_travelled = vehicle.get_path_distance_travelled()
+
+            if that_path.uid == this_path.uid and min_path_distance_travelled > that_vehicle_path_distance_travelled > 0:
+                min_path_distance_travelled = that_vehicle_path_distance_travelled
+                object_ahead = vehicle
+
+        if object_ahead is not None:
+            return min_path_distance_travelled - 0
+        return None
+
     # LIGHTS
 
     def get_light(self, light_uid) -> TrafficLight:
@@ -217,10 +300,14 @@ class Model:
         index = self.get_light_index(light.uid)
         self.lights[index] = light
 
-    def update_light(self, light_uid, colour=None):
+    def set_state(self, light_uid, colour=None):
         index = self.get_light_index(light_uid)
         if colour is not None:
-            self.lights[index].colour = colour
+            self.lights[index].set_state(colour)
+
+    def update_light(self, time_delta):
+        for light in self.lights:
+            light.update(time_delta)
 
     def add_light(self, path_uids):
         light_uid = 1
@@ -235,7 +322,7 @@ class Model:
         self.update_light_hash_table()
 
     # VEHICLES
-
+    
     def get_vehicle(self, vehicle_uid) -> Vehicle:
         index = self.get_vehicle_index(vehicle_uid)
         return self.vehicles[index]
@@ -246,6 +333,14 @@ class Model:
     def get_vehicles(self):
         self.remove_finished_vehicles()
         return self.vehicles
+
+    def get_vehicle_velocity(self, vehicle_uid):
+        vehicle = self.get_vehicle(vehicle_uid)
+        speed = vehicle.get_speed()
+        angle = self.get_angle(vehicle.uid)
+        velocity_x = speed * sin(angle)
+        velocity_y = speed * cos(angle)
+        return velocity_x, velocity_y
 
     def remove_finished_vehicles(self):
         vehicles_uids_to_remove = []
@@ -369,21 +464,15 @@ class Model:
         arc_length = new_path.get_arc_length_from_s(s)
         self.get_vehicle(vehicle_uid).increment_path(arc_length)
 
-    def remove_ghosts(self, time, coordinates_angle_size):
+    def update_ghosts(self, time, coordinates_angle_size):
         ghost_vehicle_uids_to_remove = []
         for ghost_vehicle in self.ghost_vehicles:
             t_delta = time.total_milliseconds() - ghost_vehicle.time_created.total_milliseconds()
-            if t_delta < 1000:
-                new_path = self.get_path(self.get_vehicle_path_uid(ghost_vehicle.uid))
+            if t_delta < ghost_vehicle.change_time:
                 vehicle = self.get_vehicle(ghost_vehicle.uid)
-                s = new_path.get_s(vehicle.get_path_distance_travelled())
-                old_path = self.get_path(ghost_vehicle.path_uid)
-                from_x, from_y = old_path.get_coordinates_from_s(s)
-                to_x, to_y = self.get_vehicle_coordinates(ghost_vehicle.uid)
-                angle = self.get_vehicle_direction(ghost_vehicle.uid)
-
-                x = (t_delta / 1000) * (to_x - from_x) + from_x
-                y = (t_delta / 1000) * (to_y - from_y) + from_y
+                delta_x, delta_y, angle, from_x, from_y = self.calculate_delta_xy_for_ghosts(vehicle, ghost_vehicle)
+                x = (t_delta / ghost_vehicle.change_time) * delta_x + from_x
+                y = (t_delta / ghost_vehicle.change_time) * delta_y + from_y
 
                 coordinates_angle_size.append([x, y, angle, vehicle.length, vehicle.width, vehicle.uid])
             else:
@@ -394,6 +483,17 @@ class Model:
                     if ghost_vehicle.uid == ghost_vehicle_uid:
                         self.ghost_vehicles.pop(index)
                         break
+
+    def calculate_delta_xy_for_ghosts(self, vehicle, ghost_vehicle):
+        new_path = self.get_path(self.get_vehicle_path_uid(ghost_vehicle.uid))
+        s = new_path.get_s(vehicle.get_path_distance_travelled())
+        old_path = self.get_path(ghost_vehicle.path_uid)
+        from_x, from_y = old_path.get_coordinates_from_s(s)
+        to_x, to_y = self.get_vehicle_coordinates(ghost_vehicle.uid)
+        angle = self.get_vehicle_direction(ghost_vehicle.uid)
+        delta_x = (to_x - from_x)
+        delta_y = (to_y - from_y)
+        return delta_x, delta_y, angle, from_x, from_y
     # GENERAL
 
     def get_uid_list(self, object_list=None):

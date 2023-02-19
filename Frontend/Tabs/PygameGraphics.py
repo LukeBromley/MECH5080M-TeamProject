@@ -410,22 +410,35 @@ class PygameGraphics:
             node = self.model.get_node(light.node_uid)
 
             x, y = self._position_offsetter(node.x * 100, node.y * 100)
-            pygame.draw.rect(self.surface, (0, 0, 0), (x - round((len(light.colours) * 10) / 2), y + 10, len(light.colours) * 10, 20))
+            pygame.draw.rect(self.surface, (0, 0, 0), (x - round((len(light.colours) * 10) / 2), y + 10, len(light.colours) * 10, 30))
 
             for index, colour in enumerate(light.colours):
                 position_offset = round((-((len(light.colours) - 1) * 25) / 2) + index * 25)
 
-                green_rgb = (0, 100, 0)
                 red_rgb = (100, 0, 0)
+                amber_rgb = (50, 50, 0)
+                green_rgb = (0, 100, 0)
 
                 if colour == "green":
-                    green_rgb = (0, 200, 0)
                     red_rgb = (50, 0, 0)
-                elif colour == "red":
+                    amber_rgb = (50, 50, 0)
+                    green_rgb = (0, 200, 0)
+                elif colour == "amber":
+                    red_rgb = (50, 0, 0)
+                    amber_rgb = (255, 200, 0)
                     green_rgb = (0, 50, 0)
+                elif colour == "red":
                     red_rgb = (255, 0, 0)
+                    amber_rgb = (50, 50, 0)
+                    green_rgb = (0, 50, 0)
+                elif colour == "red_amber":
+                    red_rgb = (255, 0, 0)
+                    amber_rgb = (255, 200, 0)
+                    green_rgb = (0, 50, 0)
+
                 pygame.draw.circle(self.surface, red_rgb, self._position_offsetter((node.x * 100) + position_offset, (node.y * 100) + 37), 3)
-                pygame.draw.circle(self.surface, green_rgb, self._position_offsetter((node.x * 100) + position_offset, (node.y * 100) + 60), 3)
+                pygame.draw.circle(self.surface, amber_rgb, self._position_offsetter((node.x * 100) + position_offset, (node.y * 100) + 60), 3)
+                pygame.draw.circle(self.surface, green_rgb, self._position_offsetter((node.x * 100) + position_offset, (node.y * 100) + 83), 3)
 
     def draw_map(self):
         if self.map_surface is not None:
