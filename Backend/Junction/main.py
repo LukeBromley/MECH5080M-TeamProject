@@ -71,7 +71,7 @@ class Simulation:
             spawn_info = self.model.nudge_spawner(node_uid, time)
             if spawn_info is not None:
                 route_uid, length, width, distance_delta = spawn_info
-                self.add_vehicle(route_uid)
+                self.add_vehicle(route_uid, length, width)
 
         if self.dqn_agent is not None:
             lights = self.model.get_lights()
@@ -99,7 +99,7 @@ class Simulation:
             object_ahead, delta_distance_ahead = self.model.get_object_ahead(vehicle_uid)
             vehicle.update(self.model.tick_time, object_ahead, delta_distance_ahead)
             vehicle.update_position_data(coordinates)
-            if vehicle.get_velocity() < 5:
+            if vehicle.get_speed() < 5:
                 vehicle.add_wait_time(self.model.tick_time)
 
             route = self.model.get_route(vehicle.get_route_uid())
@@ -125,7 +125,7 @@ class Simulation:
             self.visualiser.update_light_colours(self.model.lights)
             self.visualiser.update_time(self.model.calculate_time_of_day())
             self.visualiser.update_collision_warning(True if self.collision is not None else False)
-            sleep(self.model.tick_time)
+            # sleep(self.model.tick_time)
         self.model.tock()
 
         # if i % 10000 == 0:
