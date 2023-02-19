@@ -1,13 +1,13 @@
 from platform import system
 
+import numpy as np
 from numpy import mean
 
 from Library.maths import calculate_range_overlap, calculate_line_gradient_and_constant, \
     calculate_rectangle_corner_coords
+import sys
 
 if system() == 'Windows':
-    import sys
-
     sys.path.append('./')
 
 from time import sleep
@@ -21,6 +21,7 @@ import os
 
 class Simulation:
     def __init__(self, file_path: str, visualise: bool = True, dqn_agent=None):
+        self.total_reward = None
         self.visualiser = None
         self.wait_time = None
         self.collision = None
@@ -30,7 +31,6 @@ class Simulation:
         self.uid = None
         self.reward = None
         self.dqn_agent = dqn_agent
-
         self.visualise = visualise
         self.file_path = file_path
         self.reset()
@@ -41,8 +41,9 @@ class Simulation:
         self.wait_time = [0.0]
         self.model = Model()
         self.model.load_junction(self.file_path)
-        self.model.get_lights()[0].set_state("red")
+        # self.model.get_lights()[0].set_state("red")
         self.collision = None
+        self.reward = 0
         self.total_reward = 0
 
         self.model.set_start_time_of_day(Time(8, 0, 0))
@@ -60,10 +61,10 @@ class Simulation:
             self.visualiser.set_scale(50)
             self.visualiser.open()
 
-
     def main(self):
-        for i in range(10001):
+        for i in range(100001):
             self.update(i)
+        self.visualiser.close()
 
     def update(self, i: int):
         time = self.model.calculate_time_of_day()
@@ -85,13 +86,11 @@ class Simulation:
             elif action == 2:
                 lights[0].set_state("red")
                 lights[1].set_state("red")
-
-        if self.visualise:
-            for light in self.model.get_lights():
-                light.update(self.model.tick_time)
+        # else:
+        #     for light in lights:
+        #         light.update(self.model.tick_time)
 
         self.model.remove_finished_vehicles()
-
         coordinates_angle_size = []
         for vehicle in self.model.get_vehicles():
             vehicle_uid = vehicle.uid
@@ -101,7 +100,7 @@ class Simulation:
             object_ahead, delta_distance_ahead = self.model.get_object_ahead(vehicle_uid)
             vehicle.update(self.model.tick_time, object_ahead, delta_distance_ahead)
             vehicle.update_position_data(coordinates)
-            if vehicle.get_velocity() < 3:
+            if vehicle.get_velocity() < 5:
                 vehicle.add_wait_time(self.model.tick_time)
 
             route = self.model.get_route(vehicle.get_route_uid())
@@ -114,12 +113,13 @@ class Simulation:
             coordinates_angle_size.append([coordinates[0], coordinates[1], angle, vehicle.length, vehicle.width, vehicle.uid])
 
         self.collision = self.check_colision(coordinates_angle_size)
-        reward = 1 - self.get_mean_wait_time() ** 2
+
+        self.reward = 1 - self.get_mean_wait_time() ** 2
+
         if self.collision is not None:
-            reward -= 1
+            self.reward += -1000
 
-        self.total_reward += reward
-
+        self.total_reward += self.reward
         # Update visualiser
         if self.visualise:
             self.visualiser.update_vehicle_positions(coordinates_angle_size)
@@ -127,24 +127,42 @@ class Simulation:
             self.visualiser.update_time(self.model.calculate_time_of_day())
             self.visualiser.update_collision_warning(True if self.collision is not None else False)
             sleep(self.model.tick_time)
-
         self.model.tock()
 
-        if i % 10000 == 0:
-            print(f"Mean wait time: {mean(self.wait_time)/60:.2f}min")
-            print(f"Reward: {self.total_reward}")
-            print(self.model.calculate_time_of_day())
-            self.wait_time = [0.0]
+        # if i % 10000 == 0:
+        #     print(f"Mean wait time: {mean(self.wait_time)/60:.2f}min")
+        #     print(f"Reward: {self.total_reward}")
+        #     print(self.model.calculate_time_of_day())
+        #     self.wait_time = [0.0]
+        #     print(i)
 
     def get_state(self):
-        return self.get_path_state(1) - self.get_path_state(4)
+        return np.array(
+            [
+                self.get_path_occupancy(1),
+                self.get_path_wait_time(1),
+                self.get_path_occupancy(4),
+                self.get_path_wait_time(4),
+                self.model.get_lights()[0].get_state(),
+                self.model.get_lights()[1].get_state()
+            ]
+        )
 
-    def get_path_state(self, path_uid):
+    def get_path_occupancy(self, path_uid):
         state = 0
         for vehicle in self.model.get_vehicles():
-            if path_uid == self.model.get_path(self.model.get_route(vehicle.get_route_uid()).get_path_uid(vehicle.get_path_index())).uid:
-                state += 1 + vehicle.get_wait_time()**2
+            route = self.model.get_route(vehicle.get_route_uid())
+            if path_uid == route.get_path_uid(vehicle.get_path_index()):
+                state += 1
         return state
+
+    def get_path_wait_time(self, path_uid):
+        wait_time = 0
+        for vehicle in self.model.get_vehicles():
+            route = self.model.get_route(vehicle.get_route_uid())
+            if path_uid == route.get_path_uid(vehicle.get_path_index()):
+                wait_time += vehicle.get_wait_time()
+        return wait_time
 
     def get_mean_wait_time(self):
         return mean(self.wait_time) / 60
@@ -159,12 +177,12 @@ class Simulation:
                 uid=self.uid,
                 start_time=self.time,
                 route_uid=route_uid,
-                velocity=5.0,
+                velocity=10.0,
                 acceleration=0.0,
-                maximum_acceleration=4.0,
+                maximum_acceleration=5.0,
                 maximum_deceleration=9.0,
                 preferred_time_gap=1.5,
-                maximum_velocity=20.0,
+                maximum_velocity=30.0,
                 length=length,
                 width=width
             )
@@ -262,4 +280,5 @@ class Simulation:
 
 if __name__ == "__main__":
     sim = Simulation(os.path.join(ROOT_DIR, "Junction_Designs", "cross_road.junc"), visualise=True)
-    sim.main()
+    for i in range(50001):
+        sim.update(i)

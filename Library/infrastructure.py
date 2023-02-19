@@ -200,6 +200,12 @@ class TrafficLight:
         self.cycle_green = cycle_green
         self.cycle_length = cycle_length
 
+    def get_state(self):
+        if self.colour == "green":
+            return 1
+        else:
+            return 0
+
     def set_state(self, colour: str):
         if colour == "green":
             self.cycle_time = 0.0

@@ -166,7 +166,7 @@ class Model:
             if path.start_node_uid == node_uid:
                 paths.append(path.uid)
         return paths
-    
+
     # PATHS
 
     def get_path(self, path_uid) -> Path:
@@ -202,7 +202,7 @@ class Model:
         self.update_path_hash_table()
 
     # LIGHTS
-    
+
     def get_light(self, light_uid) -> TrafficLight:
         index = self.get_light_index(light_uid)
         return self.lights[index]
@@ -395,7 +395,7 @@ class Model:
                         self.ghost_vehicles.pop(index)
                         break
     # GENERAL
-    
+
     def get_uid_list(self, object_list=None):
         if object_list is None:
             object_list = []
@@ -474,8 +474,7 @@ class Model:
                 if remove_route in potential_routes:
                     potential_routes.remove(remove_route)
         for index, path_sequence in enumerate(path_sequences):
-            route_length = sum([self.get_path(path_uid).get_length() for path_uid in path_sequence])
-            self.routes.append(Route(index + 1, path_sequence, route_length))
+            self.routes.append(Route(index + 1, path_sequence))
 
 
     def get_route_uids(self):

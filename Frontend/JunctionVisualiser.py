@@ -60,6 +60,10 @@ class JunctionVisualiser:
         self.viewer_window.show()
         self.application.exec_()
 
+    def close(self) -> None:
+        self.thread.quit()
+        self.application.quit()
+
     def update_vehicle_positions(self, vehicle_positions: list) -> None:
         """
 
