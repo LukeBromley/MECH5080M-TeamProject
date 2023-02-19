@@ -192,12 +192,12 @@ class TrafficLight:
         """
 
         self.uid = uid
-        # was path_uids[0]. Vilius needs to fix this on his end.
         self.path_uids = path_uids
         self.colour = "green"
         assert self.colour == "green" or self.colour == "amber" or self.colour == "red" or self.colour == "red_amber"
         self.cycle_time = 0.0
 
+        self.red_time = 5
         self.red_amber_time = 2
         self.amber_time = 3
 
@@ -230,13 +230,21 @@ class TrafficLight:
         :param time_delta: iteration length [s]
         """
         self.cycle_time += time_delta
-
-        if self.colour == "red_amber":
-            if self.cycle_time > self.red_amber_time:
-                self.colour = "green"
+        if self.colour == "green":
+            self.cycle_time = 0
         elif self.colour == "amber":
             if self.cycle_time > self.amber_time:
                 self.colour = "red"
+                self.cycle_time = 0
+        elif self.colour == "red":
+            if self.cycle_time > self.red_time:
+                self.colour = "red_amber"
+                self.cycle_time = 0
+        elif self.colour == "red_amber":
+            if self.cycle_time > self.red_amber_time:
+                self.colour = "green"
+                self.cycle_time = 0
+
 
     def get_speed(self) -> float:
         return 0.0

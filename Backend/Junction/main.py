@@ -1,3 +1,4 @@
+import random
 from platform import system
 
 import numpy as np
@@ -41,7 +42,7 @@ class Simulation:
         self.wait_time = [0.0]
         self.model = Model()
         self.model.load_junction(self.file_path)
-        # self.model.get_lights()[0].set_state("red")
+        self.model.get_lights()[0].set_red()
         self.collision = None
         self.reward = 0
         self.total_reward = 0
@@ -85,9 +86,10 @@ class Simulation:
             elif action == 2:
                 lights[0].set_state("red")
                 lights[1].set_state("red")
-        # else:
-        #     for light in lights:
-        #         light.update(self.model.tick_time)
+        else:
+            lights = self.model.get_lights()
+            for light in lights:
+                light.update(self.model.tick_time)
 
         self.model.remove_finished_vehicles()
         coordinates_angle_size = []
@@ -125,9 +127,11 @@ class Simulation:
             self.visualiser.update_light_colours(self.model.lights)
             self.visualiser.update_time(self.model.calculate_time_of_day())
             self.visualiser.update_collision_warning(True if self.collision is not None else False)
-            # sleep(self.model.tick_time)
+            sleep(self.model.tick_time)
         self.model.tock()
 
+        if i % 100 == 0:
+            self.model.get_lights()[random.choice([0, 1])].set_red()
         # if i % 10000 == 0:
         #     print(f"Mean wait time: {mean(self.wait_time)/60:.2f}min")
         #     print(f"Reward: {self.total_reward}")
