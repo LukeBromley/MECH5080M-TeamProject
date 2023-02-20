@@ -58,7 +58,7 @@ class Simulation:
             self.visualiser = JunctionVisualiser()
             self.visualiser.define_main(self.main)
             self.visualiser.load_junction(self.file_path)
-            self.visualiser.set_scale(50)
+            self.visualiser.set_scale(20)
             self.visualiser.open()
 
     def main(self):
@@ -78,14 +78,11 @@ class Simulation:
             lights = self.model.get_lights()
             action = self.dqn_agent.forward(self.get_state())
             if action == 0:
-                lights[0].set_state("red")
-                lights[1].set_state("green")
+                pass
             elif action == 1:
-                lights[0].set_state("green")
-                lights[1].set_state("red")
+                lights[0].set_red()
             elif action == 2:
-                lights[0].set_state("red")
-                lights[1].set_state("red")
+                lights[1].set_red()
         else:
             lights = self.model.get_lights()
             for light in lights:
@@ -99,7 +96,7 @@ class Simulation:
             angle = self.model.get_angle(vehicle.uid)
 
             object_ahead, delta_distance_ahead = self.model.get_object_ahead(vehicle_uid)
-            vehicle.update(self.model.tick_time, object_ahead, delta_distance_ahead)
+            vehicle.update(self.model.tick_time, object_ahead, delta_distance_ahead, self.model.get_curvature(vehicle_uid))
             vehicle.update_position_data(coordinates)
             if vehicle.get_speed() < 5:
                 vehicle.add_wait_time(self.model.tick_time)
@@ -121,6 +118,8 @@ class Simulation:
             self.reward += -1000
 
         self.total_reward += self.reward
+
+        self.model.tock()
         # Update visualiser
         if self.visualise:
             self.visualiser.update_vehicle_positions(coordinates_angle_size)
@@ -128,10 +127,10 @@ class Simulation:
             self.visualiser.update_time(self.model.calculate_time_of_day())
             self.visualiser.update_collision_warning(True if self.collision is not None else False)
             sleep(self.model.tick_time)
-        self.model.tock()
 
-        if i % 100 == 0:
-            self.model.get_lights()[random.choice([0, 1])].set_red()
+
+        # if i % 50 == 0:
+        #     self.model.get_lights()[random.choice([0, 1])].set_red()
         # if i % 10000 == 0:
         #     print(f"Mean wait time: {mean(self.wait_time)/60:.2f}min")
         #     print(f"Reward: {self.total_reward}")
@@ -180,11 +179,11 @@ class Simulation:
                 uid=self.uid,
                 start_time=self.time,
                 route_uid=route_uid,
-                speed=5.0,
+                speed=15.0,
                 acceleration=0.0,
-                maximum_acceleration=5.0,
-                maximum_deceleration=9.0,
-                preferred_time_gap=1.5,
+                maximum_acceleration=0.9,
+                maximum_deceleration=4.0,
+                preferred_time_gap=2.0,
                 maximum_speed=30.0,
                 length=length,
                 width=width
@@ -192,6 +191,7 @@ class Simulation:
         )
 
     def check_colision(self, coordinates_angle_size: [[int, int, int, int, int, int]]):
+        # TODO: Makes static and re-use
         lines = []
         for coordinate_angle_size in coordinates_angle_size:
             x, y, a, l, w, uid = coordinate_angle_size

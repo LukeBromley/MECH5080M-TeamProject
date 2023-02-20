@@ -207,12 +207,6 @@ class TrafficLight:
         else:
             return 0
 
-    def set_state(self, colour: str):
-        if colour == "green":
-            self.set_green()
-        elif colour == "red":
-            self.set_red()
-
     def set_green(self):
         if self.colour != "red_amber":
             self.cycle_time = 0.0
