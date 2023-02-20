@@ -7,7 +7,7 @@ from typing import List
 class Vehicle:
     def __init__(self, route_uid: int, start_time: float = 0.0, uid: int = 0,
                  speed: float = 0.0, acceleration: float = 0.0,
-                 direction: float = 0.0, sensing_radius: float = 30.0,
+                 direction: float = 0.0, sensing_radius: float = 10.0,
                  maximum_acceleration: float = 9.81, maximum_deceleration: float = 6.0,
                  maximum_speed: float = 20.0, minimum_speed: float = -20.0,
                  distance_travelled: float = 0.0, preferred_time_gap: float = 2.0,

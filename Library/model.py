@@ -490,15 +490,16 @@ class Model:
     
     def detect_nearby_vehicles(self, vehicle_uid):
         nearby_vehicles = []
-        for vehicle in self.vehicles:
-            A,B = self.get_vehicle_coordinates(vehicle_uid)
-            distance = calculate_magnitude(A,B)
-            if distance < self.get_vehicle(vehicle_uid).get_sensing_radius() and (vehicle.uid != vehicle_uid):
-                nearby_vehicles.append(vehicle)
+        vehicle = self.get_vehicle(vehicle_uid)
+        for other_vehicle in self.vehicles:
+            own_x,own_y = self.get_vehicle_coordinates(vehicle_uid)
+            other_x, other_y = self.get_vehicle_coordinates(other_vehicle.uid)
+            distance = calculate_magnitude((own_x - other_x),(own_y - other_y))
+            if distance < vehicle.get_sensing_radius() and (other_vehicle.uid != vehicle_uid):
+                nearby_vehicles.append(other_vehicle)
         return nearby_vehicles
 
     def detect_collisions(self):
-        coords = []
         for vehicle in self.vehicles:
             nearby_vehicles = self.detect_nearby_vehicles(vehicle.uid)
             v1 = Polygon(self.get_corner_points(vehicle))
