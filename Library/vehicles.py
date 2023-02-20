@@ -7,7 +7,7 @@ from typing import List
 class Vehicle:
     def __init__(self, route_uid: int, start_time: float = 0.0, uid: int = 0,
                  speed: float = 0.0, acceleration: float = 0.0,
-                 direction: float = 0.0, sensing_radius: float = 0.0,
+                 direction: float = 0.0, sensing_radius: float = 30.0,
                  maximum_acceleration: float = 9.81, maximum_deceleration: float = 6.0,
                  maximum_speed: float = 20.0, minimum_speed: float = -20.0,
                  distance_travelled: float = 0.0, preferred_time_gap: float = 2.0,
@@ -102,19 +102,6 @@ class Vehicle:
 
         return clamp(acceleration, -self._maximum_deceleration, self._maximum_acceleration)
 
-    def _nearby_vehicles(self, vehicles):
-        """
-
-        :rtype: list
-        :param vehicles: list of vehicles within sim
-        :return: list of vehicles within detection radius
-        """
-        nearby_vehicles = []
-        for vehicle in vehicles:
-            distance = sqrt(sum(pow(x, 2) for x in vehicle.position_data[-1]))
-            if distance < self._sensing_radius:
-                nearby_vehicles.append(vehicle)
-
     def get_path_distance_travelled(self) -> float:
         return self._path_distance_travelled
 
@@ -161,6 +148,12 @@ class Vehicle:
 
     def get_route_uid(self):
         return self.route_uid
+    
+    def get_sensing_radius(self):
+        return self._sensing_radius
+    
+    def get_direction(self):
+        return self._direction
 
 
 class GhostVehicle:

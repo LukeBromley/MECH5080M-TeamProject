@@ -7,12 +7,13 @@ from time import sleep
 from Frontend.JunctionVisualiser import JunctionVisualiser
 from Library.model import Model
 from Library.vehicles import Vehicle, GhostVehicle
-from Library.environment import Spawning, Time
+from Library.environment import SpawningFixed, Time
 from Library.maths import calculate_rectangle_corner_coords, calculate_range_overlap, calculate_line_gradient_and_constant
 from config import ROOT_DIR
 import os
 from copy import deepcopy as copy
 from math import cos, sin, atan2, pi
+import random
 
 import matplotlib as plt
 
@@ -41,7 +42,7 @@ class Simulation:
         self.spawning = []
         for node_uid in self.model.calculate_start_nodes():
             self.spawning.append(
-                Spawning(node_uid, self.model.start_time_of_day))
+                SpawningFixed(node_uid, self.model.start_time_of_day))
 
         self.ghost_vehicles = []
 
@@ -59,19 +60,17 @@ class Simulation:
                 if self.spawning[index].nudge(time):
                     route_uid = self.spawning[index].select_route(
                         self.model.get_routes_with_starting_node(node_uid))
-                    self.add_vehicle(route_uid, 2, 2)
+                    self.add_vehicle(route_uid, random.uniform(1,3), random.uniform(1,3))
 
             # Remove finished vehicles
             self.remove_finished_vehicles()
-
+            collision = self.model.detect_collisions()
             # Update vehicle position
             coordinates_angle_size = []
-            
             for vehicle in self.model.vehicles:
                 coord_x, coord_y = self.model.get_vehicle_coordinates(
                     vehicle.uid)
                 angle = self.model.get_vehicle_direction(vehicle.uid)
-
                 if vehicle.get_path_distance_travelled() > 3 and not vehicle.changing_lane:
                     if self.model.is_lane_change_required(vehicle.uid):
                         self.model.change_vehicle_lane(vehicle.uid, time)
@@ -87,17 +86,19 @@ class Simulation:
                 else:
                     coordinates_angle_size.append(
                         [coord_x, coord_y, angle, vehicle.length, vehicle.width, vehicle.uid])
+                
             if self.model.ghost_vehicles:
                 self.model.update_ghosts(time, coordinates_angle_size)
-
+            
             # Update visualiser
+
             self.visualiser.update_vehicle_positions(coordinates_angle_size)
             self.visualiser.update_light_colours(self.model.lights)
             self.visualiser.update_time(self.model.calculate_time_of_day())
-
+            self.visualiser.update_collision_warning(collision)
             # Increment Time
             self.model.tock()
-            sleep((self.model.tick_time)/5)
+            sleep((self.model.tick_time))
 
     def run(self):
         self.visualiser.open()
