@@ -58,6 +58,21 @@ class Model:
         self.config = self.file_manager.load_config_file(config_file_location)
         self.set_tick_rate(self.config.tick_rate)
         self.set_start_time_of_day(self.config.start_time_of_day)
+        self.set_random_seed(self.config.random_seed)
+        self.setup_random_spawning(SpawningStats(
+            max_spawn_time=self.config.max_spawn_time,
+            min_spawn_time=self.config.min_spawn_time,
+            mean_spawn_time_per_hour=self.config.mean_spawn_time_per_hour,
+            sdev_spawn_time_per_hour=self.config.sdev_spawn_time_per_hour,
+            max_car_length=self.config.max_car_length,
+            min_car_length=self.config.min_car_length,
+            max_car_width=self.config.max_car_width,
+            min_car_width=self.config.min_car_width,
+            mean_car_lengths=self.config.mean_car_lengths,
+            mean_car_widths=self.config.mean_car_widths,
+            sdev_car_lengths=self.config.sdev_car_lengths,
+            sdev_car_widths=self.config.sdev_car_widths,
+        ))
 
     def save_config(self, config_file_location, configuration):
         self.file_manager.save_config_file(config_file_location, configuration)
@@ -136,11 +151,13 @@ class Model:
         random.seed(seed)
 
     def setup_random_spawning(self, spawning_stats=None):
+        self.spawners = []
         for node_uid in self.calculate_start_nodes():
             self.spawners.append(SpawningRandom(node_uid, self.start_time_of_day, SpawningStats() if spawning_stats is None else spawning_stats))
         self.update_spawner_hash_table()
 
     def setup_fixed_spawning(self, spawning_time, vehicle_size=(3, 1.8)):
+        self.spawners = []
         for node_uid in self.calculate_start_nodes():
             self.spawners.append(SpawningFixed(node_uid, self.start_time_of_day, spawning_time, vehicle_size))
         self.update_spawner_hash_table()
@@ -156,7 +173,6 @@ class Model:
                 return route_uid, length, width, distance_delta
         else:
             return None
-        # return self.spawners[index].nudge(time)
 
     def get_spawner_route(self, node_uid):
         index = self.get_spawner_index(node_uid)
