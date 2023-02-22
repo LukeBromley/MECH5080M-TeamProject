@@ -1,10 +1,10 @@
 import sys
-from .Tabs.PygameGraphics import *
-from .Tabs.ControlTab import *
+from .Tabs.pygame_graphics import *
+from .Tabs.control_tab import *
 from PyQt5.QtCore import QThread, QObject, pyqtSignal
-from Library.FileManagement import *
-from Library.maths import clamp
-from Library.model import Model
+from library.file_management import *
+from library.maths import clamp
+from library.model import Model
 
 
 class JunctionVisualiser:

@@ -1,7 +1,7 @@
 import json
-from Library.environment import Time
-from Library.infrastructure import Node, Path, TrafficLight
-from Library.vehicles import VehicleResults
+from library.environment import Configuration, Time
+from library.infrastructure import Node, Path, TrafficLight
+from library.vehicles import VehicleResults
 
 """
 Explanation of File Management
@@ -14,24 +14,6 @@ Junction Files
 """
 
 
-class Configuration:
-
-    def __init__(self):
-        self.tick_rate = 10  # ticks per second
-        self.start_time_of_day = Time(12, 0, 0)  # ticks per second
-
-        self.lanes = None
-        self.min_start_speed = None
-        self.max_start_speed = None
-        self.min_start_acceleration = None
-        self.max_start_acceleration = None
-        self.min_length = None
-        self.max_length = None
-        self.min_width = None
-        self.max_width = None
-        self.max_num_vehicles = None
-
-
 class FileManagement:
     def __init__(self) -> None:
         """
@@ -42,17 +24,37 @@ class FileManagement:
         # Configuration identifiers
         self.tick_rate_key = "tick_rate"
         self.start_time_of_day_key = "start_time_of_day"
+        self.simulation_duration_key = "simulation_duration"
 
-        self.lanes_key = "lanes"
-        self.min_start_speed_key = "min_start_speed"
-        self.max_start_speed_key = "max_start_speed"
-        self.min_start_acceleration_key = "min_start_acceleration"
-        self.max_start_acceleration_key = "max_start_acceleration"
-        self.min_length_key = "min_car_length"
-        self.max_length_key = "max_car_length"
-        self.min_width_key = "min_car_width"
-        self.max_width_key = "max_car_length"
-        self.max_num_vehicles_key = "max_number_of_vehicles"
+        # Vehicle
+        self.initial_speed_key = "initial_speed"
+        self.initial_acceleration_key = "initial_acceleration"
+        self.maximum_acceleration_key = "maximum_acceleration"
+        self.maximum_deceleration_key = "maximum_deceleration"
+        self.preferred_time_gap_key = "preferred_time_gap"
+        self.maximum_speed_key = "maximum_speed"
+        self.min_creep_distance_key = "min_creep_distance"
+
+        # Spawning
+        self.random_seed_key = "random_seed"
+
+        self.max_spawn_time_key = "max_spawn_time"
+        self.min_spawn_time_key = "min_spawn_time"
+        self.mean_spawn_time_per_hour_key = "mean_spawn_time_per_hour"
+        self.sdev_spawn_time_per_hour_key = "sdev_spawn_time_per_hour"
+
+        self.max_car_length_key = "max_car_length"
+        self.min_car_length_key = "min_car_length"
+        self.max_car_width_key = "max_car_width"
+        self.min_car_width_key = "min_car_width"
+
+        self.mean_car_lengths_key = "mean_car_lengths"
+        self.mean_car_widths_key = "mean_car_widths"
+        self.sdev_car_lengths_key = "sdev_car_lengths"
+        self.sdev_car_widths_key = "sdev_car_widths"
+
+        # Visualiser
+        self.visualiser_scale_key = "visualiser_scale"
 
         # Junction identifiers
         self.nodes_key = "nodes"
@@ -176,20 +178,40 @@ class FileManagement:
         # Create dictionary structure
         file_dict = {}
 
+        # Configuration identifiers
         file_dict[self.tick_rate_key] = config.tick_rate
-        file_dict[self.start_time_of_day_key] = [config.start_time_of_day.hour,
-                                                 config.start_time_of_day.minute, config.start_time_of_day.second]
+        file_dict[self.start_time_of_day_key] = [config.start_time_of_day.hour, config.start_time_of_day.minute, config.start_time_of_day.second]
+        file_dict[self.simulation_duration_key] = config.simulation_duration
 
-        file_dict[self.lanes_key] = config.lanes
-        file_dict[self.min_start_speed_key] = config.min_start_speed
-        file_dict[self.max_start_speed_key] = config.max_start_speed
-        file_dict[self.min_start_acceleration_key] = config.min_start_acceleration
-        file_dict[self.max_start_acceleration_key] = config.max_start_acceleration
-        file_dict[self.min_length_key] = config.min_length
-        file_dict[self.max_length_key] = config.max_length
-        file_dict[self.min_width_key] = config.min_width
-        file_dict[self.max_width_key] = config.max_width
-        file_dict[self.max_num_vehicles_key] = config.max_num_vehicles
+        # Vehicle
+        file_dict[self.initial_speed_key] = config.initial_speed
+        file_dict[self.initial_acceleration_key] = config.initial_acceleration
+        file_dict[self.maximum_acceleration_key] = config.maximum_acceleration
+        file_dict[self.maximum_deceleration_key] = config.maximum_deceleration
+        file_dict[self.preferred_time_gap_key] = config.preferred_time_gap
+        file_dict[self.maximum_speed_key] = config.maximum_speed
+        file_dict[self.min_creep_distance_key] = config.min_creep_distance
+
+        # Spawning
+        file_dict[self.random_seed_key] = config.random_seed
+
+        file_dict[self.max_spawn_time_key] = config.max_spawn_time
+        file_dict[self.min_spawn_time_key] = config.min_spawn_time
+        file_dict[self.mean_spawn_time_per_hour_key] = config.mean_spawn_time_per_hour
+        file_dict[self.sdev_spawn_time_per_hour_key] = config.sdev_spawn_time_per_hour
+
+        file_dict[self.max_car_length_key] = config.max_car_length
+        file_dict[self.min_car_length_key] = config.min_car_length
+        file_dict[self.max_car_width_key] = config.max_car_width
+        file_dict[self.min_car_width_key] = config.min_car_width
+
+        file_dict[self.mean_car_lengths_key] = config.mean_car_lengths
+        file_dict[self.mean_car_widths_key] = config.mean_car_widths
+        file_dict[self.sdev_car_lengths_key] = config.sdev_car_lengths
+        file_dict[self.sdev_car_widths_key] = config.sdev_car_widths
+
+        # Visualiser
+        file_dict[self.visualiser_scale_key] = config.visualiser_scale
 
         with open(file_path, "w") as file:
             json.dump(file_dict, file)
@@ -205,20 +227,40 @@ class FileManagement:
 
         config = Configuration()
 
+        # Configuration identifiers
         config.tick_rate = file_dict[self.tick_rate_key]
-        config.start_time_of_day = Time(file_dict[self.start_time_of_day_key][0],
-                                        file_dict[self.start_time_of_day_key][1], file_dict[self.start_time_of_day_key][2])
+        config.start_time_of_day = Time(file_dict[self.start_time_of_day_key][0], file_dict[self.start_time_of_day_key][1], file_dict[self.start_time_of_day_key][2])
+        config.simulation_duration = file_dict[self.simulation_duration_key]
 
-        config.lanes = file_dict[self.lanes_key]
-        config.min_start_speed = file_dict[self.min_start_speed_key]
-        config.max_start_speed = file_dict[self.max_start_speed_key]
-        config.min_start_acceleration = file_dict[self.min_start_acceleration_key]
-        config.max_start_acceleration = file_dict[self.max_start_acceleration_key]
-        config.min_length = file_dict[self.min_length_key]
-        config.max_length = file_dict[self.max_length_key]
-        config.min_width = file_dict[self.min_width_key]
-        config.max_width = file_dict[self.max_width_key]
-        config.max_num_vehicles = file_dict[self.max_num_vehicles_key]
+        # Vehicle
+        config.initial_speed = file_dict[self.initial_speed_key]
+        config.initial_acceleration = file_dict[self.initial_acceleration_key]
+        config.maximum_acceleration = file_dict[self.maximum_acceleration_key]
+        config.maximum_deceleration = file_dict[self.maximum_deceleration_key]
+        config.preferred_time_gap = file_dict[self.preferred_time_gap_key]
+        config.maximum_speed = file_dict[self.maximum_speed_key]
+        config.min_creep_distance = file_dict[self.min_creep_distance_key]
+
+        # Spawning
+        config.random_seed = file_dict[self.random_seed_key]
+
+        config.max_spawn_time = file_dict[self.max_spawn_time_key]
+        config.min_spawn_time = file_dict[self.min_spawn_time_key]
+        config.mean_spawn_time_per_hour = file_dict[self.mean_spawn_time_per_hour_key]
+        config.sdev_spawn_time_per_hour = file_dict[self.sdev_spawn_time_per_hour_key]
+
+        config.max_car_length = file_dict[self.max_car_length_key]
+        config.min_car_length = file_dict[self.min_car_length_key]
+        config.max_car_width = file_dict[self.max_car_width_key]
+        config.min_car_width = file_dict[self.min_car_width_key]
+
+        config.mean_car_lengths = file_dict[self.mean_car_lengths_key]
+        config.mean_car_widths = file_dict[self.mean_car_widths_key]
+        config.sdev_car_lengths = file_dict[self.sdev_car_lengths_key]
+        config.sdev_car_widths = file_dict[self.sdev_car_widths_key]
+
+        # Visualiser
+        config.visualiser_scale = file_dict[self.visualiser_scale_key]
 
         return config
 

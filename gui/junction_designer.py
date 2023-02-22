@@ -6,14 +6,14 @@ if system() == 'Windows':
 import sys
 from PyQt5.QtWidgets import QStyleFactory
 
-from Library.model import Model
+from library.model import Model
 
-from Frontend.Tabs.PygameGraphics import *
-from Frontend.Tabs.OpenSaveTab import *
-from Frontend.Tabs.DesignTab import *
-from Frontend.Tabs.ViewTab import *
-from Frontend.Tabs.ControlTab import *
-from Frontend.Tabs.LaneChangingTab import *
+from gui.Tabs.pygame_graphics import *
+from gui.Tabs.open_save_tab import *
+from gui.Tabs.design_tab import *
+from gui.Tabs.view_tab import *
+from gui.Tabs.control_tab import *
+from gui.Tabs.lane_changing_tab import *
 
 
 class JunctionDesigner:

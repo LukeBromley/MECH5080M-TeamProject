@@ -1,9 +1,9 @@
-from Frontend.Tabs.PYQTShortcuts import *
+from gui.Tabs.pyqt_shortcuts import *
 from PyQt5.QtWidgets import QFileDialog
 from PyQt5.QtCore import Qt
 import os
 
-from Library.FileManagement import *
+from library.file_management import *
 
 
 class OpenSaveTab(QtWidgets.QWidget):
@@ -41,7 +41,7 @@ class OpenSaveTab(QtWidgets.QWidget):
         Opens the open file dialog box and gets desired file path + file name
         :return: None
         """
-        file_path = QFileDialog.getOpenFileName(self, 'Open Junction', '../Junction_Designs', "Junction Files (*.junc)")[0]
+        file_path = QFileDialog.getOpenFileName(self, 'Open Junction', '../junctions', "Junction Files (*.junc)")[0]
         if len(file_path) > 0:
             self.open_junction(file_path)
 
@@ -75,7 +75,7 @@ class OpenSaveTab(QtWidgets.QWidget):
         Opens the file dialog box and gets desired file path + file name to save the file to.
         :return: None
         """
-        path = os.path.join(os.path.dirname(__file__), ".../Junction_Designs")
+        path = os.path.join(os.path.dirname(__file__), ".../junctions")
         file_path = QFileDialog.getSaveFileName(self, 'Save Junction', path, "Junction Files (*.junc)")[0]
         if len(file_path) > 0:
             self.save_file_path = file_path

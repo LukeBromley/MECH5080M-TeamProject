@@ -1,6 +1,6 @@
-from Frontend.Tabs.PYQTShortcuts import *
+from gui.Tabs.pyqt_shortcuts import *
 from PyQt5.QtCore import Qt
-from Library.infrastructure import Node, Path
+from library.infrastructure import Node, Path
 from functools import partial
 from math import pi
 

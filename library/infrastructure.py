@@ -1,7 +1,7 @@
 import math
 import random
 from math import sin, cos, sqrt, atan, pi
-from Library.maths import Vector, calculate_cross_product, calculate_vector_magnitude
+from library.maths import Vector, calculate_cross_product, calculate_vector_magnitude
 from typing import List
 
 

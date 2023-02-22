@@ -1,4 +1,4 @@
-from Frontend.Tabs.PYQTShortcuts import *
+from gui.Tabs.pyqt_shortcuts import *
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QFileDialog
 
@@ -199,7 +199,7 @@ class ViewTab(QtWidgets.QWidget):
         self.playback_next_tick.setEnabled(True)
 
     def load_results_data(self):
-        file_path = QFileDialog.getOpenFileName(self, 'Open Results Data', '../Junction_Designs', "Results File (*.res)")[0]
+        file_path = QFileDialog.getOpenFileName(self, 'Open Results Data', '../junctions', "Results File (*.res)")[0]
         if len(file_path) > 0:
             self.gui.model.load_results(file_path)
         self.enable_playback()

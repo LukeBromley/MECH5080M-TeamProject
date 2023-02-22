@@ -1,8 +1,8 @@
 from platform import system
 if system() == 'Windows':
     import sys
-    sys.path.append('./')
+    sys.path.append('../Mains/')
 
-from Frontend.JunctionDesigner import *
+from gui.junction_designer import *
 
 Visualiser = JunctionDesigner()

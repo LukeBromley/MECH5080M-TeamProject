@@ -1,7 +1,45 @@
 from datetime import datetime, timedelta, time
 from math import floor
 from random import randint, normalvariate as normal
-from Library.maths import clamp
+from library.maths import clamp
+
+
+class Configuration:
+
+    def __init__(self):
+        # Time
+        self.tick_rate = 100
+        self.start_time_of_day = Time(12, 0, 0)  # ticks per second
+        self.simulation_duration = 8640000
+
+        # Vehicle
+        self.initial_speed = 5.0
+        self.initial_acceleration = 0.0
+        self.maximum_acceleration = 3.0
+        self.maximum_deceleration = 9.0
+        self.preferred_time_gap = 2.0
+        self.maximum_speed = 30.0
+        self.min_creep_distance = 1
+
+        # Spawning
+        self.random_seed = 1
+        self.max_spawn_time = 30
+        self.min_spawn_time = 2
+        self.mean_spawn_time_per_hour = [5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5]
+        self.sdev_spawn_time_per_hour = [3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3]
+
+        self.max_car_length = 3.5
+        self.min_car_length = 2.5
+        self.max_car_width = 2
+        self.min_car_width = 1.6
+
+        self.mean_car_lengths = [3]
+        self.mean_car_widths = [1.8]
+        self.sdev_car_lengths = [0.1]
+        self.sdev_car_widths = [0.1]
+
+        # Visualiser
+        self.visualiser_scale = 100
 
 
 class Time:

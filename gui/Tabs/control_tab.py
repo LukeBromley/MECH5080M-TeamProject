@@ -1,6 +1,6 @@
-from Frontend.Tabs.PYQTShortcuts import *
+from gui.Tabs.pyqt_shortcuts import *
 from PyQt5.QtCore import Qt
-from Library.infrastructure import TrafficLight
+from library.infrastructure import TrafficLight
 from functools import partial
 from math import pi
 

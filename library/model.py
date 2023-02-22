@@ -1,12 +1,13 @@
 from typing import List
 from math import floor, sin, cos
 import random
-from .FileManagement import FileManagement
-from Library.infrastructure import Node, Path, TrafficLight, Route
-from Library.vehicles import Vehicle, GhostVehicle
-from Library.environment import SpawningRandom, SpawningFixed, SpawningStats
+from .file_management import FileManagement
+from library.infrastructure import Node, Path, TrafficLight, Route
+from library.vehicles import Vehicle, GhostVehicle
+from library.environment import SpawningRandom, SpawningFixed, SpawningStats
 from copy import deepcopy
-from Library.maths import calculate_magnitude
+from library.maths import calculate_magnitude
+
 
 class Model:
     def __init__(self):

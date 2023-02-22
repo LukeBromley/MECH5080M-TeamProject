@@ -1,7 +1,7 @@
 import pygame
 from math import sin, cos, pi
 from PyQt5 import QtCore
-from Library.maths import clamp, VisualPoint
+from library.maths import clamp, VisualPoint
 from copy import deepcopy as copy
 import requests
 
