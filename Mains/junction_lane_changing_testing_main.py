@@ -131,5 +131,5 @@ class Simulation:
 
 if __name__ == "__main__":
     sim = Simulation(os.path.join(ROOT_DIR, "Junction_Designs",
-                     "example_junction_with_lanes.junc"))
+                     "cross_roads.junc"))
     sim.run()
