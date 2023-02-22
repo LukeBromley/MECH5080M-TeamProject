@@ -6,7 +6,8 @@ from library.infrastructure import Node, Path, TrafficLight, Route
 from library.vehicles import Vehicle, GhostVehicle
 from library.environment import SpawningRandom, SpawningFixed, SpawningStats
 from copy import deepcopy
-import os
+from library.maths import calculate_magnitude
+from shapely.geometry import Polygon
 
 
 class Model:
@@ -501,6 +502,44 @@ class Model:
         delta_x = (to_x - from_x)
         delta_y = (to_y - from_y)
         return delta_x, delta_y, angle, from_x, from_y
+    
+    def detect_nearby_vehicles(self, vehicle_uid):
+        nearby_vehicles = []
+        vehicle = self.get_vehicle(vehicle_uid)
+        for other_vehicle in self.vehicles:
+            own_x, own_y = self.get_vehicle_coordinates(vehicle_uid)
+            other_x, other_y = self.get_vehicle_coordinates(other_vehicle.uid)
+            distance = calculate_magnitude(
+                (own_x - other_x), (own_y - other_y))
+            minimum_distance = max(vehicle.width, vehicle.length)+max(other_vehicle.width, other_vehicle.length)
+            if distance <= minimum_distance and (other_vehicle.uid != vehicle_uid):
+                nearby_vehicles.append(other_vehicle)
+        return nearby_vehicles
+
+    def detect_collisions(self):
+        collisions = []
+        for vehicle in self.vehicles:
+            nearby_vehicles = self.detect_nearby_vehicles(vehicle.uid)
+            v1 = Polygon(self.get_corner_points(vehicle))
+            for nearby_vehicle in nearby_vehicles:
+                v2 = Polygon(self.get_corner_points(nearby_vehicle))
+                if v1.intersects(v2) and [nearby_vehicle, vehicle] not in collisions:
+                    collisions.append([vehicle, nearby_vehicle])
+        return collisions
+
+    def get_corner_points(self, vehicle):
+        angle = self.get_vehicle_direction(vehicle.uid)
+        x, y = self.get_vehicle_coordinates(vehicle.uid)
+        half_width = vehicle.width/2
+        half_length = vehicle.length/2
+        c_theta = cos(angle)
+        s_theta = sin(angle)
+        r1x = -half_length * c_theta - half_width * s_theta
+        r1y = -half_length * s_theta + half_width * c_theta
+        r2x = half_length * c_theta - half_width * s_theta
+        r2y = half_length * s_theta + half_width * c_theta
+        return [(x + r1x, y + r1y), (x + r2x, y + r2y), (x - r1x, y - r1y), (x - r2x, y - r2y)]
+
     # GENERAL
     
     def get_uid_list(self, object_list=None):

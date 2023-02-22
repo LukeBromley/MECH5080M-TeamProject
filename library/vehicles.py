@@ -161,6 +161,7 @@ class Vehicle:
 
     def get_route_uid(self):
         return self.route_uid
+    
 
 
 class GhostVehicle:
