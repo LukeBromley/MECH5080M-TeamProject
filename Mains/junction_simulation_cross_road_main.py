@@ -14,7 +14,7 @@ import os
 
 
 class Simulation:
-    def __init__(self, junction_file_path: str, config_file_path, machine_learning_function=None):
+    def __init__(self, junction_file_path: str, config_file_path):
         self.uid = 0
 
         # Model
@@ -38,56 +38,46 @@ class Simulation:
         # Collision State
         self.collision = False
 
-        # Machine Learning
-        self.machine_learning_function = machine_learning_function
+    def tick(self):
+        # Spawn vehicles
+        for index, node_uid in enumerate(self.model.calculate_start_nodes()):
+            nudge_result = self.model.nudge_spawner(node_uid, self.model.calculate_time_of_day())
+            if nudge_result is not None:
+                route_uid, length, width, distance_delta = nudge_result
+                self.add_vehicle(route_uid, length, width, distance_delta)
 
-    def main(self):
-        for i in range(self.model.config.simulation_duration):  # 24 simulation hours
+        # Control lights
+        for light in self.model.get_lights():
+            light.update(self.model.tick_time)
 
-            # Spawn vehicles
-            for index, node_uid in enumerate(self.model.calculate_start_nodes()):
-                nudge_result = self.model.nudge_spawner(node_uid, self.model.calculate_time_of_day())
-                if nudge_result is not None:
-                    route_uid, length, width, distance_delta = nudge_result
-                    self.add_vehicle(route_uid, length, width, distance_delta)
+        # Remove finished vehicles
+        self.model.remove_finished_vehicles()
 
-            # Control lights
-            for light in self.model.get_lights():
-                light.update(self.model.tick_time)
+        # Update vehicle position
+        coordinates = []
+        coordinates_angle_size = []
+        for vehicle in self.model.vehicles:
+            coord_x, coord_y = self.model.get_vehicle_coordinates(vehicle.uid)
+            angle = self.model.get_vehicle_direction(vehicle.uid)
 
-            # Remove finished vehicles
-            self.model.remove_finished_vehicles()
+            object_ahead, delta_distance_ahead = self.model.get_object_ahead(vehicle.uid)
+            vehicle.update(self.model.tick_time, object_ahead, delta_distance_ahead)
+            vehicle.update_position_data([coord_x, coord_y])
 
-            # Update vehicle position
-            coordinates = []
-            coordinates_angle_size = []
-            for vehicle in self.model.vehicles:
-                coord_x, coord_y = self.model.get_vehicle_coordinates(vehicle.uid)
-                angle = self.model.get_vehicle_direction(vehicle.uid)
+            coordinates.append([coord_x, coord_y])
+            coordinates_angle_size.append([coord_x, coord_y, angle, vehicle.length, vehicle.width, vehicle.uid])
 
-                object_ahead, delta_distance_ahead = self.model.get_object_ahead(vehicle.uid)
-                vehicle.update(self.model.tick_time, object_ahead, delta_distance_ahead)
-                vehicle.update_position_data([coord_x, coord_y])
+        collision = self.check_colision(coordinates_angle_size)
+        self.collision = True if collision is not None else False
 
-                coordinates.append([coord_x, coord_y])
-                coordinates_angle_size.append([coord_x, coord_y, angle, vehicle.length, vehicle.width, vehicle.uid])
+        # Update visualiser
+        self.visualiser.update_vehicle_positions(coordinates_angle_size)
+        self.visualiser.update_light_colours(self.model.lights)
+        self.visualiser.update_time(self.model.calculate_time_of_day())
+        self.visualiser.update_collision_warning(self.collision)
 
-            collision = self.check_colision(coordinates_angle_size)
-            self.collision = True if collision is not None else False
-
-            # Update visualiser
-            self.visualiser.update_vehicle_positions(coordinates_angle_size)
-            self.visualiser.update_light_colours(self.model.lights)
-            self.visualiser.update_time(self.model.calculate_time_of_day())
-            self.visualiser.update_collision_warning(self.collision)
-
-            # Machine learning
-            if self.machine_learning_function is not None:
-                self.machine_learning_function()
-
-            # Increment Time
-            self.model.tock()
-            sleep(self.model.tick_time * 0.2)
+        # Increment Time
+        self.model.tock()
 
     def add_vehicle(self, route_uid: int, length, width, didstance_delta):
         self.uid += 1
@@ -207,9 +197,28 @@ class Simulation:
         return None
 
 
+from tensorflow import keras, GradientTape, stop_gradient
+from keras import layers, initializers
+import numpy as np
+
+# https://towardsdatascience.com/a-minimal-working-example-for-deep-q-learning-in-tensorflow-2-0-e0ca8a944d5e
+
+
 class MachineLearning:
     def __init__(self):
         self.simulation = None
+
+        self.max_number_of_vehicles = 10
+        self.stats_per_vehicle = 4
+        self.number_of_episodes = 10000
+        self.exploration_rate = 0.1  # Exploration rate
+        self.learning_rate = 0.01  # LEarning rate
+
+        self.actions = [1, 2, 3, 4]
+        self.action_space_size = len(self.actions)
+
+        self.network = self.construct_q_learning_netowrk(self.max_number_of_vehicles, self.stats_per_vehicle, self.action_space_size)
+
         self.reset()
 
     def reset(self):
@@ -219,11 +228,71 @@ class MachineLearning:
         )
         self.simulation.visualiser.open()
 
+    def construct_q_learning_netowrk(self, state_dim_width, state_dim_height, action_dim):
+        inputs = layers.Input(shape=(state_dim_width, state_dim_height))  # input dimension
+        hidden1 = layers.Dense(25, activation="relu", kernel_initializer=initializers.he_normal())(inputs)
+        hidden2 = layers.Dense(25, activation="relu", kernel_initializer=initializers.he_normal())(hidden1)
+        hidden3 = layers.Dense(25, activation="relu", kernel_initializer=initializers.he_normal())(hidden2)
+        q_values = layers.Dense(action_dim, kernel_initializer=initializers.Zeros(), activation="linear")(hidden3)
+
+        q_network = keras.Model(inputs=inputs, outputs=[q_values])
+        return q_network
+
+    def run(self):
+        opt = keras.optimizers.Adam(learning_rate=self.learning_rate)
+
+        for episode in range(self.number_of_episodes):
+            with GradientTape() as tape:
+                # Obtain Q-values from network
+                # Essentially: Get the data from the simulation and give it to the neural netowrk
+                q_values = self.network(self.get_state())
+
+                # Select action using epsilon-greedy policy
+                # Essentially: Gets a random value. if the value is less than the exploration rate then explore
+                #              else get the prediction from the network
+                sample_epsilon = np.random.rand()
+                if sample_epsilon <= self.exploration_rate:  # Select random action
+                    action = np.random.choice(self.actions)
+                else:  # Select action with highest Q-value
+                    action = np.argmax(q_values[0])
+
+                "Obtain direct reward for selected action"
+                reward = self.get_reward()  # get_reward(state, action)
+
+                "Obtain Q-value for selected action"
+                q_value = q_values[0, action]
+
+                "Determine next state"
+                next_state = get_state(state, action)
+
+                "Select next action with highest Q-value"
+                if next_state == terminal_state:
+                    next_q_value = 0  # No Q-value for terminal
+                else:
+                    next_q_values = stop_gradient(self.network(next_state))  # No gradient computation
+                    next_action = np.argmax(next_q_values[0])
+                    next_q_value = next_q_values[0, next_action]
+
+                "Compute observed Q-value"
+                observed_q_value = reward + (self.learning_rate * next_q_value)
+
+                "Compute loss value"
+                loss_value = (observed_q_value - current_q_value) ** 2
+
+                "Compute gradients"
+                grads = tape.gradient(loss_value, self.network.trainable_variables)
+
+                "Apply gradients to update network weights"
+                opt.apply_gradients(zip(grads, self.network.trainable_variables))
+
+                "Update state"
+                state = next_state
+
     def machine_learning(self):
-        data = self.get_data()
+        data = self.get_state()
         # reward = self.get_reward()
 
-    def get_data(self, max_number_of_vehicles=10):
+    def get_state(self):
         data = []
 
         for vehicle in self.simulation.model.vehicles:
@@ -231,7 +300,7 @@ class MachineLearning:
             coordinates = self.simulation.model.get_vehicle_coordinates(vehicle.uid)
             data.append([speed, coordinates[0], coordinates[1], True])
 
-        while len(data) < max_number_of_vehicles:
+        while len(data) < self.max_number_of_vehicles:
             data.append([0, 0, 0, False])
 
         return data
@@ -248,3 +317,8 @@ class MachineLearning:
 
 if __name__ == "__main__":
     machine_learning = MachineLearning()
+
+
+# Reward / penalise
+
+
