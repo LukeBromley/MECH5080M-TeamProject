@@ -87,6 +87,12 @@ class JunctionVisualiser:
         if collision:
             self.viewer_window.pygame_graphics.background_colour = (255, 0, 0)
 
+    def update(self, vehicle_data: list = (), lights: list = (), time_of_day: Time = Time(12, 0, 0), collision: bool = False):
+        self.update_vehicle_positions(vehicle_data)
+        self.update_light_colours(lights)
+        self.update_time(time_of_day)
+        self.update_collision_warning(collision)
+
     def set_scale(self, scale: int) -> None:
         """
 
