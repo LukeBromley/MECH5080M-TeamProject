@@ -511,7 +511,8 @@ class Model:
             other_x, other_y = self.get_vehicle_coordinates(other_vehicle.uid)
             distance = calculate_magnitude(
                 (own_x - other_x), (own_y - other_y))
-            if distance < vehicle.get_sensing_radius() and (other_vehicle.uid != vehicle_uid):
+            minimum_distance = max(vehicle.width, vehicle.length)+max(other_vehicle.width, other_vehicle.length)
+            if distance <= minimum_distance and (other_vehicle.uid != vehicle_uid):
                 nearby_vehicles.append(other_vehicle)
         return nearby_vehicles
 
