@@ -3,7 +3,7 @@ if system() == 'Windows':
     import sys
     sys.path.append('./')
 
-from time import sleep
+from time import sleep, time_ns
 from Frontend.JunctionVisualiser import JunctionVisualiser
 from Library.model import Model
 from Library.vehicles import Vehicle, GhostVehicle
@@ -64,7 +64,16 @@ class Simulation:
 
             # Remove finished vehicles
             self.remove_finished_vehicles()
-            collision = self.model.detect_collisions()
+
+            tm = time_ns()
+           # collision = self.model.detect_collisions()
+            out = (time_ns() - tm)
+            #print("\n\nLuke = " + str(len(collision)) + " in " + str(out/100000))
+
+            tm = time_ns()
+            coords, collision = self.model.mat_coll()
+            out = (time_ns() - tm)
+           # print("MPL = " + str(len(collision)) + " in " + str(out/100000))
             # Update vehicle position
             coordinates_angle_size = []
             for vehicle in self.model.vehicles:
@@ -91,7 +100,7 @@ class Simulation:
                 self.model.update_ghosts(time, coordinates_angle_size)
             
             # Update visualiser
-
+            coordinates_angle_size += coords
             self.visualiser.update_vehicle_positions(coordinates_angle_size)
             self.visualiser.update_light_colours(self.model.lights)
             self.visualiser.update_time(self.model.calculate_time_of_day())

@@ -3,11 +3,11 @@ if system() == 'Windows':
     import sys
     sys.path.append('./')
 
-from time import sleep
+from time import sleep, time_ns
 from Frontend.JunctionVisualiser import JunctionVisualiser
 from Library.model import Model
 from Library.vehicles import Vehicle
-from Library.environment import Spawning, Time
+from Library.environment import SpawningFixed, Time
 from Library.maths import calculate_rectangle_corner_coords, calculate_range_overlap, calculate_line_gradient_and_constant, clamp
 from config import ROOT_DIR
 import os
@@ -35,20 +35,20 @@ class Simulation:
         self.model.setup_fixed_spawning(2)
 
         # Lights
-        self.model.add_light([2])
-        self.model.set_state(1, colour='red')
+        #self.model.add_light([2])
+        #self.model.set_state(1, colour='red')
 
         # Visualiser
         self.visualiser = JunctionVisualiser()
         self.visualiser.define_main(self.main)
         self.visualiser.load_junction(file_path)
-        self.visualiser.set_scale(100)
+        self.visualiser.set_scale(50)
 
         # Spawning system
         self.spawning = []
         for node_uid in self.model.calculate_start_nodes():
             self.spawning.append(
-                Spawning(node_uid, self.model.start_time_of_day))
+                SpawningFixed(node_uid, self.model.start_time_of_day))
 
     def main(self):
         a = 0
@@ -82,6 +82,17 @@ class Simulation:
 
             # Remove finished vehicles
             self.model.remove_finished_vehicles()
+            tm = time_ns()
+            collision = self.model.detect_collisions()
+            out = (time_ns() - tm)
+            print("\n\nLuke = " + str(len(collision)) + " in " + str(out/100000))
+
+            self.model.remove_finished_vehicles()
+            tm = time_ns()
+            collision = self.model.mat_coll()
+            out = (time_ns() - tm)
+            print("MPL = " + str(len(collision)) + " in " + str(out/100000))
+            
 
             # Update vehicle position
             coordinates = []
@@ -100,14 +111,18 @@ class Simulation:
                 coordinates_angle_size.append(
                     [coord_x, coord_y, angle, vehicle.length, vehicle.width, vehicle.uid])
 
+            tm = time_ns()
             collision = self.check_colision(coordinates_angle_size)
+            out = (time_ns() - tm)
+            print("Henry = " + str((True if collision is not None else False)) + " in " + str(out/100000))
+
 
             # Update visualiser
+            coordinates_angle_size + coordinates
             self.visualiser.update_vehicle_positions(coordinates_angle_size)
             self.visualiser.update_light_colours(self.model.lights)
             self.visualiser.update_time(self.model.calculate_time_of_day())
-            self.visualiser.update_collision_warning(
-                True if collision is not None else False)
+            self.visualiser.update_collision_warning(True if collision is not None else False)
 
             # Increment Time
             self.model.tock()
@@ -116,9 +131,9 @@ class Simulation:
     def run(self):
         self.visualiser.open()
 
-    def add_vehicle(self, route_uid: int, length, width, didstance_delta):
+    def add_vehicle(self, route_uid: int, length, width):
         self.uid += 1
-        speed = clamp(didstance_delta * 0.2, 0, 5)
+        #speed = clamp(distance_delta * 0.2, 0, 5)
         self.model.add_vehicle(
             Vehicle(
                 uid=self.uid,
@@ -237,5 +252,5 @@ class Simulation:
 
 if __name__ == "__main__":
     sim = Simulation(os.path.join(
-        ROOT_DIR, "Junction_Designs", "example_junction.junc"))
+        ROOT_DIR, "Junction_Designs", "example_junction_with_lanes.junc"))
     sim.run()
