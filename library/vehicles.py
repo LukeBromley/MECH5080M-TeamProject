@@ -52,6 +52,7 @@ class Vehicle:
         self._path_index = 0
         self.changing_lane = False
         self._min_creep_distance = min_creep_distance
+        self.waiting_time = 0
 
     def update(self, time_delta: float, object_ahead: "Vehicle", delta_distance_ahead: float) -> None:
         """
