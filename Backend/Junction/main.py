@@ -18,6 +18,7 @@ from Library.vehicles import Vehicle
 from Library.environment import SpawningRandom, Time
 from config import ROOT_DIR
 import os
+import time as tm
 
 
 class Simulation:
@@ -111,7 +112,6 @@ class Simulation:
             coordinates_angle_size.append([coordinates[0], coordinates[1], angle, vehicle.length, vehicle.width, vehicle.uid])
 
         self.collision = self.check_colision(coordinates_angle_size)
-
         self.reward = 1 - self.get_mean_wait_time() ** 2
 
         if self.collision is not None:
@@ -128,15 +128,15 @@ class Simulation:
             self.visualiser.update_collision_warning(True if self.collision is not None else False)
             sleep(self.model.tick_time)
 
-
         # if i % 50 == 0:
         #     self.model.get_lights()[random.choice([0, 1])].set_red()
-        # if i % 10000 == 0:
-        #     print(f"Mean wait time: {mean(self.wait_time)/60:.2f}min")
-        #     print(f"Reward: {self.total_reward}")
-        #     print(self.model.calculate_time_of_day())
-        #     self.wait_time = [0.0]
-        #     print(i)
+
+        if i % 10000 == 0:
+            print(f"Mean wait time: {mean(self.wait_time)/60:.2f}min")
+            print(f"Reward: {self.total_reward}")
+            print(self.model.calculate_time_of_day())
+            self.wait_time = [0.0]
+            print(i)
 
     def get_state(self):
         return np.array(

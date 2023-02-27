@@ -195,27 +195,31 @@ class TrafficLight:
         self.path_uids = path_uids
         self.colour = "green"
         assert self.colour == "green" or self.colour == "amber" or self.colour == "red" or self.colour == "red_amber"
-        self.cycle_time = 0.0
 
+        self.time_remaining = None
+
+        self.green_time = None
         self.red_time = 5
         self.red_amber_time = 2
         self.amber_time = 3
 
     def get_state(self):
         if self.colour == "green":
-            return 1
-        else:
             return 0
+        elif self.colour == "amber":
+            return 1
+        elif self.colour == "red":
+            return 2
+        elif self.colour == "red_amber":
+            return 3
 
-    def set_green(self):
-        if self.colour != "red_amber":
-            self.cycle_time = 0.0
-        self.colour = "red_amber"
+    def get_time_remaining(self):
+        return self.time_remaining
 
     def set_red(self):
-        if self.colour != "amber":
-            self.cycle_time = 0.0
-        self.colour = "amber"
+        if self.colour == "green":
+            self.time_remaining = self.amber_time
+            self.colour = "amber"
 
     def update(self, time_delta: float = 0.1) -> None:
         """
@@ -223,21 +227,18 @@ class TrafficLight:
         :rtype: None
         :param time_delta: iteration length [s]
         """
-        self.cycle_time += time_delta
-        if self.colour == "green":
-            self.cycle_time = 0
-        elif self.colour == "amber":
-            if self.cycle_time > self.amber_time:
-                self.colour = "red"
-                self.cycle_time = 0
-        elif self.colour == "red":
-            if self.cycle_time > self.red_time:
-                self.colour = "red_amber"
-                self.cycle_time = 0
-        elif self.colour == "red_amber":
-            if self.cycle_time > self.red_amber_time:
-                self.colour = "green"
-                self.cycle_time = 0
+        if self.colour != "green":
+            self.time_remaining -= time_delta
+            if self.time_remaining < 0:
+                if self.colour == "amber":
+                    self.colour = "red"
+                    self.time_remaining = self.red_time
+                elif self.colour == "red":
+                    self.colour = "red_amber"
+                    self.time_remaining = self.red_amber_time
+                elif self.colour == "red_amber":
+                    self.colour = "green"
+                    self.time_remaining = self.green_time
 
 
     def get_speed(self) -> float:
