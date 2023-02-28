@@ -9,6 +9,7 @@ if system() == 'Windows':
 from simulation.simulation import Simulation
 from gui.junction_visualiser import JunctionVisualiser
 import os
+from functools import partial
 
 from tensorflow import keras, GradientTape, stop_gradient
 from keras import layers, initializers
@@ -20,84 +21,103 @@ from simulation.calculate_stats import Stats
 
 
 class MachineLearning:
-    def __init__(self, junction_file_path, config_file_path, visualiser_update_function = None):
+    def __init__(self, junction_file_path, config_file_path, visualiser_update_function=None):
         self.junction_file_path = junction_file_path
         self.config_file_path = config_file_path
         self.visualiser_update_function = visualiser_update_function
 
         # Simulation
-        self.simulation = None
-        self.reset_sumulation()
+        self.simulation = self.create_simulation()
 
         # Stats
         self.stats = Stats(self.simulation.model)
 
-        # Input
-        self.max_number_of_vehicles = 20
+        # States
+        self.max_number_of_vehicles = 10
         self.stats_per_vehicle = 4
         self.state_size = self.max_number_of_vehicles * self.stats_per_vehicle
 
-        # Outputs
-        self.traffic_light_actions = np.array([0, 1, 2, 3])
-        self.action_size = len(self.traffic_light_actions)
+        # Actions
+        self.actions = self.calculate_all_actions()
+        self.action_indexes = np.array([i for i in range(len(self.actions))])
+        self.action_size = len(self.actions)
 
-        # Training
-        self.number_of_episodes = 10000
-        self.exploration_rate = 0.01
-        self.learning_rate = 0.05
+    def create_simulation(self):
+        simulation = Simulation(self.junction_file_path, self.config_file_path, self.visualiser_update_function)
+        simulation.model.setup_fixed_spawning(3)
+        return simulation
 
-        # Machine Learning Network
-        self.network = self.create_q_learning_network(self.state_size, self.action_size)
+    def calculate_all_actions(self):
+        num_actions = 2**len(self.simulation.model.lights)
+        actions = []
+        for action in range(num_actions):
+            binary = format(action, '0' + str(len(self.simulation.model.lights)) +'b')
+            light_actions = []
+            for char in binary:
+                if char == '0':
+                    light_actions.append('red')
+                else:
+                    light_actions.append('green')
+            actions.append(light_actions)
+        return actions
 
-    def reset_sumulation(self):
-        self.simulation = Simulation(self.junction_file_path, self.config_file_path, self.visualiser_update_function)
-        self.simulation.model.setup_fixed_spawning(3)
-
-    def create_q_learning_network(self, state_size, action_size):
-        inputs = layers.Input(shape=(state_size, ))  # input dimension
-        hidden1 = layers.Dense(25, activation="relu", kernel_initializer=initializers.he_normal())(inputs)
-        hidden2 = layers.Dense(25, activation="relu", kernel_initializer=initializers.he_normal())(hidden1)
-        hidden3 = layers.Dense(25, activation="relu", kernel_initializer=initializers.he_normal())(hidden2)
-        q_values = layers.Dense(action_size, kernel_initializer=initializers.Zeros(), activation="linear")(hidden3)
-
-        q_network = keras.Model(inputs=inputs, outputs=[q_values])
+    def create_q_learning_model(self, state_size, action_size, hidden_layers):
+        ml_layers = []
+        ml_layers.append(layers.Input(shape=(state_size, )))  # input dimension
+        for number_of_perceptrons in hidden_layers:
+            ml_layers.append(layers.Dense(number_of_perceptrons, activation="relu", kernel_initializer=initializers.he_normal())(ml_layers[-1]))
+        q_values = layers.Dense(action_size, kernel_initializer=initializers.Zeros(), activation="linear")(ml_layers[-1])
+        q_network = keras.Model(inputs=ml_layers[0], outputs=[q_values])
         return q_network
 
-    def run(self):
-        opt = keras.optimizers.Adam(learning_rate=self.learning_rate)
+    def save_model_weights(self, model, file_location, save_name):
+        if os.path.isdir(file_location + "/" + save_name):
+            os.mkdir(file_location + "/" + save_name)
+        model.save_weights(file_location + "/" + save_name)
+
+    def save_model(self, model, file_location, save_name):
+        if os.path.isdir(file_location + "/" + save_name):
+            os.mkdir(file_location + "/" + save_name)
+        model.save(file_location + "/" + save_name)
+
+    def load_weights(self, model, file_location, save_name):
+        model.load_weights(file_location + "/" + save_name)
+        return model
+
+    def load_model(self, file_location, save_name):
+        return keras.models.load_model(file_location + "/" + save_name)
+
+    def train(self, number_of_episodes=10000, exploration_rate=0.01, learning_rate=0.01, file_location="trained_models", save_name="trained_model"):
+        # Machine Learning Network
+        q_learning_model = self.create_q_learning_model(self.state_size, self.action_size, hidden_layers=[25, 25, 25])
+
+        # Machine Learning Optimiser
+        opt = keras.optimizers.Adam(learning_rate=learning_rate)
+
+        # Previous Actions
         prev_action = None
 
-        for episode in range(self.number_of_episodes):
+        # Loop Episodes
+        for episode in range(number_of_episodes):
             with GradientTape() as tape:
 
                 # Obtain Q-values from network
                 # Essentially: Get the data from the simulation and give it to the neural netowrk
                 state = self.get_state()
-                q_values = self.network(state)
+                q_values = q_learning_model(state)
 
                 # Select action using epsilon-greedy policy
                 # Essentially: Gets a random value. if the value is less than the exploration rate then explore
                 #              else get the prediction from the network
                 sample_epsilon = np.random.rand()
-                if sample_epsilon <= self.exploration_rate:  # Select random action
-                    action = np.random.choice(self.traffic_light_actions)
+                if sample_epsilon <= exploration_rate:  # Select random action
+                    action = np.random.choice(self.action_indexes)
                 else:  # Select action with highest Q-value
                     action = np.argmax(q_values[0])
 
                 if action != prev_action:
                     prev_action = action
-                    if action == 0:
-                        self.simulation.model.set_state(1, 'red')
-                        self.simulation.model.set_state(2, 'red')
-                    elif action == 1:
-                        self.simulation.model.set_state(1, 'green')
-                        self.simulation.model.set_state(2, 'green')
-                    elif action == 2:
-                        self.simulation.model.set_state(1, 'red')
-                        self.simulation.model.set_state(2, 'green')
-                    elif action == 3:
-                        self.simulation.model.set_state(1, 'green')
-                        self.simulation.model.set_state(2, 'red')
+                    self.do_action(action)
 
                 self.simulation.run_single_iteration()
 
@@ -110,10 +130,10 @@ class MachineLearning:
                 loss_value = self.get_loss(q_value, reward)
 
                 "Compute gradients"
-                grads = tape.gradient(loss_value, self.network.trainable_variables)
+                grads = tape.gradient(loss_value, q_learning_model.trainable_variables)
 
                 "Apply gradients to update network weights"
-                opt.apply_gradients(zip(grads, self.network.trainable_variables))
+                opt.apply_gradients(zip(grads, q_learning_model.trainable_variables))
 
                 if episode % 10 == 0:
                     print("Episode: " + str(episode) + ", Reward: " + str(reward))
@@ -147,6 +167,29 @@ class MachineLearning:
                 # "Update state"
                 # state = next_state
 
+        self.save_model(q_learning_model, file_location, save_name)
+
+    def run(self, number_of_episodes=10000, file_location="trained_models", save_name="trained_model"):
+        self.stats.hide_graph()
+
+        q_learning_model = self.load_model(file_location, save_name)
+
+        prev_action = None
+        for episode in range(number_of_episodes):
+            state = self.get_state()
+
+            q_values = q_learning_model(state)
+            action = np.argmax(q_values[0])
+
+            if action != prev_action:
+                prev_action = action
+                self.do_action(action)
+
+            self.simulation.run_single_iteration()
+
+            if episode % 10 == 0:
+                print("Episode: " + str(episode))
+
     def get_state(self):
         data = []
 
@@ -162,16 +205,16 @@ class MachineLearning:
 
         return data
 
-    def get_reward(self, episode):
-        total_reward = self.stats.get_reward(episode)
+    def do_action(self, action_index):
+        action = self.actions[action_index]
+        for index, light in enumerate(self.simulation.model.lights):
+            self.simulation.model.set_state(light.uid, action[index])
 
-        return total_reward
+    def get_reward(self, episode):
+        return self.stats.get_reward(episode)
 
     def get_loss(self, q_value, reward):
-        """Compute mean squared error loss"""
-        loss = 0.5 * (q_value - reward) ** 2
-
-        return loss
+        return 0.5 * (q_value - reward) ** 2
 
 
 if __name__ == "__main__":
@@ -181,7 +224,6 @@ if __name__ == "__main__":
 
     # Settings
     scale = 100
-    speed_multiplier = 5
 
     # Visualiser Init
     visualiser = JunctionVisualiser()
@@ -190,7 +232,7 @@ if __name__ == "__main__":
     machine_learning = MachineLearning(junction_file_path, configuration_file_path, visualiser.update)
 
     # Visualiser Setup
-    visualiser.define_main(machine_learning.run)
+    visualiser.define_main(machine_learning.train)
     visualiser.load_junction(junction_file_path)
     visualiser.set_scale(scale)
 

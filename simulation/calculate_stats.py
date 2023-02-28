@@ -1,5 +1,4 @@
 import matplotlib.pyplot as plt
-import matplotlib.animation as animation
 
 
 class Stats:
@@ -11,7 +10,7 @@ class Stats:
 
         # CRASH
         # Reward
-        self.crash_reward = -1000
+        self.crash_reward = -100
 
         # WAITING
         # Parameters
@@ -55,7 +54,7 @@ class Stats:
     def get_reward(self, episode):
         self.reward = self.default_reward
         self.reward += self.crash_reward * self.get_crash()
-        self.reward += self.num_waiting_reward * self.get_number_of_cars_waiting()
+        # self.reward += self.num_waiting_reward * self.get_number_of_cars_waiting()
         # self.reward += self.waiting_reward * self.get_car_wait_time()
         self.reward += self.waiting_reward * self.get_car_wait_time_powered(1.3)
         self.reward += self.speed_reward * self.get_speed_of_all_cars()
@@ -130,4 +129,7 @@ class Stats:
         # loop until all UI events
         # currently waiting have been processed
         self.figure.canvas.flush_events()
+
+    def hide_graph(self):
+        plt.close()
 
