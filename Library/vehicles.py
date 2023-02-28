@@ -105,7 +105,7 @@ class Vehicle:
         return clamp(acceleration, -self._maximum_deceleration, self._maximum_acceleration)
 
     def _calculate_maximum_speed_due_lateral_acceleration(self, curvature):
-        return sqrt(self._maximum_lateral_acceleration / curvature)
+        return sqrt(self._maximum_lateral_acceleration / 1)
 
     def _nearby_vehicles(self, vehicles):
         """

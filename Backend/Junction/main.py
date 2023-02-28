@@ -40,19 +40,17 @@ class Simulation:
     def reset(self):
         self.time = 0.0
         self.uid = 0
-        self.wait_time = [0.0]
+        self.wait_time = [0]
+        self.wait_time_vehicle_limit = 50
         self.model = Model()
         self.model.load_junction(self.file_path)
-        self.model.get_lights()[0].set_red()
         self.collision = None
         self.reward = 0
         self.total_reward = 0
 
         self.model.set_start_time_of_day(Time(8, 0, 0))
         self.model.set_tick_rate(10)
-
         self.model.setup_random_spawning()
-
         self.model.generate_routes()
 
         if self.visualise:
@@ -67,7 +65,9 @@ class Simulation:
             self.update(i)
         self.visualiser.close()
 
-    def update(self, i: int):
+    def update(self, i: int, action: int = 0):
+        penalty = self.take_action(action)
+
         time = self.model.calculate_time_of_day()
         for index, node_uid in enumerate(self.model.calculate_start_nodes()):
             spawn_info = self.model.nudge_spawner(node_uid, time)
@@ -75,19 +75,19 @@ class Simulation:
                 route_uid, length, width, distance_delta = spawn_info
                 self.add_vehicle(route_uid, length, width)
 
-        if self.dqn_agent is not None:
-            lights = self.model.get_lights()
-            action = self.dqn_agent.forward(self.get_state())
-            if action == 0:
-                pass
-            elif action == 1:
-                lights[0].set_red()
-            elif action == 2:
-                lights[1].set_red()
-        else:
-            lights = self.model.get_lights()
-            for light in lights:
-                light.update(self.model.tick_time)
+        # if self.dqn_agent is not None:
+        #     lights = self.model.get_lights()
+        #     action = self.dqn_agent.forward(self.get_state())
+        #     if action == 0:
+        #         pass
+        #     elif action == 1:
+        #         lights[0].set_red()
+        #     elif action == 2:
+        #         lights[1].set_red()
+        # else:
+
+        for light in self.model.get_lights():
+            light.update(self.model.tick_time)
 
         self.model.remove_finished_vehicles()
         coordinates_angle_size = []
@@ -107,15 +107,17 @@ class Simulation:
             if vehicle.get_path_distance_travelled() >= path.get_length():
                 if vehicle.get_path_index() + 1 == len(route.get_path_uids()):
                     self.wait_time.append(vehicle.get_wait_time())
+                    self.wait_time = self.wait_time[-self.wait_time_vehicle_limit:]
 
             vehicle.update_position_data(list(coordinates))
             coordinates_angle_size.append([coordinates[0], coordinates[1], angle, vehicle.length, vehicle.width, vehicle.uid])
 
         self.collision = self.check_colision(coordinates_angle_size)
-        self.reward = 1 - self.get_mean_wait_time() ** 2
 
+
+        self.reward = 30 - self.get_mean_wait_time() ** 2 + penalty + (i / 1000)
         if self.collision is not None:
-            self.reward += -1000
+            self.reward -= 5000
 
         self.total_reward += self.reward
 
@@ -128,25 +130,42 @@ class Simulation:
             self.visualiser.update_collision_warning(True if self.collision is not None else False)
             sleep(self.model.tick_time)
 
-        # if i % 50 == 0:
+        # if i % 200 == 0:
         #     self.model.get_lights()[random.choice([0, 1])].set_red()
+        # print(f" {self.total_reward} / {i}")
 
-        if i % 10000 == 0:
-            print(f"Mean wait time: {mean(self.wait_time)/60:.2f}min")
-            print(f"Reward: {self.total_reward}")
-            print(self.model.calculate_time_of_day())
-            self.wait_time = [0.0]
-            print(i)
+    def take_action(self, action):
+        penalty = 0
+        if action == 0:
+            pass
+        elif action == 1:
+            if self.model.get_lights()[0] == "green":
+                self.set_red(0)
+            else:
+                penalty = -10000
+        elif action == 2:
+            if self.model.get_lights()[1] == "green":
+                self.set_red(1)
+            else:
+                penalty = -10000
+        return penalty
+
+    def set_red(self, index):
+        self.model.get_lights()[index].set_red()
 
     def get_state(self):
         return np.array(
             [
                 self.get_path_occupancy(1),
                 self.get_path_wait_time(1),
+                self.get_mean_speed(1),
                 self.get_path_occupancy(4),
                 self.get_path_wait_time(4),
+                self.get_mean_speed(4),
                 self.model.get_lights()[0].get_state(),
-                self.model.get_lights()[1].get_state()
+                self.model.get_lights()[0].get_time_remaining(),
+                self.model.get_lights()[1].get_state(),
+                self.model.get_lights()[1].get_time_remaining(),
             ]
         )
 
@@ -166,8 +185,16 @@ class Simulation:
                 wait_time += vehicle.get_wait_time()
         return wait_time
 
+    def get_mean_speed(self, path_uid):
+        speed = []
+        for vehicle in self.model.get_vehicles():
+            route = self.model.get_route(vehicle.get_route_uid())
+            if path_uid == route.get_path_uid(vehicle.get_path_index()):
+                speed.append(vehicle.get_speed())
+        return mean(speed)
+
     def get_mean_wait_time(self):
-        return mean(self.wait_time) / 60
+        return mean(self.wait_time)
 
     def get_lights(self):
         return self.model.get_lights()
