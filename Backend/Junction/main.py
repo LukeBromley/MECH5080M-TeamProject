@@ -60,6 +60,8 @@ class Simulation:
             self.visualiser.set_scale(20)
             self.visualiser.open()
 
+    def play(self):
+        while self.total_reward
     def main(self):
         for i in range(100001):
             self.update(i)
