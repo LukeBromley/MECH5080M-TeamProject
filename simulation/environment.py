@@ -9,10 +9,9 @@ import numpy as np
 from numpy import mean
 
 from simulation.simulation import Simulation
-from simulation.stats import Stats
 
 
-class Environment(Env):
+class Environment:
     def __init__(self, junction_file_path, config_file_path, visualiser_update_function=None):
         self.junction_file_path = junction_file_path
         self.config_file_path = config_file_path
@@ -25,7 +24,6 @@ class Environment(Env):
         # Inputs / States
         self.observation_space_size = 10
         self.observation_space = Box(0, 10, shape=(1, self.observation_space_size), dtype=float)
-        self.state = np.asarray(np.zeros(self.observation_space_size)).astype('float32')
 
         # Actions
         self.action_space = Discrete(3)
@@ -50,11 +48,13 @@ class Environment(Env):
         #
         # self.reset()
 
-    def reset(self):
-        self.simulation = Simulation(self.junction_file_path, self.config_file_path, self.visualiser_update_function)
-        self.simulation.model.setup_fixed_spawning(3)
+    def create_simulation(self):
+        simulation = Simulation(self.junction_file_path, self.config_file_path, self.visualiser_update_function)
+        simulation.model.setup_fixed_spawning(3)
+        return simulation
 
-        self.state = np.asarray(np.zeros(self.observation_space_size)).astype('float32')
+    def reset(self):
+        self.simulation = self.create_simulation()
 
         self.iteration = 0
 
@@ -68,6 +68,7 @@ class Environment(Env):
         # # Reward
         self.reward = 0
         self.total_reward = 0
+        return np.asarray(np.zeros(self.observation_space_size)).astype('float32')
 
     def take_action(self, action_index):
         penalty = 0
