@@ -307,9 +307,6 @@ class Model:
     def get_light_index(self, light_uid):
         return self.lights_hash_table[str(light_uid)]
 
-    def get_lights(self) -> List[TrafficLight]:
-        return self.lights
-
     def set_light(self, light):
         index = self.get_light_index(light.uid)
         self.lights[index] = light
@@ -395,7 +392,7 @@ class Model:
         path_uids_ahead = this_route_path_uids[this_route_path_uids.index(this_path.uid) + 1:]
         distance_travelled_offset = this_path.get_length() - this_vehicle_path_distance_travelled
         for path_uid in path_uids_ahead:
-            for light in self.get_lights():
+            for light in self.lights:
                 if light.path_uids[0] == path_uid and not light.allows_traffic():
                     return light, distance_travelled_offset
             for that_vehicle in self.vehicles:

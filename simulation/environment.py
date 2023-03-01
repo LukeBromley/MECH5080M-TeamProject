@@ -11,7 +11,7 @@ from numpy import mean
 from simulation.simulation import Simulation
 
 
-class Environment:
+class SimulationManager:
     def __init__(self, junction_file_path, config_file_path, visualiser_update_function=None):
         self.junction_file_path = junction_file_path
         self.config_file_path = config_file_path
@@ -21,77 +21,49 @@ class Environment:
         self.simulation = Simulation(self.junction_file_path, self.config_file_path, self.visualiser_update_function)
         self.simulation.model.setup_fixed_spawning(3)
 
+        # Actions
+        self.number_of_possible_actions, self.action_space = self.calculate_actions()
+
+        # Metrics
+        self.wait_time = None
+        self.wait_time_vehicle_limit = None
+
         # Inputs / States
         self.observation_space_size = 10
         self.observation_space = Box(0, 10, shape=(1, self.observation_space_size), dtype=float)
 
-        # Actions
-        self.action_space = Discrete(3)
-
-        # Iterations
-        self.iteration = 0
-
-        # # --------------
-        #
-        # # State
-        self.wait_time = None
-        self.wait_time_vehicle_limit = None
-        # self.collision = None
-        #
-        # # Action
-        #
-        # # Reward
-        self.reward = 0
-        self.total_reward = 0
-        #
-        # # -------------
-        #
-        # self.reset()
+        self.reset()
 
     def create_simulation(self):
         simulation = Simulation(self.junction_file_path, self.config_file_path, self.visualiser_update_function)
         simulation.model.setup_fixed_spawning(3)
         return simulation
 
+    def calculate_actions(self):
+        number_of_actions = len(self.simulation.model.lights) + 1
+        return number_of_actions, Discrete(number_of_actions)
+
     def reset(self):
         self.simulation = self.create_simulation()
-
-        self.iteration = 0
 
         # # State
         self.wait_time = [0]
         self.wait_time_vehicle_limit = 50
-        # self.collision = None
-        #
-        # # Action
-        #
-        # # Reward
-        self.reward = 0
-        self.total_reward = 0
+
         return np.asarray(np.zeros(self.observation_space_size)).astype('float32')
 
     def take_action(self, action_index):
         penalty = 0
         if action_index == 0:
             pass
-        elif action_index == 1:
-            if self.simulation.model.get_lights()[0] == "green":
-                self.simulation.model.get_lights()[0].set_red()
-            else:
-                penalty = -10000
-        elif action_index == 2:
-            if self.simulation.model.get_lights()[1] == "green":
-                self.simulation.model.get_lights()[1].set_red()
+        else:
+            if self.simulation.model.lights[action_index - 1].colour == "green":
+                self.simulation.model.lights[action_index - 1].set_red()
             else:
                 penalty = -10000
         return penalty
 
-    def take_step(self, action_index):
-        # Take action
-        action_penalty = self.take_action(action_index)
-        # Simulate
-        self.simulation.compute_single_iteration()
-
+    def compute_simulation_metrics(self):
         for vehicle in self.simulation.model.vehicles:
             if vehicle.get_speed() < 5:
                 vehicle.add_wait_time(self.simulation.model.tick_time)
@@ -103,19 +75,11 @@ class Environment:
                     self.wait_time.append(vehicle.get_wait_time())
                     self.wait_time = self.wait_time[-self.wait_time_vehicle_limit:]
 
-        # Reward
-        self.calculate_reward(action_penalty)
-
-        if self.total_reward < -500000:
-            done = True
-            print(f"Score: {self.total_reward} / Steps: {self.iteration}")
-        else:
-            done = False
-
-        self.iteration += 1
-        state = np.asarray(self.get_state()).astype('float32')
-
-        return state, 1, done
+    def calculate_reward(self, penalty, iteration):
+        reward = 30 - self.get_mean_wait_time() ** 2 + penalty + (iteration / 1000)
+        if self.simulation.model.detect_collisions() is not None:
+            reward -= 5000
+        return reward
 
     def get_state(self):
         return np.array(
@@ -126,10 +90,10 @@ class Environment:
                 self.get_path_occupancy(4),
                 self.get_path_wait_time(4),
                 self.get_mean_speed(4),
-                self.simulation.model.get_lights()[0].get_state(),
-                self.simulation.model.get_lights()[0].get_time_remaining(),
-                self.simulation.model.get_lights()[1].get_state(),
-                self.simulation.model.get_lights()[1].get_time_remaining(),
+                self.simulation.model.lights[0].get_state(),
+                self.simulation.model.lights[0].get_time_remaining(),
+                self.simulation.model.lights[1].get_state(),
+                self.simulation.model.lights[1].get_time_remaining(),
             ]
         )
 
@@ -162,13 +126,3 @@ class Environment:
 
     def get_lights(self):
         return self.simulation.model.get_lights()
-
-    def calculate_reward(self, penalty):
-        self.reward = 30 - self.get_mean_wait_time() ** 2 + penalty + (self.iteration / 1000)
-        if self.simulation.model.detect_collisions() is not None:
-            self.reward -= 5000
-
-        self.total_reward += self.reward
-
-    def get_mean_wait_time(self):
-        return mean(self.wait_time)

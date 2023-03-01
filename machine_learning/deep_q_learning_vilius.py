@@ -4,7 +4,7 @@ if system() == 'Windows':
     sys.path.append('./')
 
 import os
-from simulation.environment import Environment
+from simulation.environment import SimulationManager
 from gui.junction_visualiser import JunctionVisualiser
 
 import numpy as np
@@ -17,32 +17,32 @@ from tensorflow.keras import layers
 
 class MachineLearning:
     def __init__(self, junction_file_path, config_file_path, visualiser_update_function=None):
-        self.environment = Environment(junction_file_path, config_file_path, visualiser_update_function)
+        # SIMULATION MANAGER
+        self.simulation_manager = SimulationManager(junction_file_path, config_file_path, visualiser_update_function)
 
         # COUNTERS
-        self.episode_count = 0
-        self.number_of_steps_taken = 0  # number of ticks seen over entire training
+        self.episode_count = 0  # Number of episodes trained
+        self.number_of_steps_taken = 0  # Total number of steps taken over all episodes
+        self.all_time_reward = 0  # Total reward over all episodes
 
         # TRAINING LIMITS
-        self.max_steps_per_episode = 100000
-        self.solved_mean_reward = 100000
+        self.max_steps_per_episode = 100000  # Maximum number of steps allowed per episode
+        self.episode_end_reward = -500000  # Single episode total reward minimum threshold to end episode
+        self.solved_mean_reward = 100000  # Single episode total reward minimum threshold to consider ML trained
 
         # TAKING AN ACTION
-        # Actions
-        self.number_of_possible_actions = 3
-
         # Random action
-        self.random_action_selection_probabilities = [0.9, 0.05, 0.05]
-        assert len(self.random_action_selection_probabilities) == self.number_of_possible_actions
+        self.random_action_selection_probabilities = [0.9, 0.05, 0.05]  # Probability of selecting specific actions at random
+        assert len(self.random_action_selection_probabilities) == self.simulation_manager.number_of_possible_actions
 
         # Probability of selecting a random action
-        self.epsilon_greedy_min = 0.1  # Minimum epsilon greedy parameter
-        self.epsilon_greedy_max = 1.0  # Maximum epsilon greedy parameter
-        self.epsilon_greedy = self.epsilon_greedy_max  # Epsilon greedy parameter
+        self.epsilon_greedy_min = 0.1  # Minimum probability of selecting a random action
+        self.epsilon_greedy_max = 1.0  # Maximum probability of selecting a random action
+        self.epsilon_greedy = self.epsilon_greedy_max  # Current probability of selecting a random action
 
         # Exploration
-        self.number_of_steps_of_required_exploration = 1000  # 10000
-        self.number_of_steps_of_exploration_reduction = 5000  # 50000
+        self.number_of_steps_of_required_exploration = 1000  # 10000  # Number of steps of just random actions before the network can make some decisions
+        self.number_of_steps_of_exploration_reduction = 5000  # 50000 # Number of steps over which epsilon greedy decays
 
         # REPLAY
         # Buffers
@@ -79,44 +79,56 @@ class MachineLearning:
         # Using huber loss for stability
         self.loss_function = keras.losses.Huber()
 
-        # Experience replay buffers
+        # MACHINE LEARNING MODELS
+        self.model = self.create_q_model()  # Makes the predictions for Q-values which are used to make a action.
 
-        # The first model makes the predictions for Q-values which are used to
-        # make a action.
-        self.model = self.create_q_model()
-        # Build a target model for the prediction of future rewards.
-        # The weights of a target model get updated every 10000 steps thus when the
-        # loss between the Q-values is calculated the target Q-value is stable.
-        self.model_target = self.create_q_model()
+        self.model_target = self.create_q_model()  # For the prediction of future rewards. The weights of a target model get updated every 10000 steps thus when the loss between the Q-values is calculated the target Q-value is stable.
 
     def create_q_model(self):
         inputs = tf.keras.layers.Input(shape=(10,))
         layer = layers.Dense(512, activation="relu")(inputs)
-        outputs = tf.keras.layers.Dense(self.number_of_possible_actions, activation='linear')(layer)
+        outputs = tf.keras.layers.Dense(self.simulation_manager.number_of_possible_actions, activation='linear')(layer)
         return tf.keras.models.Model(inputs=inputs, outputs=outputs)
 
     def train(self):
         while True:  # Run until solved
-            state = np.array(self.environment.reset())
+            state = np.array(self.simulation_manager.reset())
             episode_reward = 0
             mean_reward = 0
 
+            # Run steps in episode
             for step in range(1, self.max_steps_per_episode):
 
                 # Increment the total number of steps taken by the AI in total.
                 self.number_of_steps_taken += 1
 
                 # Select an action
-                action = self.select_action(state)
+                action_index = self.select_action(state)
 
                 # Take an action
-                next_state, reward, done = self.take_step(action)
+                action_penalty = self.take_action(action_index)
+
+                # Run simulation 1 step
+                self.step_simulation()
+
+                # Compute metrics used to get state and calculate reward
+                self.compute_simulation_metrics()
+
+                # Calculate reward
+                reward = self.calculate_reward(action_penalty, step)
 
                 # Update reward
+                self.all_time_reward += reward
                 episode_reward += reward
 
+                # Determine if episode is over
+                done = self.end_episode(episode_reward, step)
+
+                # Get the next state
+                next_state = self.get_state()
+
                 # Save actions and states in replay buffer
-                self.save_to_replay_buffers(action, state, next_state, done, reward)
+                self.save_to_replay_buffers(action_index, state, next_state, done, reward)
 
                 # Update State
                 state = next_state
@@ -134,7 +146,7 @@ class MachineLearning:
 
                         # Apply the masks to the Q-values to get the Q-value for action taken
                         # Create a mask so we only calculate loss on the updated Q-values
-                        masks = tf.one_hot(action_sample, self.number_of_possible_actions)
+                        masks = tf.one_hot(action_sample, self.simulation_manager.number_of_possible_actions)
                         q_action = tf.reduce_sum(tf.multiply(q_values, masks), axis=1)
 
                         # Calculate loss between new Q-value and old Q-value
@@ -178,11 +190,11 @@ class MachineLearning:
         return action
 
     def select_random_action(self):
-        return np.random.choice(self.number_of_possible_actions, p=self.random_action_selection_probabilities)
+        return np.random.choice(self.simulation_manager.number_of_possible_actions, p=self.random_action_selection_probabilities)
 
     def select_best_action(self, state):
         # Predict action Q-values
-        # From environment state
+        # From simulation_manager state
         state_tensor = tf.expand_dims(tf.convert_to_tensor(state), 0)
         action_probs = self.model(state_tensor, training=False)
         # Take best action
@@ -193,10 +205,29 @@ class MachineLearning:
         self.epsilon_greedy -= (self.epsilon_greedy_max - self.epsilon_greedy_min) / self.number_of_steps_of_exploration_reduction
         self.epsilon_greedy = max(self.epsilon_greedy, self.epsilon_greedy_min)
 
-    def take_step(self, action):
-        state_next, reward, done = self.environment.take_step(action)
-        state_next = np.array(state_next)
-        return state_next, reward, done
+    def take_action(self, action_index):
+        return self.simulation_manager.take_action(action_index)
+
+    def step_simulation(self, num_steps=1):
+        for step in range(num_steps):
+            self.simulation_manager.simulation.compute_single_iteration()
+
+    def compute_simulation_metrics(self):
+        self.simulation_manager.compute_simulation_metrics()
+
+    def calculate_reward(self, action_penalty, iteration):
+        return self.simulation_manager.calculate_reward(action_penalty, iteration)
+
+    def end_episode(self, episode_reward, step):
+        if episode_reward < self.episode_end_reward:
+            print("Score at episode end:", episode_reward, "/ Steps:", step)
+            return True
+        else:
+            return False
+
+    def get_state(self):
+        state_next = np.asarray(self.simulation_manager.get_state()).astype('float32')
+        return np.array(state_next)
 
     def save_to_replay_buffers(self, action, state, next_state, done, reward):
         self.action_history.append(action)
@@ -262,16 +293,35 @@ class MachineLearning:
     def random(self):
         episode = 5
         for episode in range(1, episode + 1):
-            self.environment.reset()
-            done = False
-            score = 0
-            steps = 0
-            while not done:
-                steps += 1
-                action_index = self.environment.action_space.sample()
-                n_state, reward, done = self.environment.take_step(action_index)
-                score += reward
-            print(f"Episode: {episode} Score: {score} Steps: {steps}")
+            episode_reward = 0
+            # Run steps in episode
+            for step in range(1, self.max_steps_per_episode):
+
+                # Increment the total number of steps taken by the AI in total.
+                self.number_of_steps_taken += 1
+
+                # Select an action
+                action_index = self.select_random_action()
+
+                # Take an action
+                action_penalty = self.take_action(action_index)
+
+                # Run simulation 1 step
+                self.step_simulation()
+
+                # Compute metrics used to get state and calculate reward
+                self.compute_simulation_metrics()
+
+                # Calculate reward
+                reward = self.calculate_reward(action_penalty, step)
+
+                # Update reward
+                self.all_time_reward += reward
+                episode_reward += reward
+
+                # Determine if episode is over
+                if self.end_episode(episode_reward, step):
+                    break
 
 
 if __name__ == "__main__":

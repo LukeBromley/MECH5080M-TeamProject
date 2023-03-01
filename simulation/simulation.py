@@ -49,7 +49,7 @@ class Simulation:
                 self.add_vehicle(route_uid, length, width, distance_delta)
 
         # Control lights
-        for light in self.model.get_lights():
+        for light in self.model.lights:
             light.update(self.model.tick_time)
 
         # Remove finished vehicles

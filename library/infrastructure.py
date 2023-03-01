@@ -228,7 +228,6 @@ class TrafficLight:
         self.red_amber_time = 2
         self.amber_time = 3
 
-
     def get_state(self):
         return self.colour_state_index[self.colour]
 
