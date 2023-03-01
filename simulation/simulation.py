@@ -71,9 +71,6 @@ class Simulation:
         # Remove finished vehicles
         self.model.remove_finished_vehicles()
 
-        # collision = self.model.detect_collisions()
-        # self.collision = True if len(collision) > 0 else False
-
         # Increment Time
         self.model.tock()
 

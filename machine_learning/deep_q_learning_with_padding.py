@@ -14,7 +14,7 @@ from functools import partial
 from tensorflow import keras, GradientTape, stop_gradient
 from keras import layers, initializers
 import numpy as np
-from simulation.calculate_stats import Stats
+from simulation.stats import Stats
 
 
 # https://towardsdatascience.com/a-minimal-working-example-for-deep-q-learning-in-tensorflow-2-0-e0ca8a944d5e
