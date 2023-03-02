@@ -23,24 +23,39 @@ class SimulationManager:
 
         # Simulations
         self.simulation = Simulation(self.junction_file_path, self.config_file_path, self.visualiser_update_function)
-        # self.simulation.model.setup_fixed_spawning(3)
 
         # Actions
         self.number_of_possible_actions, self.action_space = self.calculate_actions()
-
-        # Metrics
-        self.wait_time = None
-        self.wait_time_vehicle_limit = None
 
         # Inputs / States
         self.observation_space_size = 10
         self.observation_space = Box(0, 10, shape=(1, self.observation_space_size), dtype=float)
 
+        # REWARD
+        self.default_reward = 30
+        self.action_reward = -10000
+        # Duration
+        self.simulation_duration_reward = 0.001
+        # Crash
+        self.crash_reward = -5000
+        # Waiting
+        self.waiting_speed = 5
+        self.num_cars_waiting_reward = 0
+        self.wait_time = None
+        self.wait_time_vehicle_limit = None
+        # Total waiting
+        self.total_wait_time_reward = 0
+        self.total_wait_time_exp_reward = 0
+        self.total_wait_time_exponent = 0
+        # Mean Waiting
+        self.mean_wait_time_reward = 0
+        self.mean_wait_time_exp_reward = -1
+        self.mean_wait_time_exponent = 2
+
         self.reset()
 
     def create_simulation(self):
         simulation = Simulation(self.junction_file_path, self.config_file_path, self.visualiser_update_function)
-        # simulation.model.setup_fixed_spawning(3)
         return simulation
 
     def calculate_actions(self):
@@ -57,56 +72,27 @@ class SimulationManager:
         return np.asarray(np.zeros(self.observation_space_size)).astype('float32')
 
     def take_action(self, action_index):
+        penalty = 0
         if action_index == 0:
             pass
-        elif action_index == 1:
-            light = self.simulation.model.lights[0]
-            if light.colour == "green":
-                light.set_red()
-        elif action_index == 2:
-            light = self.simulation.model.lights[1]
-            if light.colour == "green":
-                light.set_red()
-        elif action_index == 3:
-            light = self.simulation.model.lights[0]
-            if light.colour == "red":
-                light.set_green()
-        elif action_index == 4:
-            light = self.simulation.model.lights[1]
-            if light.colour == "red":
-                light.set_green()
-        return 0
-
-    def get_vehicle_state(self, vehicle: Vehicle):
-        return [
-            vehicle.get_path_distance_travelled(),
-            vehicle.get_length(),
-            vehicle.get_speed(),
-            vehicle.get_acceleration()
-        ]
-
-    def get_traffic_light_state(self, light: TrafficLight):
-        return [light.get_state(), light.get_time_remaining()]
-
-    def get_continuous_state(self):
-        inputs = []
-        for light in self.simulation.model.get_lights():
-            inputs += self.get_traffic_light_state(light)
-
-        for vehicle in self.simulation.model.get_vehicles():
-            route = self.simulation.model.get_route(vehicle.get_route_uid())
-            if route.get_path_uid(vehicle.get_path_index()) in [1, 4]:
-                inputs += self.get_vehicle_state(vehicle)
-
-        inputs = inputs[-100:]
-        inputs += [np.NAN] * (100 - len(inputs))
-        return inputs
+        else:
+            if self.simulation.model.lights[action_index - 1].colour == "green":
+                self.simulation.model.lights[action_index - 1].set_red()
+            else:
+                penalty = self.action_reward
+        return penalty
 
     def compute_simulation_metrics(self):
+        self.update_vehicle_wait_time()
+        self.compute_all_wait_times()
+
+    def update_vehicle_wait_time(self):
         for vehicle in self.simulation.model.vehicles:
-            if vehicle.get_speed() < 5:
+            if vehicle.get_speed() < self.waiting_speed:
                 vehicle.add_wait_time(self.simulation.model.tick_time)
 
+    def compute_all_wait_times(self):
+        for vehicle in self.simulation.model.vehicles:
             route = self.simulation.model.get_route(vehicle.get_route_uid())
             path = self.simulation.model.get_path(route.get_path_uid(vehicle.get_path_index()))
             if vehicle.get_path_distance_travelled() >= path.get_length():
@@ -114,10 +100,24 @@ class SimulationManager:
                     self.wait_time.append(vehicle.get_wait_time())
                     self.wait_time = self.wait_time[-self.wait_time_vehicle_limit:]
 
-    def calculate_reward(self, penalty):
-        reward = 30 - self.get_mean_wait_time() ** 2 + penalty
-        if len(self.simulation.model.detect_collisions()) > 0:
-            reward -= 5000
+    def calculate_reward(self, action_reward, iteration):
+        reward = self.default_reward
+        reward += action_reward
+        if self.simulation_duration_reward != 0:
+            reward += self.simulation_duration_reward * iteration
+        if self.crash_reward != 0:
+            reward += self.crash_reward * self.get_crash()
+        if self.num_cars_waiting_reward != 0:
+            reward += self.num_cars_waiting_reward * self.get_number_of_vehicles_waiting()
+        if self.total_wait_time_reward != 0:
+            reward += self.total_wait_time_reward * self.get_total_vehicle_wait_time()
+        if self.total_wait_time_exp_reward != 0:
+            reward += self.total_wait_time_exp_reward * self.get_total_vehicle_wait_time_exp(self.total_wait_time_exponent)
+        if self.mean_wait_time_reward != 0:
+            reward += self.mean_wait_time_reward * self.get_mean_wait_time()
+        if self.mean_wait_time_exp_reward != 0:
+            reward += self.mean_wait_time_exp_reward * self.get_mean_wait_time_exp(self.mean_wait_time_exponent)
+
         return reward
 
     def get_state(self):
@@ -160,8 +160,35 @@ class SimulationManager:
                 speed.append(vehicle.get_speed())
         return mean(speed)
 
+    def get_lights(self):
+        return self.simulation.model.get_lights()
+
+    # REWARD FUNCTIONS
+
+    def get_crash(self):
+        return 1 if len(self.simulation.model.detect_collisions()) > 0 else 0
+
+    def get_number_of_vehicles_waiting(self):
+        number_of_cars_waiting = 0
+        for vehicle in self.simulation.model.vehicles:
+            if vehicle.get_speed() < self.waiting_speed:
+                number_of_cars_waiting += 1
+        return number_of_cars_waiting
+
+    def get_total_vehicle_wait_time(self):
+        return sum(self.wait_time)
+
+    def get_total_vehicle_wait_time_exp(self, exponent):
+        return self.get_total_vehicle_wait_time()**exponent
+
     def get_mean_wait_time(self):
         return mean(self.wait_time)
 
-    def get_lights(self):
-        return self.simulation.model.get_lights()
+    def get_mean_wait_time_exp(self, exponent):
+        return self.get_mean_wait_time()**exponent
+
+    def get_summed_speed_of_all_vehicles(self):
+        sum_car_speed = 0
+        for vehicle in self.simulation.model.vehicles:
+            sum_car_speed += vehicle.get_speed()
+        return sum_car_speed
