@@ -199,7 +199,7 @@ class TrafficLight:
         self.time_remaining = None
 
         self.green_time = None
-        self.red_time = 5
+        self.red_time = None
         self.red_amber_time = 2
         self.amber_time = 3
 
@@ -221,25 +221,26 @@ class TrafficLight:
             self.time_remaining = self.amber_time
             self.colour = "amber"
 
+    def set_green(self):
+        if self.colour == "red":
+            self.time_remaining = self.red_amber_time
+            self.colour = "red_amber"
+
     def update(self, time_delta: float = 0.1) -> None:
         """
 
         :rtype: None
         :param time_delta: iteration length [s]
         """
-        if self.colour != "green":
+        if self.colour not in ["green", "red"]:
             self.time_remaining -= time_delta
             if self.time_remaining < 0:
                 if self.colour == "amber":
                     self.colour = "red"
                     self.time_remaining = self.red_time
-                elif self.colour == "red":
-                    self.colour = "red_amber"
-                    self.time_remaining = self.red_amber_time
                 elif self.colour == "red_amber":
                     self.colour = "green"
                     self.time_remaining = self.green_time
-
 
     def get_speed(self) -> float:
         return 0.0
@@ -248,7 +249,7 @@ class TrafficLight:
         return 0.0
 
     def allows_traffic(self) -> bool:
-        if self.colour == "red" or self.colour == "amber":
-            return False
-        elif self.colour == "green":
+        if self.colour == "green":
             return True
+        else:
+            return False

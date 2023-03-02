@@ -3,7 +3,10 @@ from platform import system
 
 import numpy as np
 from numpy import mean
+from pynput import keyboard
+from pynput.keyboard import Key, Listener
 
+from Library.infrastructure import TrafficLight
 from Library.maths import calculate_range_overlap, calculate_line_gradient_and_constant, \
     calculate_rectangle_corner_coords
 import sys
@@ -21,8 +24,38 @@ import os
 import time as tm
 
 
+pressed_1 = False
+pressed_2 = False
+pressed_3 = False
+pressed_4 = False
+
+def on_press(key):
+    if key.char == '1':
+        global pressed_1
+        pressed_1 = True
+    elif key.char == '2':
+        global pressed_2
+        pressed_2 = True
+    elif key.char == '3':
+        global pressed_3
+        pressed_3 = True
+    elif key.char == '4':
+        global pressed_4
+        pressed_4 = True
+
+def on_release(key):
+    global pressed_1, pressed_2, pressed_3, pressed_4
+    pressed_1 = False
+    pressed_2 = False
+    pressed_3 = False
+    pressed_4 = False
+
+    if key == Key.esc:
+        return False
+
+
 class Simulation:
-    def __init__(self, file_path: str, visualise: bool = True, dqn_agent=None):
+    def __init__(self, file_path: str, visualise: bool = True, play: bool = False, saved_model=None):
         self.total_reward = None
         self.visualiser = None
         self.wait_time = None
@@ -32,9 +65,10 @@ class Simulation:
         self.time = None
         self.uid = None
         self.reward = None
-        self.dqn_agent = dqn_agent
+        self.play = play
         self.visualise = visualise
         self.file_path = file_path
+        self.saved_model = saved_model
         self.reset()
 
     def reset(self):
@@ -60,14 +94,31 @@ class Simulation:
             self.visualiser.set_scale(20)
             self.visualiser.open()
 
-    def play(self):
-        while self.total_reward
     def main(self):
-        for i in range(100001):
-            self.update(i)
+        if self.play:
+            global pressed_1, pressed_2, pressed_3, pressed_4
+            i = 0
+            while self.total_reward > -500000:
+                print(f"{i} - {self.total_reward}")
+                action = 0
+                if pressed_1:
+                    action = 1
+                elif pressed_2:
+                    action = 2
+                elif pressed_3:
+                    action = 3
+                elif pressed_4:
+                    action = 4
+                self.update(i, action)
+                i += 1
+        else:
+            for i in range(100001):
+                self.update(i)
         self.visualiser.close()
 
     def update(self, i: int, action: int = 0):
+        if self.saved_model is not None:
+            action = np.argmax(self.saved_model.predict(self.get_state().astype('float32').reshape(1, -1)))
         penalty = self.take_action(action)
 
         time = self.model.calculate_time_of_day()
@@ -76,17 +127,6 @@ class Simulation:
             if spawn_info is not None:
                 route_uid, length, width, distance_delta = spawn_info
                 self.add_vehicle(route_uid, length, width)
-
-        # if self.dqn_agent is not None:
-        #     lights = self.model.get_lights()
-        #     action = self.dqn_agent.forward(self.get_state())
-        #     if action == 0:
-        #         pass
-        #     elif action == 1:
-        #         lights[0].set_red()
-        #     elif action == 2:
-        #         lights[1].set_red()
-        # else:
 
         for light in self.model.get_lights():
             light.update(self.model.tick_time)
@@ -115,11 +155,9 @@ class Simulation:
             coordinates_angle_size.append([coordinates[0], coordinates[1], angle, vehicle.length, vehicle.width, vehicle.uid])
 
         self.collision = self.check_colision(coordinates_angle_size)
-
-
-        self.reward = 30 - self.get_mean_wait_time() ** 2 + penalty + (i / 1000)
+        self.reward = 20 - self.get_mean_wait_time() ** 2 + penalty
         if self.collision is not None:
-            self.reward -= 5000
+            self.reward -= 50000
 
         self.total_reward += self.reward
 
@@ -130,46 +168,107 @@ class Simulation:
             self.visualiser.update_light_colours(self.model.lights)
             self.visualiser.update_time(self.model.calculate_time_of_day())
             self.visualiser.update_collision_warning(True if self.collision is not None else False)
-            sleep(self.model.tick_time)
+            sleep(self.model.tick_time/4)
 
         # if i % 200 == 0:
         #     self.model.get_lights()[random.choice([0, 1])].set_red()
-        # print(f" {self.total_reward} / {i}")
+
 
     def take_action(self, action):
         penalty = 0
         if action == 0:
             pass
         elif action == 1:
-            if self.model.get_lights()[0] == "green":
-                self.set_red(0)
+            light = self.model.get_lights()[0]
+            if light.colour == "green":
+                light.set_red()
             else:
-                penalty = -10000
+                penalty = -5000
         elif action == 2:
-            if self.model.get_lights()[1] == "green":
-                self.set_red(1)
+            light = self.model.get_lights()[1]
+            if light.colour == "green":
+                light.set_red()
             else:
-                penalty = -10000
-        return penalty
+                penalty = -5000
+        elif action == 3:
+            light = self.model.get_lights()[0]
+            if light.colour == "red":
+                light.set_green()
+            else:
+                penalty = -5000
+        elif action == 4:
+            light = self.model.get_lights()[1]
+            if light.colour == "red":
+                light.set_green()
+            else:
+                penalty = -5000
+        return 0
 
-    def set_red(self, index):
-        self.model.get_lights()[index].set_red()
+    def get_vehicle_state(self, vehicle: Vehicle):
+        return [
+            vehicle.get_path_distance_travelled(),
+            vehicle.get_length(),
+            vehicle.get_speed(),
+            vehicle.get_acceleration()
+        ]
+
+    def get_traffic_light_state(self, light: TrafficLight):
+        return [light.get_state(), light.get_time_remaining()]
 
     def get_state(self):
-        return np.array(
-            [
-                self.get_path_occupancy(1),
-                self.get_path_wait_time(1),
-                self.get_mean_speed(1),
-                self.get_path_occupancy(4),
-                self.get_path_wait_time(4),
-                self.get_mean_speed(4),
-                self.model.get_lights()[0].get_state(),
-                self.model.get_lights()[0].get_time_remaining(),
-                self.model.get_lights()[1].get_state(),
-                self.model.get_lights()[1].get_time_remaining(),
-            ]
-        )
+        inputs = []
+        for light in self.model.get_lights():
+            inputs += self.get_traffic_light_state(light)
+
+        for vehicle in self.model.get_vehicles():
+            route = self.model.get_route(vehicle.get_route_uid())
+            if route.get_path_uid(vehicle.get_path_index()) in [1, 4]:
+                inputs += self.get_vehicle_state(vehicle)
+        inputs = inputs[-100:]
+        inputs += [np.NAN] * (100 - len(inputs))
+        return inputs
+
+    # def get_state(self):
+    #     return np.array(
+    #         [
+    #             self.get_closest_vehicle(1),
+    #             self.get_furthest_vehicle(1),
+    #             self.get_path_occupancy(1),
+    #             self.get_path_wait_time(1),
+    #             self.get_mean_speed(1),
+    #             self.get_closest_vehicle(4),
+    #             self.get_furthest_vehicle(4),
+    #             self.get_path_occupancy(4),
+    #             self.get_path_wait_time(4),
+    #             self.get_mean_speed(4),
+    #             self.model.get_lights()[0].get_state(),
+    #             self.model.get_lights()[0].get_time_remaining(),
+    #             self.model.get_lights()[1].get_state(),
+    #             self.model.get_lights()[1].get_time_remaining(),
+    #         ]
+    #     )
+
+    def get_closest_vehicle(self, path_uid):
+        distances = []
+        for vehicle in self.model.get_vehicles():
+            route = self.model.get_route(vehicle.get_route_uid())
+            if path_uid == route.get_path_uid(vehicle.get_path_index()):
+                distances.append(vehicle.get_path_distance_travelled())
+        if distances:
+            return max(distances)
+        else:
+            return 0.0
+
+    def get_furthest_vehicle(self, path_uid):
+        distances = []
+        for vehicle in self.model.get_vehicles():
+            route = self.model.get_route(vehicle.get_route_uid())
+            if path_uid == route.get_path_uid(vehicle.get_path_index()):
+                distances.append(vehicle.get_path_distance_travelled())
+        if distances:
+            return min(distances)
+        else:
+            return 1000.0
 
     def get_path_occupancy(self, path_uid):
         state = 0
@@ -309,8 +408,8 @@ class Simulation:
                                 continue
         return None
 
-
+#
 if __name__ == "__main__":
-    sim = Simulation(os.path.join(ROOT_DIR, "Junction_Designs", "cross_road.junc"), visualise=True)
-    for i in range(50001):
-        sim.update(i)
+    with keyboard.Listener(on_press=on_press, on_release=on_release) as listener:
+        sim = Simulation(os.path.join(ROOT_DIR, "Junction_Designs", "cross_road.junc"), visualise=True, play=True)
+        listener.join()
