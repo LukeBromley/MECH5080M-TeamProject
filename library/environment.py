@@ -4,7 +4,7 @@ from random import randint, normalvariate as normal
 from library.maths import clamp
 
 
-class Configuration:
+class SimulationConfiguration:
 
     def __init__(self):
         # Time
@@ -41,7 +41,7 @@ class Configuration:
         # Visualiser
         self.visualiser_scale = 100
 
-class MLConfiguration:
+class MachineLearningConfiguration:
     def __init__(self):
         # Config
         self.config_id = 0

@@ -1,6 +1,6 @@
 import json
 import csv
-from library.environment import Configuration, Time, MLConfiguration
+from library.environment import SimulationConfiguration, Time, MachineLearningConfiguration
 from library.infrastructure import Node, Path, TrafficLight
 from library.vehicles import VehicleResults
 
@@ -212,7 +212,7 @@ class FileManagement:
         with open(file_path, "w") as file:
             json.dump(file_dict, file)
 
-    def save_config_file(self, file_path: str, config: Configuration) -> None:
+    def save_config_file(self, file_path: str, config: SimulationConfiguration) -> None:
         """
 
         :param file_path: where the config file is saved
@@ -261,7 +261,7 @@ class FileManagement:
         with open(file_path, "w") as file:
             json.dump(file_dict, file)
 
-    def load_config_file(self, file_path: str) -> Configuration:
+    def load_config_file(self, file_path: str) -> SimulationConfiguration:
         """
 
         :param file_path: where to load configuration from
@@ -270,7 +270,7 @@ class FileManagement:
         with open(file_path, "r") as file:
             file_dict = json.load(file)
 
-        config = Configuration()
+        config = SimulationConfiguration()
 
         # Configuration identifiers
         config.tick_rate = file_dict[self.tick_rate_key]
@@ -410,13 +410,13 @@ class FileManagement:
                 machine_learning_configs.append(self.load_ML_config(file_dict))
         return machine_learning_configs
 
-    def load_ML_config(self, file_dict) -> MLConfiguration:
+    def load_ML_config(self, file_dict) -> MachineLearningConfiguration:
         """
 
         :param file_path: where to load configuration from
         :return: the loaded configuration
         """
-        config = MLConfiguration()
+        config = MachineLearningConfiguration()
 
         # Config
         config.config_id = file_dict[self.config_id_key]

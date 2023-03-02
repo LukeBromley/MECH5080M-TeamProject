@@ -17,9 +17,9 @@ from tensorflow.keras import layers
 
 
 class MachineLearning:
-    def __init__(self, junction_file_path, config_file_path, visualiser_update_function=None):
+    def __init__(self, junction_file_path, simulation_config_file_path, machine_learning_config, visualiser_update_function=None):
         # SIMULATION MANAGER
-        self.simulation_manager = SimulationManager(junction_file_path, config_file_path, visualiser_update_function)
+        self.simulation_manager = SimulationManager(junction_file_path, simulation_config_file_path, visualiser_update_function)
 
         # COUNTERS
         self.episode_count = 0  # Number of episodes trained
