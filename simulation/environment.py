@@ -1,4 +1,8 @@
 from platform import system
+
+from library.infrastructure import TrafficLight
+from library.vehicles import Vehicle
+
 if system() == 'Windows':
     import sys
     sys.path.append('./')
@@ -72,6 +76,31 @@ class SimulationManager:
             if light.colour == "red":
                 light.set_green()
         return 0
+
+    def get_vehicle_state(self, vehicle: Vehicle):
+        return [
+            vehicle.get_path_distance_travelled(),
+            vehicle.get_length(),
+            vehicle.get_speed(),
+            vehicle.get_acceleration()
+        ]
+
+    def get_traffic_light_state(self, light: TrafficLight):
+        return [light.get_state(), light.get_time_remaining()]
+
+    def get_continuous_state(self):
+        inputs = []
+        for light in self.simulation.model.get_lights():
+            inputs += self.get_traffic_light_state(light)
+
+        for vehicle in self.simulation.model.get_vehicles():
+            route = self.simulation.model.get_route(vehicle.get_route_uid())
+            if route.get_path_uid(vehicle.get_path_index()) in [1, 4]:
+                inputs += self.get_vehicle_state(vehicle)
+
+        inputs = inputs[-100:]
+        inputs += [np.NAN] * (100 - len(inputs))
+        return inputs
 
     def compute_simulation_metrics(self):
         for vehicle in self.simulation.model.vehicles:
