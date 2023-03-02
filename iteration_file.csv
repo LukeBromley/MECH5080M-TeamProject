@@ -1,0 +1,4 @@
+Iteration,Junction,SimulationConfig,MachineLearningConfig,MachineLearningConfigID
+0,"cross_road.junc","cross_road.config","machine_learning_config.csv",1
+1,"cross_road.junc","cross_road.config","machine_learning_config.csv",2
+2,"cross_road.junc","cross_road.config","machine_learning_config.csv",3
