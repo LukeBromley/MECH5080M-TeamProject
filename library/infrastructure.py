@@ -211,7 +211,6 @@ class TrafficLight:
         """
 
         self.uid = uid
-        # was path_uids[0]. Vilius needs to fix this on his end.
         self.path_uids = path_uids
         self.colour = "green"
         assert self.colour == "green" or self.colour == "amber" or self.colour == "red" or self.colour == "red_amber"
@@ -224,7 +223,7 @@ class TrafficLight:
 
         self.time_remaining = None
         self.green_time = None
-        self.red_time = 5
+        self.red_time = None
         self.red_amber_time = 2
         self.amber_time = 3
 
@@ -256,15 +255,12 @@ class TrafficLight:
         :param time_delta: iteration length [s]
         """
 
-        if self.colour != "green":
+        if self.colour not in ["green", "red"]:
             self.time_remaining -= time_delta
             if self.time_remaining < 0:
                 if self.colour == "amber":
                     self.colour = "red"
                     self.time_remaining = self.red_time
-                elif self.colour == "red":
-                    self.colour = "red_amber"
-                    self.time_remaining = self.red_amber_time
                 elif self.colour == "red_amber":
                     self.colour = "green"
                     self.time_remaining = self.green_time

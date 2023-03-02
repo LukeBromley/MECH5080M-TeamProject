@@ -1,9 +1,13 @@
 from platform import system
+
+from pynput import keyboard
+
 if system() == 'Windows':
     import sys
     sys.path.append('./')
 
 import os
+import sys
 from simulation.environment import SimulationManager
 from gui.junction_visualiser import JunctionVisualiser
 from time import sleep
@@ -122,7 +126,7 @@ class MachineLearning:
                 self.compute_simulation_metrics()
 
                 # Calculate reward
-                reward = self.calculate_reward(action_penalty, step)
+                reward = self.calculate_reward(action_penalty)
 
                 # Update reward
                 self.all_time_reward += reward
@@ -227,8 +231,8 @@ class MachineLearning:
     def compute_simulation_metrics(self):
         self.simulation_manager.compute_simulation_metrics()
 
-    def calculate_reward(self, action_penalty, iteration):
-        return self.simulation_manager.calculate_reward(action_penalty, iteration)
+    def calculate_reward(self, action_penalty):
+        return self.simulation_manager.calculate_reward(action_penalty)
 
     def end_episode(self, episode_reward, step):
         if episode_reward < self.episode_end_reward:
@@ -318,16 +322,17 @@ class MachineLearning:
                 action_index = self.select_random_action()
 
                 # Take an action
-                action_penalty = self.take_action(0)
+                action_penalty = self.take_action(action_index)
 
                 # Run simulation 1 step
                 self.step_simulation(visualiser_on=True, visualiser_sleep_time=0.01)
+                # self.step_simulation()
 
                 # Compute metrics used to get state and calculate reward
                 self.compute_simulation_metrics()
 
                 # Calculate reward
-                reward = self.calculate_reward(action_penalty, step)
+                reward = self.calculate_reward(action_penalty)
 
                 # Update reward
                 self.all_time_reward += reward
@@ -337,6 +342,54 @@ class MachineLearning:
                 if self.end_episode(episode_reward, step):
                     break
 
+    def play(self):
+        global keyboard_input
+        keyboard_input = [False for _ in range(4)]
+
+        def on_press(key):
+            global keyboard_input
+            keyboard_input[int(key.char)-1] = True
+
+        def on_release(key):
+            global keyboard_input
+            keyboard_input[int(key.char)-1] = False
+
+        with keyboard.Listener(on_press=on_press, on_release=on_release) as listener:
+            self.simulation_manager.reset()
+            total_reward = 0
+            i = 0
+            while total_reward > -500000:
+                i += 1
+
+                # Select an action
+                if True in keyboard_input:
+                    action_index = keyboard_input.index(True) + 1
+                else:
+                    action_index = 0
+
+                # Take an action
+                action_penalty = self.take_action(action_index)
+
+                # Run simulation 1 step
+                self.step_simulation(visualiser_on=True, visualiser_sleep_time=0.01)
+
+                # Compute metrics used to get state and calculate reward
+                self.compute_simulation_metrics()
+
+                # Calculate reward
+                reward = self.calculate_reward(action_penalty)
+
+                # Update reward
+                self.all_time_reward += reward
+                total_reward += reward
+
+                sys.stdout.write("\r{0}".format(str(i)))
+                sys.stdout.write("\r{0}".format(str(total_rewardq)))
+                sys.stdout.flush()
+
+                # print(f"Step: {i} ({total_reward})")
+            listener.join()
+
 
 if __name__ == "__main__":
     # Reference Files
@@ -344,7 +397,7 @@ if __name__ == "__main__":
     configuration_file_path = os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))), "configurations", "cross_road.config")
 
     # Settings
-    scale = 100
+    scale = 50
 
     # Visualiser Init
     visualiser = JunctionVisualiser()
@@ -354,9 +407,9 @@ if __name__ == "__main__":
 
     # machine_learning.random()
     # machine_learning.train()
-
-    # Visualiser Setup
-    visualiser.define_main(machine_learning.random)
+    #
+    # # Visualiser Setup
+    visualiser.define_main(machine_learning.play)
     visualiser.load_junction(junction_file_path)
     visualiser.set_scale(scale)
 

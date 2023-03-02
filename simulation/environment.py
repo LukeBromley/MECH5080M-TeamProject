@@ -1,4 +1,8 @@
 from platform import system
+
+from library.infrastructure import TrafficLight
+from library.vehicles import Vehicle
+
 if system() == 'Windows':
     import sys
     sys.path.append('./')
@@ -53,15 +57,50 @@ class SimulationManager:
         return np.asarray(np.zeros(self.observation_space_size)).astype('float32')
 
     def take_action(self, action_index):
-        penalty = 0
         if action_index == 0:
             pass
-        else:
-            if self.simulation.model.lights[action_index - 1].colour == "green":
-                self.simulation.model.lights[action_index - 1].set_red()
-            else:
-                penalty = -10000
-        return penalty
+        elif action_index == 1:
+            light = self.simulation.model.lights[0]
+            if light.colour == "green":
+                light.set_red()
+        elif action_index == 2:
+            light = self.simulation.model.lights[1]
+            if light.colour == "green":
+                light.set_red()
+        elif action_index == 3:
+            light = self.simulation.model.lights[0]
+            if light.colour == "red":
+                light.set_green()
+        elif action_index == 4:
+            light = self.simulation.model.lights[1]
+            if light.colour == "red":
+                light.set_green()
+        return 0
+
+    def get_vehicle_state(self, vehicle: Vehicle):
+        return [
+            vehicle.get_path_distance_travelled(),
+            vehicle.get_length(),
+            vehicle.get_speed(),
+            vehicle.get_acceleration()
+        ]
+
+    def get_traffic_light_state(self, light: TrafficLight):
+        return [light.get_state(), light.get_time_remaining()]
+
+    def get_continuous_state(self):
+        inputs = []
+        for light in self.simulation.model.get_lights():
+            inputs += self.get_traffic_light_state(light)
+
+        for vehicle in self.simulation.model.get_vehicles():
+            route = self.simulation.model.get_route(vehicle.get_route_uid())
+            if route.get_path_uid(vehicle.get_path_index()) in [1, 4]:
+                inputs += self.get_vehicle_state(vehicle)
+
+        inputs = inputs[-100:]
+        inputs += [np.NAN] * (100 - len(inputs))
+        return inputs
 
     def compute_simulation_metrics(self):
         for vehicle in self.simulation.model.vehicles:
@@ -75,9 +114,9 @@ class SimulationManager:
                     self.wait_time.append(vehicle.get_wait_time())
                     self.wait_time = self.wait_time[-self.wait_time_vehicle_limit:]
 
-    def calculate_reward(self, penalty, iteration):
-        reward = 30 - self.get_mean_wait_time() ** 2 + penalty + (iteration / 1000)
-        if self.simulation.model.detect_collisions() is not None:
+    def calculate_reward(self, penalty):
+        reward = 30 - self.get_mean_wait_time() ** 2 + penalty
+        if len(self.simulation.model.detect_collisions()) > 0:
             reward -= 5000
         return reward
 
