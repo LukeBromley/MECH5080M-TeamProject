@@ -100,11 +100,11 @@ class SimulationManager:
                     self.wait_time.append(vehicle.get_wait_time())
                     self.wait_time = self.wait_time[-self.wait_time_vehicle_limit:]
 
-    def calculate_reward(self, action_reward, iteration):
+    def calculate_reward(self, action_reward, step):
         reward = self.default_reward
         reward += action_reward
         if self.simulation_duration_reward != 0:
-            reward += self.simulation_duration_reward * iteration
+            reward += self.simulation_duration_reward * step
         if self.crash_reward != 0:
             reward += self.crash_reward * self.get_crash()
         if self.num_cars_waiting_reward != 0:

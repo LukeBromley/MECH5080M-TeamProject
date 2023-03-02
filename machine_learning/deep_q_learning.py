@@ -130,7 +130,7 @@ class MachineLearning:
                 self.compute_simulation_metrics()
 
                 # Calculate reward
-                reward = self.calculate_reward(action_penalty)
+                reward = self.calculate_reward(action_penalty, step)
 
                 # Update reward
                 self.all_time_reward += reward
@@ -235,8 +235,8 @@ class MachineLearning:
     def compute_simulation_metrics(self):
         self.simulation_manager.compute_simulation_metrics()
 
-    def calculate_reward(self, action_penalty):
-        return self.simulation_manager.calculate_reward(action_penalty)
+    def calculate_reward(self, action_penalty, step):
+        return self.simulation_manager.calculate_reward(action_penalty, step)
 
     def end_episode(self, episode_num, episode_reward, step):
         if episode_reward < self.episode_end_reward:
@@ -337,14 +337,14 @@ class MachineLearning:
                 self.compute_simulation_metrics()
 
                 # Calculate reward
-                reward = self.calculate_reward(action_penalty)
+                reward = self.calculate_reward(action_penalty, step)
 
                 # Update reward
                 self.all_time_reward += reward
                 episode_reward += reward
 
                 # Determine if episode is over
-                if self.end_episode(episode_reward, step):
+                if self.end_episode(episode, episode_reward, step):
                     break
 
     def play(self):
@@ -362,9 +362,9 @@ class MachineLearning:
         with keyboard.Listener(on_press=on_press, on_release=on_release) as listener:
             self.simulation_manager.reset()
             total_reward = 0
-            i = 0
+            step = 0
             while total_reward > -500000:
-                i += 1
+                step += 1
 
                 # Select an action
                 if True in keyboard_input:
@@ -382,14 +382,14 @@ class MachineLearning:
                 self.compute_simulation_metrics()
 
                 # Calculate reward
-                reward = self.calculate_reward(action_penalty)
+                reward = self.calculate_reward(action_penalty, step)
 
                 # Update reward
                 self.all_time_reward += reward
                 total_reward += reward
 
-                sys.stdout.write("\r{0}".format(str(i)))
-                sys.stdout.write("\r{0}".format(str(total_rewardq)))
+                sys.stdout.write("\r{0}".format(str(step)))
+                sys.stdout.write("\r{0}".format(str(total_reward)))
                 sys.stdout.flush()
 
                 # print(f"Step: {i} ({total_reward})")
@@ -436,24 +436,24 @@ if __name__ == "__main__":
     junction_file_path = os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))), "junctions", "cross_road.junc")
     configuration_file_path = os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))), "configurations", "cross_road.config")
 
-    # Settings
-    scale = 50
+    # # Settings
+    # scale = 50
 
-    # Visualiser Init
-    visualiser = JunctionVisualiser()
+    # # Visualiser Init
+    # visualiser = JunctionVisualiser()
 
     # Simulation
-    machine_learning = MachineLearning(junction_file_path, configuration_file_path, visualiser.update)
+    machine_learning = MachineLearning(junction_file_path, configuration_file_path)
 
     # machine_learning.random()
-    # machine_learning.train()
+    machine_learning.train()
     # machine_learning.save()
 
-    # Visualiser Setup
-    visualiser.define_main(machine_learning.train)
-    visualiser.load_junction(junction_file_path)
-    visualiser.set_scale(scale)
-
-    # Run Simulation
-    visualiser.open()
+    # # Visualiser Setup
+    # visualiser.define_main(machine_learning.train)
+    # visualiser.load_junction(junction_file_path)
+    # visualiser.set_scale(scale)
+    #
+    # # Run Simulation
+    # visualiser.open()
 
