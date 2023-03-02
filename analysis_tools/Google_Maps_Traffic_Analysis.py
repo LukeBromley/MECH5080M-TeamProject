@@ -24,17 +24,20 @@ class GoogleMapsTrafficAnalysis:
 
             for day in range(7):
                 for hour in range(24):
-                    time = start_time + day * 86400 + hour * 3600
+                    for quarter in range(4):
+                        time = start_time + day * 86400 + hour * 3600 + quarter * 900
 
-                    url = f'https://maps.googleapis.com/maps/api/directions/json?origin={from_latitude},{from_longitude}&destination={to_latitude},{to_longitude}&departure_time={time}&traffic_model=best_guess&key={api_key}'
+                        url = f'https://maps.googleapis.com/maps/api/directions/json?origin={from_latitude},{from_longitude}&destination={to_latitude},{to_longitude}&departure_time={time}&traffic_model=best_guess&key={api_key}'
 
-                    response = requests.get(url)
-                    data = response.json()
+                        response = requests.get(url)
+                        data = response.json()
 
-                    # The current traffic for the road is stored in the "duration_in_traffic" field
-                    duration_in_traffic = data['routes'][0]['legs'][0]['duration_in_traffic']['value']
-                    print("Day:", day + 1, "Hour: ", hour, "-", duration_in_traffic)
-                    traffic_data.append([day, hour, duration_in_traffic])
+                        # The current traffic for the road is stored in the "duration_in_traffic" field
+                        duration_in_traffic = data['routes'][0]['legs'][0]['duration_in_traffic']['value']
+                        duration = data['routes'][0]['legs'][0]['duration']['value']
+                        distance = data['routes'][0]['legs'][0]['distance']['value']
+                        print("Day: ", day + 1, "Hour: ", hour, "Quarter: ", quarter * 15, "-", duration_in_traffic, duration)
+                        traffic_data.append([day + 1, hour, quarter * 15, duration_in_traffic, duration, distance])
 
             print("Saving data!!")
 

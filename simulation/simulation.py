@@ -49,7 +49,7 @@ class Simulation:
                 self.add_vehicle(route_uid, length, width, distance_delta)
 
         # Control lights
-        for light in self.model.get_lights():
+        for light in self.model.lights:
             light.update(self.model.tick_time)
 
         # Remove finished vehicles
@@ -68,17 +68,21 @@ class Simulation:
 
             self.vehicle_data.append([coord_x, coord_y, angle, vehicle.length, vehicle.width, vehicle.uid])
 
+        # Remove finished vehicles
+        self.model.remove_finished_vehicles()
+
         # Increment Time
         self.model.tock()
 
     def add_vehicle(self, route_uid: int, length, width, didstance_delta):
         self.uid += 1
+        initial_speed_multiplier = clamp(didstance_delta, 0, 5) / 5
         self.model.add_vehicle(
             Vehicle(
                 uid=self.uid,
                 start_time=self.model.calculate_seconds_elapsed(),
                 route_uid=route_uid,
-                speed=self.model.config.initial_speed,
+                speed=self.model.config.initial_speed * initial_speed_multiplier,
                 acceleration=self.model.config.initial_acceleration,
                 maximum_acceleration=self.model.config.maximum_acceleration,
                 maximum_deceleration=self.model.config.maximum_deceleration,
@@ -98,7 +102,7 @@ if __name__ == "__main__":
 
     # Settings
     scale = 100
-    speed_multiplier = 5
+    speed_multiplier = 1
 
     # Visualiser Init
     visualiser = JunctionVisualiser()

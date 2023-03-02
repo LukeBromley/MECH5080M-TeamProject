@@ -60,7 +60,8 @@ class Model:
         self.config = self.file_manager.load_config_file(config_file_location)
         self.set_tick_rate(self.config.tick_rate)
         self.set_start_time_of_day(self.config.start_time_of_day)
-        self.set_random_seed(self.config.random_seed)
+        if self.config.random_seed is not None:
+            self.set_random_seed(self.config.random_seed)
         self.setup_random_spawning(SpawningStats(
             max_spawn_time=self.config.max_spawn_time,
             min_spawn_time=self.config.min_spawn_time,
@@ -306,9 +307,6 @@ class Model:
     def get_light_index(self, light_uid):
         return self.lights_hash_table[str(light_uid)]
 
-    def get_lights(self) -> List[TrafficLight]:
-        return self.lights
-
     def set_light(self, light):
         index = self.get_light_index(light.uid)
         self.lights[index] = light
@@ -394,7 +392,7 @@ class Model:
         path_uids_ahead = this_route_path_uids[this_route_path_uids.index(this_path.uid) + 1:]
         distance_travelled_offset = this_path.get_length() - this_vehicle_path_distance_travelled
         for path_uid in path_uids_ahead:
-            for light in self.get_lights():
+            for light in self.lights:
                 if light.path_uids[0] == path_uid and not light.allows_traffic():
                     return light, distance_travelled_offset
             for that_vehicle in self.vehicles:
@@ -432,7 +430,6 @@ class Model:
         path_uid = route.get_path_uid(vehicle.get_path_index())
         path = self.get_path(path_uid)
         path_distance_travelled = vehicle.get_path_distance_travelled()
-
         index = floor(path_distance_travelled / path.discrete_length_increment_size)
         return path.discrete_path[index][1], path.discrete_path[index][2]
 
