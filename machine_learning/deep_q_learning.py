@@ -305,6 +305,8 @@ class MachineLearning:
     def random(self):
         episode = 5
         for episode in range(1, episode + 1):
+            self.simulation_manager.reset()
+
             episode_reward = 0
             # Run steps in episode
             for step in range(1, self.max_steps_per_episode):
