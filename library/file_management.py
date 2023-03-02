@@ -1,7 +1,9 @@
 import json
-from library.environment import Configuration, Time
+import csv
+from library.environment import Configuration, Time, MLConfiguration
 from library.infrastructure import Node, Path, TrafficLight
 from library.vehicles import VehicleResults
+
 
 """
 Explanation of File Management
@@ -64,6 +66,49 @@ class FileManagement:
         # Car results data identifiers
         self.start_time_key = "start_time"
         self.position_data_key = "position_data"
+
+        # MACHINE LEARNING
+        # Config
+        self.config_id_key = "config_id"
+        # Limits
+        self.max_steps_per_episode_key = "max_steps_per_episode"
+        self.episode_end_reward_key = "episode_end_reward"
+        self.solved_mean_reward_key = "solved_mean_reward"
+
+        # Action Probabilities
+        self.random_action_do_nothing_probability_key = "random_action_do_nothing_probability"
+        self.epsilon_greedy_min_key = "epsilon_greedy_min"
+        self.epsilon_greedy_max_key = "epsilon_greedy_max"
+
+        # Exploration
+        self.number_of_steps_of_required_exploration_key = "number_of_steps_of_required_exploration"
+        self.number_of_steps_of_exploration_reduction_key = "number_of_steps_of_exploration_reduction"
+
+        # Sample Size
+        self.sample_size_key = "sample_size"
+
+        # Discount factor
+        self.gamma_key = "gamma"
+
+        # Maximum replay buffer length
+        self.max_replay_buffer_length_key = "max_replay_buffer_length"
+
+        # Optimisations
+        self.learning_rate_key = "learning_rate"
+
+        # Train the model after number of actions
+        self.update_after_actions_key = "update_after_actions"
+
+        # How often to update the target network
+        self.update_target_network_key = "update_target_network"
+
+        self.header = [self.config_id_key, self.max_steps_per_episode_key, self.episode_end_reward_key, self.solved_mean_reward_key,
+                       self.random_action_do_nothing_probability_key, self.epsilon_greedy_min_key,
+                       self.epsilon_greedy_max_key, self.number_of_steps_of_required_exploration_key,
+                       self.number_of_steps_of_exploration_reduction_key, self.sample_size_key, self.gamma_key,
+                       self.max_replay_buffer_length_key, self.learning_rate_key, self.update_after_actions_key,
+                       self.update_target_network_key]
+
 
     def load_from_junction_file(self, file_path: str, quick_load=False) -> tuple:
         """
@@ -301,3 +346,111 @@ class FileManagement:
                     int(uid), start_time, position_data))
 
             return vehicles
+        
+    def save_ML_configs_to_file(self, file_path, ml_configs):
+        with open(file_path, "w", newline='') as file:
+            writer = csv.DictWriter(file, fieldnames=self.header)
+            writer.writeheader()
+            for i, config in enumerate(ml_configs):
+                file_dict = self.save_ML_config(config, i)
+                writer.writerow(file_dict)
+
+    def save_ML_config(self, config, i) -> None:
+        """
+
+        :param file_path: where the ML config file is saved
+        :param config: ML configuration to be saved
+        :return: None
+        """
+
+        # Create dictionary structure
+        file_dict = {}
+        # Config
+        file_dict[self.config_id_key] = i
+
+        # Limits
+        file_dict[self.max_steps_per_episode_key] = config.max_steps_per_episode
+        file_dict[self.episode_end_reward_key] = config.episode_end_reward
+        file_dict[self.solved_mean_reward_key] = config.solved_mean_reward
+
+        # Action Probabilities
+        file_dict[self.random_action_do_nothing_probability_key] = config.random_action_do_nothing_probability
+        file_dict[self.epsilon_greedy_min_key] = config.epsilon_greedy_min
+        file_dict[self.epsilon_greedy_max_key] = config.epsilon_greedy_max
+
+        # Exploration
+        file_dict[self.number_of_steps_of_required_exploration_key] = config.number_of_steps_of_required_exploration
+        file_dict[self.number_of_steps_of_exploration_reduction_key] = config.number_of_steps_of_exploration_reduction
+
+        # Sample Size
+        file_dict[self.sample_size_key] = config.sample_size
+
+        # Discount factor
+        file_dict[self.gamma_key] = config.gamma
+
+        # Maximum replay buffer length
+        file_dict[self.max_replay_buffer_length_key] = config.max_replay_buffer_length
+
+        # Optimisations
+        file_dict[self.learning_rate_key] = config.learning_rate
+
+        # Train the model after number of actions
+        file_dict[self.update_after_actions_key] = config.update_after_actions
+
+        # How often to update the target network
+        file_dict[self.update_target_network_key] = config.update_target_network
+
+        return file_dict
+
+    def load_ML_configs_from_file(self, file_path):
+        machine_learning_configs = []
+        with open(file_path, "r") as file:
+            csv_reader = csv.DictReader(file)
+            for file_dict in csv_reader:
+                machine_learning_configs.append(self.load_ML_config(file_dict))
+        return machine_learning_configs
+
+    def load_ML_config(self, file_dict) -> MLConfiguration:
+        """
+
+        :param file_path: where to load configuration from
+        :return: the loaded configuration
+        """
+        config = MLConfiguration()
+
+        # Config
+        config.config_id = file_dict[self.config_id_key]
+
+        # Limits
+        config.max_steps_per_episode = file_dict[self.max_steps_per_episode_key]
+        config.episode_end_reward = file_dict[self.episode_end_reward_key]
+        config.solved_mean_reward = file_dict[self.solved_mean_reward_key]
+
+        # Action Probabilities
+        config.random_action_do_nothing_probability = file_dict[self.random_action_do_nothing_probability_key]
+        config.epsilon_greedy_min = file_dict[self.epsilon_greedy_min_key]
+        config.epsilon_greedy_max = file_dict[self.epsilon_greedy_max_key]
+
+        # Exploration
+        config.number_of_steps_of_required_exploration = file_dict[self.number_of_steps_of_required_exploration_key]
+        config.number_of_steps_of_exploration_reduction = file_dict[self.number_of_steps_of_exploration_reduction_key]
+
+        # Sample Size
+        config.sample_size = file_dict[self.sample_size_key]
+
+        # Discount factor
+        config.gamma = file_dict[self.gamma_key]
+
+        # Maximum replay buffer length
+        config.max_replay_buffer_length = file_dict[self.max_replay_buffer_length_key]
+
+        # Optimisations
+        config.learning_rate = file_dict[self.learning_rate_key]
+
+        # Train the model after number of actions
+        config.update_after_actions = file_dict[self.update_after_actions_key]
+
+        # How often to update the target network
+        config.update_target_network = file_dict[self.update_target_network_key]
+
+        return config

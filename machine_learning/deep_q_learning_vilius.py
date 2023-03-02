@@ -6,11 +6,11 @@ if system() == 'Windows':
 import os
 from simulation.environment import SimulationManager
 from gui.junction_visualiser import JunctionVisualiser
-
+#os.environ["CUDA_VISIBLE_DEVICES"]="-1"    
 import numpy as np
 import tensorflow as tf
 from tensorflow import keras
-from tensorflow.keras import layers
+from keras import layers
 
 # https://towardsdatascience.com/a-minimal-working-example-for-deep-q-learning-in-tensorflow-2-0-e0ca8a944d5e
 
