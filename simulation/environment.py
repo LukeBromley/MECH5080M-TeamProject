@@ -77,7 +77,7 @@ class SimulationManager:
 
     def calculate_reward(self, penalty, iteration):
         reward = 30 - self.get_mean_wait_time() ** 2 + penalty + (iteration / 1000)
-        if self.simulation.model.detect_collisions() is not None:
+        if len(self.simulation.model.detect_collisions()) > 0:
             reward -= 5000
         return reward
 

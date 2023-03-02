@@ -318,10 +318,11 @@ class MachineLearning:
                 action_index = self.select_random_action()
 
                 # Take an action
-                action_penalty = self.take_action(0)
+                action_penalty = self.take_action(action_index)
 
                 # Run simulation 1 step
-                self.step_simulation(visualiser_on=True, visualiser_sleep_time=0.01)
+                # self.step_simulation(visualiser_on=True, visualiser_sleep_time=0.01)
+                self.step_simulation()
 
                 # Compute metrics used to get state and calculate reward
                 self.compute_simulation_metrics()
@@ -356,7 +357,7 @@ if __name__ == "__main__":
     # machine_learning.train()
 
     # Visualiser Setup
-    visualiser.define_main(machine_learning.random)
+    visualiser.define_main(machine_learning.train)
     visualiser.load_junction(junction_file_path)
     visualiser.set_scale(scale)
 
