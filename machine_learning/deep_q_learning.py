@@ -6,6 +6,7 @@ if system() == 'Windows':
 import os
 from simulation.environment import SimulationManager
 from gui.junction_visualiser import JunctionVisualiser
+from time import sleep
 
 import numpy as np
 import tensorflow as tf
@@ -32,7 +33,10 @@ class MachineLearning:
 
         # TAKING AN ACTION
         # Random action
-        self.random_action_selection_probabilities = [0.9, 0.05, 0.05]  # Probability of selecting specific actions at random
+        self.random_action_do_nothing_probability = 0.9
+        self.random_action_selection_probabilities = [self.random_action_do_nothing_probability]
+        for action_index in range(1, self.simulation_manager.number_of_possible_actions):
+            self.random_action_selection_probabilities.append((1 - self.random_action_do_nothing_probability) / (self.simulation_manager.number_of_possible_actions - 1))
         assert len(self.random_action_selection_probabilities) == self.simulation_manager.number_of_possible_actions
 
         # Probability of selecting a random action
@@ -65,7 +69,7 @@ class MachineLearning:
 
         # OPTIMISING
         # Note: In the Deepmind paper they use RMSProp however then Adam optimizer
-        self.learning_rate = 0.01  # 0.00025
+        self.learning_rate = 0.00001  # 0.00025
         self.optimizer = keras.optimizers.legacy.Adam(learning_rate=self.learning_rate, clipnorm=1.0)
 
         # OTHER
@@ -80,15 +84,18 @@ class MachineLearning:
         self.loss_function = keras.losses.Huber()
 
         # MACHINE LEARNING MODELS
-        self.model = self.create_q_model()  # Makes the predictions for Q-values which are used to make a action.
+        self.ml_model_hidden_layers = [512]
 
-        self.model_target = self.create_q_model()  # For the prediction of future rewards. The weights of a target model get updated every 10000 steps thus when the loss between the Q-values is calculated the target Q-value is stable.
+        self.ml_model = self.create_q_learning_model(self.simulation_manager.observation_space_size, self.simulation_manager.number_of_possible_actions, self.ml_model_hidden_layers)  # Makes the predictions for Q-values which are used to make a action.
+        self.ml_model_target = self.create_q_learning_model(self.simulation_manager.observation_space_size, self.simulation_manager.number_of_possible_actions, self.ml_model_hidden_layers)  # For the prediction of future rewards. The weights of a target model get updated every 10000 steps thus when the loss between the Q-values is calculated the target Q-value is stable.
 
-    def create_q_model(self):
-        inputs = tf.keras.layers.Input(shape=(10,))
-        layer = layers.Dense(512, activation="relu")(inputs)
-        outputs = tf.keras.layers.Dense(self.simulation_manager.number_of_possible_actions, activation='linear')(layer)
-        return tf.keras.models.Model(inputs=inputs, outputs=outputs)
+    def create_q_learning_model(self, state_size, action_size, hidden_layers):
+        ml_layers = [layers.Input(shape=(state_size, ))]  # input dimension
+        for number_of_perceptrons in hidden_layers:
+            ml_layers.append(layers.Dense(number_of_perceptrons, activation="relu")(ml_layers[-1]))
+        q_values = layers.Dense(action_size, activation="linear")(ml_layers[-1])
+        q_network = tf.keras.models.Model(inputs=ml_layers[0], outputs=[q_values])
+        return q_network
 
     def train(self):
         while True:  # Run until solved
@@ -142,7 +149,7 @@ class MachineLearning:
 
                     with tf.GradientTape() as tape:
                         # Train the model on the states and updated Q-values
-                        q_values = self.model(state_sample)
+                        q_values = self.ml_model(state_sample)
 
                         # Apply the masks to the Q-values to get the Q-value for action taken
                         # Create a mask so we only calculate loss on the updated Q-values
@@ -153,12 +160,12 @@ class MachineLearning:
                         loss = self.loss_function(updated_q_values, q_action)
 
                     # Backpropagation
-                    grads = tape.gradient(loss, self.model.trainable_variables)
-                    self.optimizer.apply_gradients(zip(grads, self.model.trainable_variables))
+                    grads = tape.gradient(loss, self.ml_model.trainable_variables)
+                    self.optimizer.apply_gradients(zip(grads, self.ml_model.trainable_variables))
 
                 if self.number_of_steps_taken % self.update_target_network == 0:
                     # update the the target network with new weights
-                    self.model_target.set_weights(self.model.get_weights())
+                    self.ml_model_target.set_weights(self.ml_model.get_weights())
                     # Log details
                     template = "running reward: {:.2f} at episode {}, frame count {}"
                     print(template.format(mean_reward, self.episode_count, self.number_of_steps_taken))
@@ -196,7 +203,7 @@ class MachineLearning:
         # Predict action Q-values
         # From simulation_manager state
         state_tensor = tf.expand_dims(tf.convert_to_tensor(state), 0)
-        action_probs = self.model(state_tensor, training=False)
+        action_probs = self.ml_model(state_tensor, training=False)
         # Take best action
         action = tf.argmax(action_probs[0]).numpy()
         return action
@@ -208,9 +215,14 @@ class MachineLearning:
     def take_action(self, action_index):
         return self.simulation_manager.take_action(action_index)
 
-    def step_simulation(self, num_steps=1):
+    def step_simulation(self, num_steps=1, visualiser_on=False, visualiser_sleep_time: float = 0):
         for step in range(num_steps):
-            self.simulation_manager.simulation.compute_single_iteration()
+            if visualiser_on:
+                self.simulation_manager.simulation.run_single_iteration()
+                sleep(visualiser_sleep_time)
+            else:
+                self.simulation_manager.simulation.compute_single_iteration()
+
 
     def compute_simulation_metrics(self):
         self.simulation_manager.compute_simulation_metrics()
@@ -255,7 +267,7 @@ class MachineLearning:
     def calculate_updated_q_values(self, state_next_sample, rewards_sample, done_sample):
         # Build the updated Q-values for the sampled future states
         # Use the target model for stability
-        future_rewards = self.model_target.predict(state_next_sample, verbose=0)
+        future_rewards = self.ml_model_target.predict(state_next_sample, verbose=0)
         # Q value = reward + discount factor * expected future reward
         updated_q_values = rewards_sample + self.gamma * tf.reduce_max(future_rewards, axis=1)
         # If final frame set the last value to -1
@@ -304,10 +316,10 @@ class MachineLearning:
                 action_index = self.select_random_action()
 
                 # Take an action
-                action_penalty = self.take_action(action_index)
+                action_penalty = self.take_action(0)
 
                 # Run simulation 1 step
-                self.step_simulation()
+                self.step_simulation(visualiser_on=True, visualiser_sleep_time=0.01)
 
                 # Compute metrics used to get state and calculate reward
                 self.compute_simulation_metrics()
@@ -329,23 +341,23 @@ if __name__ == "__main__":
     junction_file_path = os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))), "junctions", "cross_road.junc")
     configuration_file_path = os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))), "configurations", "cross_road.config")
 
-    # # Settings
-    # scale = 100
-    #
-    # # Visualiser Init
-    # visualiser = JunctionVisualiser()
+    # Settings
+    scale = 100
+
+    # Visualiser Init
+    visualiser = JunctionVisualiser()
 
     # Simulation
-    machine_learning = MachineLearning(junction_file_path, configuration_file_path)
+    machine_learning = MachineLearning(junction_file_path, configuration_file_path, visualiser.update)
 
     # machine_learning.random()
-    machine_learning.train()
+    # machine_learning.train()
 
-    # # Visualiser Setup
-    # visualiser.define_main(machine_learning.train)
-    # visualiser.load_junction(junction_file_path)
-    # visualiser.set_scale(scale)
-    #
-    # # Run Simulation
-    # visualiser.open()
+    # Visualiser Setup
+    visualiser.define_main(machine_learning.random)
+    visualiser.load_junction(junction_file_path)
+    visualiser.set_scale(scale)
+
+    # Run Simulation
+    visualiser.open()
 

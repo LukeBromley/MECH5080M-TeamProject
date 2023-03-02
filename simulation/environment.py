@@ -19,7 +19,7 @@ class SimulationManager:
 
         # Simulations
         self.simulation = Simulation(self.junction_file_path, self.config_file_path, self.visualiser_update_function)
-        self.simulation.model.setup_fixed_spawning(3)
+        # self.simulation.model.setup_fixed_spawning(3)
 
         # Actions
         self.number_of_possible_actions, self.action_space = self.calculate_actions()
@@ -36,7 +36,7 @@ class SimulationManager:
 
     def create_simulation(self):
         simulation = Simulation(self.junction_file_path, self.config_file_path, self.visualiser_update_function)
-        simulation.model.setup_fixed_spawning(3)
+        # simulation.model.setup_fixed_spawning(3)
         return simulation
 
     def calculate_actions(self):
