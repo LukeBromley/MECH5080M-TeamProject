@@ -6,6 +6,7 @@ if system() == 'Windows':
 import os
 from simulation.environment import SimulationManager
 from gui.junction_visualiser import JunctionVisualiser
+
 import numpy as np
 import tensorflow as tf
 from tensorflow import keras
