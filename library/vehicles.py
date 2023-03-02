@@ -12,7 +12,7 @@ class Vehicle:
                  maximum_speed: float = 20.0, minimum_speed: float = -20.0,
                  distance_travelled: float = 0.0, preferred_time_gap: float = 2.0,
                  length: float = 4.4, width: float = 1.82,
-                 min_creep_distance: float = 0
+                 min_creep_distance: float = 0, maximum_lateral_acceleration: float = 1.1
                  ) -> None:
         """
 
@@ -43,6 +43,7 @@ class Vehicle:
         self._sensing_radius = sensing_radius
         self._maximum_acceleration = maximum_acceleration
         self._maximum_deceleration = maximum_deceleration
+        self._maximum_lateral_acceleration = maximum_lateral_acceleration
         self._maximum_speed = maximum_speed
         self._minimum_speed = minimum_speed
         self._path_distance_travelled = 0.0
@@ -54,7 +55,7 @@ class Vehicle:
         self._min_creep_distance = min_creep_distance
         self.waiting_time = 0
 
-    def update(self, time_delta: float, object_ahead: "Vehicle", delta_distance_ahead: float) -> None:
+    def update(self, time_delta: float, object_ahead: "Vehicle", delta_distance_ahead: float, curvature: float = 0.0) -> None:
         """
         :param object_ahead:
         :param delta_distance_ahead:
@@ -69,12 +70,15 @@ class Vehicle:
             delta_distance_ahead = delta_distance_ahead - \
                 0.5 * (self.length + object_ahead.get_length())
 
-        self._acceleration = self._calculate_acceleration(
-            speed_object_ahead, delta_distance_ahead)
-        self._speed = clamp((self._speed + (self._acceleration * time_delta)), self._minimum_speed,
-                            self._maximum_speed)
+        self._acceleration = self._calculate_acceleration(speed_object_ahead, delta_distance_ahead)
+
+        maximum_speed = min(self._calculate_maximum_speed_due_lateral_acceleration(curvature), self._maximum_speed)
+        self._speed = clamp((self._speed + (self._acceleration * time_delta)), self._minimum_speed, maximum_speed)
 
         self._path_distance_travelled += self._speed * time_delta
+
+    def _calculate_maximum_speed_due_lateral_acceleration(self, curvature):
+        return sqrt(self._maximum_lateral_acceleration / (curvature + 1e-6))
 
     def get_path_index(self):
         return self._path_index

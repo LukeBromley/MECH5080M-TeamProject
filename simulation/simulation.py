@@ -13,7 +13,7 @@ from functools import partial
 
 
 class Simulation:
-    def __init__(self, junction_file_path: str, config_file_path, visualiser_update_function = None):
+    def __init__(self, junction_file_path: str, config_file_path, visualiser_update_function=None):
         self.uid = 0
 
         # Model
@@ -60,10 +60,11 @@ class Simulation:
         self.vehicle_data = []
         for vehicle in self.model.vehicles:
             coord_x, coord_y = self.model.get_vehicle_coordinates(vehicle.uid)
+            curvature = self.model.get_vehicle_path_curvature(vehicle.uid)
             angle = self.model.get_vehicle_direction(vehicle.uid)
 
             object_ahead, delta_distance_ahead = self.model.get_object_ahead(vehicle.uid)
-            vehicle.update(self.model.tick_time, object_ahead, delta_distance_ahead)
+            vehicle.update(self.model.tick_time, object_ahead, delta_distance_ahead, curvature)
             vehicle.update_position_data([coord_x, coord_y])
 
             self.vehicle_data.append([coord_x, coord_y, angle, vehicle.length, vehicle.width, vehicle.uid])

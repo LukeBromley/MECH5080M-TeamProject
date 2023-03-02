@@ -53,15 +53,25 @@ class SimulationManager:
         return np.asarray(np.zeros(self.observation_space_size)).astype('float32')
 
     def take_action(self, action_index):
-        penalty = 0
         if action_index == 0:
             pass
-        else:
-            if self.simulation.model.lights[action_index - 1].colour == "green":
-                self.simulation.model.lights[action_index - 1].set_red()
-            else:
-                penalty = -10000
-        return penalty
+        elif action_index == 1:
+            light = self.simulation.model.lights[0]
+            if light.colour == "green":
+                light.set_red()
+        elif action_index == 2:
+            light = self.simulation.model.lights[1]
+            if light.colour == "green":
+                light.set_red()
+        elif action_index == 3:
+            light = self.simulation.model.lights[0]
+            if light.colour == "red":
+                light.set_green()
+        elif action_index == 4:
+            light = self.simulation.model.lights[1]
+            if light.colour == "red":
+                light.set_green()
+        return 0
 
     def compute_simulation_metrics(self):
         for vehicle in self.simulation.model.vehicles:
@@ -75,8 +85,8 @@ class SimulationManager:
                     self.wait_time.append(vehicle.get_wait_time())
                     self.wait_time = self.wait_time[-self.wait_time_vehicle_limit:]
 
-    def calculate_reward(self, penalty, iteration):
-        reward = 30 - self.get_mean_wait_time() ** 2 + penalty + (iteration / 1000)
+    def calculate_reward(self, penalty):
+        reward = 30 - self.get_mean_wait_time() ** 2 + penalty
         if len(self.simulation.model.detect_collisions()) > 0:
             reward -= 5000
         return reward
