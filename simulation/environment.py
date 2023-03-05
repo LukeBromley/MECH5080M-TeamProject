@@ -105,6 +105,7 @@ class SimulationManager:
 
         inputs = inputs[0: self.observation_space_size]
         inputs += [np.NAN] * (self.observation_space_size - len(inputs))
+        print(inputs)
         return inputs
 
 
@@ -119,7 +120,7 @@ class SimulationManager:
     def calculate_reward(self, penalty):
         reward = 30 - self.get_mean_wait_time() ** 2 + penalty
         if len(self.simulation.model.detect_collisions()) > 0:
-            reward -= 100000
+            reward -= 10000
         return reward
 
     def get_mean_wait_time(self):

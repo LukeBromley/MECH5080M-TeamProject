@@ -428,10 +428,9 @@ class Model:
 
     def get_vehicle_coordinates(self, vehicle_uid):
         vehicle = self.get_vehicle(vehicle_uid)
-        route = self.get_route(vehicle.get_route_uid())
-        path_uid = route.get_path_uid(vehicle.get_path_index())
-        path = self.get_path(path_uid)
+        path = self.get_path(self.get_route(vehicle.get_route_uid()).get_path_uid(vehicle.get_path_index()))
         path_distance_travelled = vehicle.get_path_distance_travelled()
+
         index = floor(path_distance_travelled / path.discrete_length_increment_size)
         return path.discrete_path[index][1], path.discrete_path[index][2]
 

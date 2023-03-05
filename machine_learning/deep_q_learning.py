@@ -31,9 +31,9 @@ class MachineLearning:
         self.all_time_reward = 0  # Total reward over all episodes
 
         # TRAINING LIMITS
-        self.max_steps_per_episode = 100000  # Maximum number of steps allowed per episode
-        self.episode_end_reward = -500000  # Single episode total reward minimum threshold to end episode
-        self.solved_mean_reward = 10000  # Single episode total reward minimum threshold to consider ML trained
+        self.max_steps_per_episode = 1000  # Maximum number of steps allowed per episode
+        self.episode_end_reward = -10000  # Single episode total reward minimum threshold to end episode
+        self.solved_mean_reward = 5000  # Single episode total reward minimum threshold to consider ML trained
 
         # TAKING AN ACTION
         # Random action
@@ -60,6 +60,9 @@ class MachineLearning:
         self.rewards_history = []
         self.done_history = []
         self.episode_reward_history = []
+
+        # Number of cached episodes
+        self.reward_history_limit = 50
 
         # Sample Size
         self.sample_size = 32  # Size of batch taken from replay buffer
@@ -92,6 +95,11 @@ class MachineLearning:
 
         self.ml_model = self.create_q_learning_model(self.simulation_manager.observation_space_size, self.simulation_manager.number_of_possible_actions, self.ml_model_hidden_layers)  # Makes the predictions for Q-values which are used to make a action.
         self.ml_model_target = self.create_q_learning_model(self.simulation_manager.observation_space_size, self.simulation_manager.number_of_possible_actions, self.ml_model_hidden_layers)  # For the prediction of future rewards. The weights of a target model get updated every 10000 steps thus when the loss between the Q-values is calculated the target Q-value is stable.
+
+    def reset(self):
+        self.episode_count = 0  # Number of episodes trained
+        self.number_of_steps_taken = 0  # Total number of steps taken over all episodes
+        self.all_time_reward = 0  # Total reward over all episodes
 
     def create_q_learning_model(self, state_size, action_size, hidden_layers):
         ml_layers = [layers.Input(shape=(state_size, ))]  # input dimension
@@ -235,7 +243,7 @@ class MachineLearning:
         return self.simulation_manager.calculate_reward(action_penalty)
 
     def end_episode(self, episode_reward, step):
-        if episode_reward < self.episode_end_reward:
+        if episode_reward < self.episode_end_reward or step > self.max_steps_per_episode:
             print("Score at episode end:", episode_reward, "/ Steps:", step)
             return True
         else:
@@ -296,7 +304,7 @@ class MachineLearning:
         self.episode_reward_history.append(episode_reward)
 
     def delete_old_reward_history(self):
-        if len(self.episode_reward_history) > 100:
+        if len(self.episode_reward_history) > self.reward_history_limit:
             del self.episode_reward_history[:1]
 
     def solved(self, mean_reward):
@@ -320,10 +328,9 @@ class MachineLearning:
 
         with keyboard.Listener(on_press=on_press, on_release=on_release) as listener:
             self.simulation_manager.reset()
-            total_reward = 0
-            i = 0
-            while total_reward > -500000:
-                i += 1
+
+            while True:
+                self.number_of_steps_taken += 1
 
                 # Select an action
                 if True in keyboard_input:
@@ -340,28 +347,26 @@ class MachineLearning:
                 # Compute metrics used to get state and calculate reward
                 self.compute_simulation_metrics()
 
-                # Calculate reward
-                reward = self.calculate_reward(action_penalty)
-
                 # Update reward
-                self.all_time_reward += reward
-                total_reward += reward
+                self.all_time_reward += self.calculate_reward(action_penalty)
 
-                sys.stdout.write("\r{0}".format(str(i)))
+                if self.end_episode(self.all_time_reward, self.number_of_steps_taken):
+                    break
+
+                sys.stdout.write("\rstep: {0} / reward: {1}".format(str(self.number_of_steps_taken), str(self.all_time_reward)))
                 sys.stdout.flush()
 
-                # print(f"Step: {i} ({total_reward})")
             listener.join()
 
     def random(self):
-        episode = 1
+        episode = 5
         for episode in range(1, episode + 1):
+            # Reset the environment
             self.simulation_manager.reset()
+            self.reset()
 
-            episode_reward = 0
             # Run steps in episode
-            for step in range(1, self.max_steps_per_episode):
-
+            while True:
                 # Increment the total number of steps taken by the AI in total.
                 self.number_of_steps_taken += 1
 
@@ -381,10 +386,9 @@ class MachineLearning:
 
                 # Update reward
                 self.all_time_reward += reward
-                episode_reward += reward
 
                 # Determine if episode is over
-                if self.end_episode(episode_reward, step):
+                if self.end_episode(self.all_time_reward, self.number_of_steps_taken):
                     break
 
 
@@ -393,23 +397,23 @@ if __name__ == "__main__":
     junction_file_path = os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))), "junctions", "cross_road.junc")
     configuration_file_path = os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))), "configurations", "cross_road.config")
 
-    # Settings
-    scale = 50
-
-    # Visualiser Init
-    visualiser = JunctionVisualiser()
+    # # Settings
+    # scale = 50
+    #
+    # # Visualiser Init
+    # visualiser = JunctionVisualiser()
 
     # Simulation
-    machine_learning = MachineLearning(junction_file_path, configuration_file_path, visualiser.update)
+    machine_learning = MachineLearning(junction_file_path, configuration_file_path, None)
 
-    # machine_learning.random()
+    machine_learning.random()
     # machine_learning.train()
     #
     # # Visualiser Setup
-    visualiser.define_main(machine_learning.random)
-    visualiser.load_junction(junction_file_path)
-    visualiser.set_scale(scale)
-
-    # Run Simulation
-    visualiser.open()
+    # visualiser.define_main(machine_learning.random)
+    # visualiser.load_junction(junction_file_path)
+    # visualiser.set_scale(scale)
+    #
+    # # Run Simulation
+    # visualiser.open()
 
