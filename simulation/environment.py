@@ -95,10 +95,10 @@ class SimulationManager:
 
     def get_state(self):
         inputs = []
-        for light in self.simulation.model.get_lights():
+        for light in self.simulation.model.lights:
             inputs += self.get_traffic_light_state(light)
 
-        for vehicle in self.simulation.model.get_vehicles():
+        for vehicle in self.simulation.model.vehicles:
             route = self.simulation.model.get_route(vehicle.get_route_uid())
             if route.get_path_uid(vehicle.get_path_index()) in [1, 4]:
                 inputs += self.get_vehicle_state(vehicle)

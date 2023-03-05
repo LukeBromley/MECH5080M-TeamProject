@@ -112,14 +112,19 @@ class MachineLearning:
     def train(self):
         while True:  # Run until solved
             state = np.array(self.simulation_manager.reset())
+
+            mean_reward = []
             episode_reward = 0
-            mean_reward = 0
+            episode_step = 0
 
             # Run steps in episode
-            for step in range(1, self.max_steps_per_episode):
+            while True:
 
                 # Increment the total number of steps taken by the AI in total.
                 self.number_of_steps_taken += 1
+
+                # Increment the episode step
+                episode_step += 1
 
                 # Select an action
                 action_index = self.select_action(state)
@@ -138,10 +143,12 @@ class MachineLearning:
 
                 # Update reward
                 self.all_time_reward += reward
+
+                # Update episode reward
                 episode_reward += reward
 
                 # Determine if episode is over
-                done = self.end_episode(episode_reward, step)
+                done = self.end_episode(episode_reward, episode_step)
 
                 # Get the next state
                 next_state = self.get_state()
@@ -406,8 +413,8 @@ if __name__ == "__main__":
     # Simulation
     machine_learning = MachineLearning(junction_file_path, configuration_file_path, None)
 
-    machine_learning.random()
-    # machine_learning.train()
+    # machine_learning.random()
+    machine_learning.train()
     #
     # # Visualiser Setup
     # visualiser.define_main(machine_learning.random)

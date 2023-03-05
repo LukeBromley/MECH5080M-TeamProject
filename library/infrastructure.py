@@ -221,9 +221,9 @@ class TrafficLight:
             "red_amber": 3
         }
 
-        self.time_remaining = None
-        self.green_time = None
-        self.red_time = None
+        self.time_remaining = 0
+        self.green_time = 0
+        self.red_time = 0
         self.red_amber_time = 2
         self.amber_time = 3
 
