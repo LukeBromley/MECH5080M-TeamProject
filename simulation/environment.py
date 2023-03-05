@@ -44,7 +44,7 @@ class SimulationManager:
         return simulation
 
     def calculate_actions(self):
-        number_of_actions = len(self.simulation.model.lights) + 1
+        number_of_actions = 2 * len(self.simulation.model.lights) + 1
         return number_of_actions, Discrete(number_of_actions)
 
     def reset(self):
@@ -57,6 +57,7 @@ class SimulationManager:
         return np.asarray(np.zeros(self.observation_space_size)).astype('float32')
 
     def take_action(self, action_index):
+        penalty = 0
         if action_index == 0:
             pass
         elif action_index == 1:
@@ -75,7 +76,7 @@ class SimulationManager:
             light = self.simulation.model.lights[1]
             if light.colour == "red":
                 light.set_green()
-        return 0
+        return penalty
 
     def get_vehicle_state(self, vehicle: Vehicle):
         return [
@@ -90,8 +91,8 @@ class SimulationManager:
 
     def get_continuous_state(self):
         inputs = []
-        for light in self.simulation.model.get_lights():
-            inputs += self.get_traffic_light_state(light)
+        # for light in self.simulation.model.get_lights():
+        #     inputs += self.get_traffic_light_state(light)
 
         for vehicle in self.simulation.model.get_vehicles():
             route = self.simulation.model.get_route(vehicle.get_route_uid())
@@ -103,21 +104,17 @@ class SimulationManager:
         return inputs
 
     def compute_simulation_metrics(self):
+        for vehicle in self.simulation.model.removed_vehicles:
+            self.wait_time.append(vehicle.wait_time)
+
         for vehicle in self.simulation.model.vehicles:
             if vehicle.get_speed() < 5:
                 vehicle.add_wait_time(self.simulation.model.tick_time)
 
-            route = self.simulation.model.get_route(vehicle.get_route_uid())
-            path = self.simulation.model.get_path(route.get_path_uid(vehicle.get_path_index()))
-            if vehicle.get_path_distance_travelled() >= path.get_length():
-                if vehicle.get_path_index() + 1 == len(route.get_path_uids()):
-                    self.wait_time.append(vehicle.get_wait_time())
-                    self.wait_time = self.wait_time[-self.wait_time_vehicle_limit:]
-
     def calculate_reward(self, penalty):
         reward = 30 - self.get_mean_wait_time() ** 2 + penalty
         if len(self.simulation.model.detect_collisions()) > 0:
-            reward -= 5000
+            reward -= 100000
         return reward
 
     def get_state(self):
@@ -161,7 +158,10 @@ class SimulationManager:
         return mean(speed)
 
     def get_mean_wait_time(self):
-        return mean(self.wait_time)
+        return mean(self.wait_time[-self.wait_time_vehicle_limit:])
+
+    def get_sum_wait_time(self):
+        return sum(self.wait_time)
 
     def get_lights(self):
         return self.simulation.model.get_lights()

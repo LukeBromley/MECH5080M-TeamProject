@@ -53,7 +53,7 @@ class Vehicle:
         self._path_index = 0
         self.changing_lane = False
         self._min_creep_distance = min_creep_distance
-        self.waiting_time = 0
+        self.wait_time = 0
 
     def update(self, time_delta: float, object_ahead: "Vehicle", delta_distance_ahead: float, curvature: float = 0.0) -> None:
         """
@@ -123,9 +123,6 @@ class Vehicle:
     def get_path_distance_travelled(self) -> float:
         return self._path_distance_travelled
 
-    def set_path_distance_travelled(self, path_distance_travelled: float):
-        self._path_distance_travelled = path_distance_travelled
-
     def increment_path(self, path_distance_travelled: float):
         self._path_distance_travelled = path_distance_travelled
         self._path_index += 1
@@ -168,7 +165,7 @@ class Vehicle:
         return self.route_uid
 
     def add_wait_time(self, time):
-        self.waiting_time += time
+        self.wait_time += time
 
 
 class GhostVehicle:

@@ -52,8 +52,7 @@ class Simulation:
         for light in self.model.lights:
             light.update(self.model.tick_time)
 
-        # Remove finished vehicles
-        self.model.remove_finished_vehicles()
+        # Check for collision
         self.collision = True if len(self.model.detect_collisions()) > 0 else False
 
         # Update vehicle position

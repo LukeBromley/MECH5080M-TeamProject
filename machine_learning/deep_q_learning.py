@@ -33,11 +33,11 @@ class MachineLearning:
         # TRAINING LIMITS
         self.max_steps_per_episode = 100000  # Maximum number of steps allowed per episode
         self.episode_end_reward = -500000  # Single episode total reward minimum threshold to end episode
-        self.solved_mean_reward = 100000  # Single episode total reward minimum threshold to consider ML trained
+        self.solved_mean_reward = 10000  # Single episode total reward minimum threshold to consider ML trained
 
         # TAKING AN ACTION
         # Random action
-        self.random_action_do_nothing_probability = 0.9
+        self.random_action_do_nothing_probability = 0.8
         self.random_action_selection_probabilities = [self.random_action_do_nothing_probability]
         for action_index in range(1, self.simulation_manager.number_of_possible_actions):
             self.random_action_selection_probabilities.append((1 - self.random_action_do_nothing_probability) / (self.simulation_manager.number_of_possible_actions - 1))
@@ -49,8 +49,8 @@ class MachineLearning:
         self.epsilon_greedy = self.epsilon_greedy_max  # Current probability of selecting a random action
 
         # Exploration
-        self.number_of_steps_of_required_exploration = 1000  # 10000  # Number of steps of just random actions before the network can make some decisions
-        self.number_of_steps_of_exploration_reduction = 5000  # 50000 # Number of steps over which epsilon greedy decays
+        self.number_of_steps_of_required_exploration = 10000  # 10000  # Number of steps of just random actions before the network can make some decisions
+        self.number_of_steps_of_exploration_reduction = 100000  # 50000 # Number of steps over which epsilon greedy decays
 
         # REPLAY
         # Buffers
@@ -168,7 +168,7 @@ class MachineLearning:
                     self.optimizer.apply_gradients(zip(grads, self.ml_model.trainable_variables))
 
                 if self.number_of_steps_taken % self.update_target_network == 0:
-                    # update the the target network with new weights
+                    # update the target network with new weights
                     self.ml_model_target.set_weights(self.ml_model.get_weights())
                     # Log details
                     template = "running reward: {:.2f} at episode {}, frame count {}"
@@ -306,42 +306,6 @@ class MachineLearning:
         else:
             return False
 
-    def random(self):
-        episode = 5
-        for episode in range(1, episode + 1):
-            self.simulation_manager.reset()
-
-            episode_reward = 0
-            # Run steps in episode
-            for step in range(1, self.max_steps_per_episode):
-
-                # Increment the total number of steps taken by the AI in total.
-                self.number_of_steps_taken += 1
-
-                # Select an action
-                action_index = self.select_random_action()
-
-                # Take an action
-                action_penalty = self.take_action(action_index)
-
-                # Run simulation 1 step
-                self.step_simulation(visualiser_on=True, visualiser_sleep_time=0.01)
-                # self.step_simulation()
-
-                # Compute metrics used to get state and calculate reward
-                self.compute_simulation_metrics()
-
-                # Calculate reward
-                reward = self.calculate_reward(action_penalty)
-
-                # Update reward
-                self.all_time_reward += reward
-                episode_reward += reward
-
-                # Determine if episode is over
-                if self.end_episode(episode_reward, step):
-                    break
-
     def play(self):
         global keyboard_input
         keyboard_input = [False for _ in range(4)]
@@ -384,11 +348,47 @@ class MachineLearning:
                 total_reward += reward
 
                 sys.stdout.write("\r{0}".format(str(i)))
-                sys.stdout.write("\r{0}".format(str(total_rewardq)))
                 sys.stdout.flush()
 
                 # print(f"Step: {i} ({total_reward})")
             listener.join()
+
+    def random(self):
+        episode = 1
+        for episode in range(1, episode + 1):
+            self.simulation_manager.reset()
+
+            episode_reward = 0
+            # Run steps in episode
+            for step in range(1, self.max_steps_per_episode):
+
+                print(self.simulation_manager.get_sum_wait_time())
+
+                # Increment the total number of steps taken by the AI in total.
+                self.number_of_steps_taken += 1
+
+                # Select an action
+                action_index = self.select_random_action()
+                # Take an action
+                action_penalty = self.take_action(action_index)
+
+                # Run simulation 1 step
+                self.step_simulation(visualiser_on=True, visualiser_sleep_time=0)
+                # self.step_simulation()
+
+                # Compute metrics used to get state and calculate reward
+                self.compute_simulation_metrics()
+
+                # Calculate reward
+                reward = self.calculate_reward(action_penalty)
+
+                # Update reward
+                self.all_time_reward += reward
+                episode_reward += reward
+
+                # Determine if episode is over
+                if self.end_episode(episode_reward, step):
+                    break
 
 
 if __name__ == "__main__":
@@ -409,7 +409,7 @@ if __name__ == "__main__":
     # machine_learning.train()
     #
     # # Visualiser Setup
-    visualiser.define_main(machine_learning.play)
+    visualiser.define_main(machine_learning.random)
     visualiser.load_junction(junction_file_path)
     visualiser.set_scale(scale)
 
