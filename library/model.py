@@ -353,6 +353,7 @@ class Model:
     
     def remove_finished_vehicles(self):
         vehicles_uids_to_remove = []
+        self.removed_vehicles = []
         for vehicle in self.vehicles:
             route = self.get_route(vehicle.get_route_uid())
             path = self.get_path(route.get_path_uid(vehicle.get_path_index()))

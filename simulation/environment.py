@@ -5,6 +5,7 @@ from library.vehicles import Vehicle
 
 if system() == 'Windows':
     import sys
+
     sys.path.append('./')
 
 from gym import Env
@@ -33,7 +34,7 @@ class SimulationManager:
         self.wait_time_vehicle_limit = None
 
         # Inputs / States
-        self.observation_space_size = 10
+        self.observation_space_size = 20
         self.observation_space = Box(0, 10, shape=(1, self.observation_space_size), dtype=float)
 
         self.reset()
@@ -81,27 +82,31 @@ class SimulationManager:
     def get_vehicle_state(self, vehicle: Vehicle):
         return [
             vehicle.get_path_distance_travelled(),
-            vehicle.get_length(),
-            vehicle.get_speed(),
-            vehicle.get_acceleration()
+            vehicle.get_speed()
+            # vehicle.get_length(),
+            # vehicle.get_acceleration()
         ]
 
     def get_traffic_light_state(self, light: TrafficLight):
-        return [light.get_state(), light.get_time_remaining()]
+        return [
+            light.get_state(),
+            light.get_time_remaining()
+        ]
 
-    def get_continuous_state(self):
+    def get_state(self):
         inputs = []
-        # for light in self.simulation.model.get_lights():
-        #     inputs += self.get_traffic_light_state(light)
+        for light in self.simulation.model.get_lights():
+            inputs += self.get_traffic_light_state(light)
 
         for vehicle in self.simulation.model.get_vehicles():
             route = self.simulation.model.get_route(vehicle.get_route_uid())
             if route.get_path_uid(vehicle.get_path_index()) in [1, 4]:
                 inputs += self.get_vehicle_state(vehicle)
 
-        inputs = inputs[-100:]
-        inputs += [np.NAN] * (100 - len(inputs))
+        inputs = inputs[0: self.observation_space_size]
+        inputs += [np.NAN] * (self.observation_space_size - len(inputs))
         return inputs
+
 
     def compute_simulation_metrics(self):
         for vehicle in self.simulation.model.removed_vehicles:
@@ -116,46 +121,6 @@ class SimulationManager:
         if len(self.simulation.model.detect_collisions()) > 0:
             reward -= 100000
         return reward
-
-    def get_state(self):
-        return np.array(
-            [
-                self.get_path_occupancy(1),
-                self.get_path_wait_time(1),
-                self.get_mean_speed(1),
-                self.get_path_occupancy(4),
-                self.get_path_wait_time(4),
-                self.get_mean_speed(4),
-                self.simulation.model.lights[0].get_state(),
-                self.simulation.model.lights[0].get_time_remaining(),
-                self.simulation.model.lights[1].get_state(),
-                self.simulation.model.lights[1].get_time_remaining(),
-            ]
-        )
-
-    def get_path_occupancy(self, path_uid):
-        state = 0
-        for vehicle in self.simulation.model.vehicles:
-            route = self.simulation.model.get_route(vehicle.get_route_uid())
-            if path_uid == route.get_path_uid(vehicle.get_path_index()):
-                state += 1
-        return state
-
-    def get_path_wait_time(self, path_uid):
-        wait_time = 0
-        for vehicle in self.simulation.model.vehicles:
-            route = self.simulation.model.get_route(vehicle.get_route_uid())
-            if path_uid == route.get_path_uid(vehicle.get_path_index()):
-                wait_time += vehicle.waiting_time
-        return wait_time
-
-    def get_mean_speed(self, path_uid):
-        speed = []
-        for vehicle in self.simulation.model.vehicles:
-            route = self.simulation.model.get_route(vehicle.get_route_uid())
-            if path_uid == route.get_path_uid(vehicle.get_path_index()):
-                speed.append(vehicle.get_speed())
-        return mean(speed)
 
     def get_mean_wait_time(self):
         return mean(self.wait_time[-self.wait_time_vehicle_limit:])

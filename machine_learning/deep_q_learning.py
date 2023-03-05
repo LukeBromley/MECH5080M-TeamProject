@@ -362,8 +362,6 @@ class MachineLearning:
             # Run steps in episode
             for step in range(1, self.max_steps_per_episode):
 
-                print(self.simulation_manager.get_sum_wait_time())
-
                 # Increment the total number of steps taken by the AI in total.
                 self.number_of_steps_taken += 1
 
@@ -374,7 +372,6 @@ class MachineLearning:
 
                 # Run simulation 1 step
                 self.step_simulation(visualiser_on=True, visualiser_sleep_time=0)
-                # self.step_simulation()
 
                 # Compute metrics used to get state and calculate reward
                 self.compute_simulation_metrics()
