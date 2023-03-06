@@ -53,7 +53,7 @@ class SimulationManager:
 
         # # State
         self.wait_time = [0]
-        self.wait_time_vehicle_limit = 50
+        self.wait_time_vehicle_limit = 20
 
         return np.asarray(np.zeros(self.observation_space_size)).astype('float32')
 
@@ -118,7 +118,7 @@ class SimulationManager:
                 vehicle.add_wait_time(self.simulation.model.tick_time)
 
     def calculate_reward(self, penalty):
-        reward = 30 - self.get_mean_wait_time() ** 2 + penalty
+        reward = 50 - self.get_mean_wait_time() ** 2 + penalty
         if len(self.simulation.model.detect_collisions()) > 0:
             reward -= 10000
         return reward

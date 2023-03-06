@@ -33,7 +33,7 @@ class MachineLearning:
         # TRAINING LIMITS
         self.max_steps_per_episode = 999  # Maximum number of steps allowed per episode
         self.episode_end_reward = -float('inf')  # Single episode total reward minimum threshold to end episode
-        self.solved_mean_reward = 50000  # Single episode total reward minimum threshold to consider ML trained
+        self.solved_mean_reward = 10000  # Single episode total reward minimum threshold to consider ML trained
 
         # TAKING AN ACTION
         # Random action
@@ -68,7 +68,7 @@ class MachineLearning:
         self.sample_size = 8  # Size of batch taken from replay buffer
 
         # Discount factor
-        self.gamma = 0.9  # Discount factor for past rewards
+        self.gamma = 0.95  # Discount factor for past rewards
 
         # Maximum replay buffer length
         # Note: The Deepmind paper suggests 1000000 however this causes memory issues
@@ -404,23 +404,23 @@ if __name__ == "__main__":
     configuration_file_path = os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))), "configurations", "cross_road.config")
 
     # Settings
-    scale = 50
+    scale = 30
 
     # Visualiser Init
     visualiser = JunctionVisualiser()
 
     # Simulation
-    # machine_learning = MachineLearning(junction_file_path, configuration_file_path, visualiser.update)
-    machine_learning = MachineLearning(junction_file_path, configuration_file_path, None)
+    machine_learning = MachineLearning(junction_file_path, configuration_file_path, visualiser.update)
+    # machine_learning = MachineLearning(junction_file_path, configuration_file_path, None)
 
     # machine_learning.random()
-    machine_learning.train()
+    # machine_learning.train()
     #
-    # # Visualiser Setup
-    # visualiser.define_main(machine_learning.play)
-    # visualiser.load_junction(junction_file_path)
-    # visualiser.set_scale(scale)
-    #
-    # # Run Simulation
-    # visualiser.open()
+    # Visualiser Setup
+    visualiser.define_main(machine_learning.play)
+    visualiser.load_junction(junction_file_path)
+    visualiser.set_scale(scale)
+
+    # Run Simulation
+    visualiser.open()
 
