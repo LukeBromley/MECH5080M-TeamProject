@@ -58,15 +58,15 @@ class Simulation:
         # Update vehicle position
         self.vehicle_data = []
         for vehicle in self.model.vehicles:
-            # TODO: Uncomment for data logging
-            # coord_x, coord_y = self.model.get_vehicle_coordinates(vehicle.uid)
+            # TODO: Comment for better performance
+            coord_x, coord_y = self.model.get_vehicle_coordinates(vehicle.uid)
             curvature = self.model.get_vehicle_path_curvature(vehicle.uid)
             angle = self.model.get_vehicle_direction(vehicle.uid)
 
             object_ahead, delta_distance_ahead = self.model.get_object_ahead(vehicle.uid)
             vehicle.update(self.model.tick_time, object_ahead, delta_distance_ahead, curvature)
-            # vehicle.update_position_data([coord_x, coord_y])
-            # self.vehicle_data.append([coord_x, coord_y, angle, vehicle.length, vehicle.width, vehicle.uid])
+            vehicle.update_position_data([coord_x, coord_y])
+            self.vehicle_data.append([coord_x, coord_y, angle, vehicle.length, vehicle.width, vehicle.uid])
 
         # Remove finished vehicles
         self.model.remove_finished_vehicles()

@@ -31,13 +31,13 @@ class MachineLearning:
         self.all_time_reward = 0  # Total reward over all episodes
 
         # TRAINING LIMITS
-        self.max_steps_per_episode = 1000  # Maximum number of steps allowed per episode
-        self.episode_end_reward = -10000  # Single episode total reward minimum threshold to end episode
-        self.solved_mean_reward = 5000  # Single episode total reward minimum threshold to consider ML trained
+        self.max_steps_per_episode = 999  # Maximum number of steps allowed per episode
+        self.episode_end_reward = -float('inf')  # Single episode total reward minimum threshold to end episode
+        self.solved_mean_reward = 50000  # Single episode total reward minimum threshold to consider ML trained
 
         # TAKING AN ACTION
         # Random action
-        self.random_action_do_nothing_probability = 0.8
+        self.random_action_do_nothing_probability = 0.7
         self.random_action_selection_probabilities = [self.random_action_do_nothing_probability]
         for action_index in range(1, self.simulation_manager.number_of_possible_actions):
             self.random_action_selection_probabilities.append((1 - self.random_action_do_nothing_probability) / (self.simulation_manager.number_of_possible_actions - 1))
@@ -50,7 +50,7 @@ class MachineLearning:
 
         # Exploration
         self.number_of_steps_of_required_exploration = 10000  # 10000  # Number of steps of just random actions before the network can make some decisions
-        self.number_of_steps_of_exploration_reduction = 100000  # 50000 # Number of steps over which epsilon greedy decays
+        self.number_of_steps_of_exploration_reduction = 50000  # 50000 # Number of steps over which epsilon greedy decays
 
         # REPLAY
         # Buffers
@@ -62,17 +62,17 @@ class MachineLearning:
         self.episode_reward_history = []
 
         # Number of cached episodes
-        self.reward_history_limit = 50
+        self.reward_history_limit = 10
 
         # Sample Size
-        self.sample_size = 32  # Size of batch taken from replay buffer
+        self.sample_size = 8  # Size of batch taken from replay buffer
 
         # Discount factor
         self.gamma = 0.9  # Discount factor for past rewards
 
         # Maximum replay buffer length
         # Note: The Deepmind paper suggests 1000000 however this causes memory issues
-        self.max_replay_buffer_length = 100000
+        self.max_replay_buffer_length = 1000000
 
         # OPTIMISING
         # Note: In the Deepmind paper they use RMSProp however then Adam optimizer
@@ -85,15 +85,15 @@ class MachineLearning:
         self.update_after_actions = 10
 
         # How often to update the target network
-        self.update_target_network = 10000
+        self.update_target_network = 5000
 
         # Using huber loss for stability
         self.loss_function = keras.losses.Huber()
 
         # MACHINE LEARNING MODELS
-        self.ml_model_hidden_layers = [512]
+        self.ml_model_hidden_layers = [86, 86, 86, 86]
 
-        self.ml_model = self.create_q_learning_model(self.simulation_manager.observation_space_size, self.simulation_manager.number_of_possible_actions, self.ml_model_hidden_layers)  # Makes the predictions for Q-values which are used to make a action.
+        self.ml_model = self.create_q_learning_model(self.simulation_manager.observation_space_size, self.simulation_manager.number_of_possible_actions, self.ml_model_hidden_layers)  # Makes the predictions for Q-values which are used to make an action.
         self.ml_model_target = self.create_q_learning_model(self.simulation_manager.observation_space_size, self.simulation_manager.number_of_possible_actions, self.ml_model_hidden_layers)  # For the prediction of future rewards. The weights of a target model get updated every 10000 steps thus when the loss between the Q-values is calculated the target Q-value is stable.
 
     def reset(self):
@@ -113,7 +113,7 @@ class MachineLearning:
         while True:  # Run until solved
             state = np.array(self.simulation_manager.reset())
 
-            mean_reward = []
+            mean_reward = 0
             episode_reward = 0
             episode_step = 0
 
@@ -159,7 +159,7 @@ class MachineLearning:
                 # Update State
                 state = next_state
 
-                # Update every fourth frame and once batch size is over 32
+                # Update
                 if self.number_of_steps_taken % self.update_after_actions == 0 and len(self.done_history) > self.sample_size:
 
                     state_sample, state_next_sample, rewards_sample, action_sample, done_sample = self.sample_replay_buffers()
@@ -186,8 +186,8 @@ class MachineLearning:
                     # update the target network with new weights
                     self.ml_model_target.set_weights(self.ml_model.get_weights())
                     # Log details
-                    template = "running reward: {:.2f} at episode {}, frame count {}"
-                    print(template.format(mean_reward, self.episode_count, self.number_of_steps_taken))
+                    template = " =============== running reward: {:.2f} at episode {}, frame count {} ================"
+                    print(template.format(self.get_mean_reward(episode_reward), self.episode_count, self.number_of_steps_taken))
 
                 # Delete old buffer values
                 self.delete_old_replay_buffer_values()
@@ -195,11 +195,10 @@ class MachineLearning:
                 if done:
                     break
 
-            mean_reward = self.get_mean_reward(episode_reward)
-
             self.episode_count += 1
 
-            if self.solved(mean_reward):
+            if self.solved(self.get_mean_reward(episode_reward)):
+                self.ml_model_target.save("saved_model")
                 break
 
     def select_action(self, state):
@@ -404,20 +403,21 @@ if __name__ == "__main__":
     junction_file_path = os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))), "junctions", "cross_road.junc")
     configuration_file_path = os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))), "configurations", "cross_road.config")
 
-    # # Settings
-    # scale = 50
-    #
-    # # Visualiser Init
-    # visualiser = JunctionVisualiser()
+    # Settings
+    scale = 50
+
+    # Visualiser Init
+    visualiser = JunctionVisualiser()
 
     # Simulation
+    # machine_learning = MachineLearning(junction_file_path, configuration_file_path, visualiser.update)
     machine_learning = MachineLearning(junction_file_path, configuration_file_path, None)
 
     # machine_learning.random()
     machine_learning.train()
     #
     # # Visualiser Setup
-    # visualiser.define_main(machine_learning.random)
+    # visualiser.define_main(machine_learning.play)
     # visualiser.load_junction(junction_file_path)
     # visualiser.set_scale(scale)
     #

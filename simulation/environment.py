@@ -105,7 +105,7 @@ class SimulationManager:
 
         inputs = inputs[0: self.observation_space_size]
         inputs += [np.NAN] * (self.observation_space_size - len(inputs))
-        print(inputs)
+
         return inputs
 
 
