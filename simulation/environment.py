@@ -121,8 +121,15 @@ class SimulationManager:
         state_input = state_input[0: self.features_per_state_input * self.number_of_tracked_vehicles_per_path]
         state_input += [np.NAN] * (self.features_per_state_input * self.number_of_tracked_vehicles_per_path - int(len(state_input)))
 
-        # TODO: Implement shuffling
-        # random.shuffle(state_input)
+        # # TODO: Implement shuffling
+        # tupled_state_input = []
+        # for index in range(0, len(state_input), 2):
+        #     tupled_state_input.append((state_input[index], state_input[index + 1]))
+        # random.shuffle(tupled_state_input)
+        #
+        # state_input = []
+        # for tuple in tupled_state_input:
+        #     state_input += tuple
         return state_input
 
     def compute_simulation_metrics(self):
