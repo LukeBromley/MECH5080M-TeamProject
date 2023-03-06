@@ -1,3 +1,4 @@
+import random
 from platform import system
 
 from library.infrastructure import TrafficLight
@@ -32,10 +33,15 @@ class SimulationManager:
         # Metrics
         self.wait_time = None
         self.wait_time_vehicle_limit = None
+        # TODO: Soft code the id's
+        self.light_controlled_path_uids = [1, 4]
 
         # Inputs / States
-        self.observation_space_size = 20
-        self.observation_space = Box(0, 10, shape=(1, self.observation_space_size), dtype=float)
+        self.features_per_state_input = 2
+        self.number_of_tracked_vehicles_per_path = 10
+        self.observation_space_size = self.features_per_state_input * len(self.light_controlled_path_uids) * (1 + self.number_of_tracked_vehicles_per_path)
+        # TODO: Initialize separate boxes by argmax for different inputs
+        self.observation_space = Box(0, 50, shape=(1, self.observation_space_size), dtype=float)
 
         self.reset()
 
@@ -98,16 +104,26 @@ class SimulationManager:
         for light in self.simulation.model.lights:
             inputs += self.get_traffic_light_state(light)
 
+        path_inputs = [[] for _ in self.light_controlled_path_uids]
         for vehicle in self.simulation.model.vehicles:
             route = self.simulation.model.get_route(vehicle.get_route_uid())
-            if route.get_path_uid(vehicle.get_path_index()) in [1, 4]:
-                inputs += self.get_vehicle_state(vehicle)
+            path_uid = route.get_path_uid(vehicle.get_path_index())
+            if path_uid in self.light_controlled_path_uids:
+                path_inputs[self.light_controlled_path_uids.index(path_uid)] += self.get_vehicle_state(vehicle)
 
-        inputs = inputs[0: self.observation_space_size]
-        inputs += [np.NAN] * (self.observation_space_size - len(inputs))
+        for path_input in path_inputs:
+            inputs += self.pad_state_input(path_input)
 
         return inputs
 
+    def pad_state_input(self, state_input: list):
+        # TODO: Soft code the traffic light state size
+        state_input = state_input[0: self.features_per_state_input * self.number_of_tracked_vehicles_per_path]
+        state_input += [np.NAN] * (self.features_per_state_input * self.number_of_tracked_vehicles_per_path - int(len(state_input)))
+
+        # TODO: Implement shuffling
+        # random.shuffle(state_input)
+        return state_input
 
     def compute_simulation_metrics(self):
         for vehicle in self.simulation.model.removed_vehicles:

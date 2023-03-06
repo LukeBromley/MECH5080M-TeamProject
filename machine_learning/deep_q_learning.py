@@ -33,7 +33,7 @@ class MachineLearning:
         # TRAINING LIMITS
         self.max_steps_per_episode = 999  # Maximum number of steps allowed per episode
         self.episode_end_reward = -float('inf')  # Single episode total reward minimum threshold to end episode
-        self.solved_mean_reward = 10000  # Single episode total reward minimum threshold to consider ML trained
+        self.solved_mean_reward = 40000  # Single episode total reward minimum threshold to consider ML trained
 
         # TAKING AN ACTION
         # Random action
@@ -62,7 +62,7 @@ class MachineLearning:
         self.episode_reward_history = []
 
         # Number of cached episodes
-        self.reward_history_limit = 10
+        self.reward_history_limit = 20
 
         # Sample Size
         self.sample_size = 8  # Size of batch taken from replay buffer
@@ -91,7 +91,7 @@ class MachineLearning:
         self.loss_function = keras.losses.Huber()
 
         # MACHINE LEARNING MODELS
-        self.ml_model_hidden_layers = [86, 86, 86, 86]
+        self.ml_model_hidden_layers = [48]
 
         self.ml_model = self.create_q_learning_model(self.simulation_manager.observation_space_size, self.simulation_manager.number_of_possible_actions, self.ml_model_hidden_layers)  # Makes the predictions for Q-values which are used to make an action.
         self.ml_model_target = self.create_q_learning_model(self.simulation_manager.observation_space_size, self.simulation_manager.number_of_possible_actions, self.ml_model_hidden_layers)  # For the prediction of future rewards. The weights of a target model get updated every 10000 steps thus when the loss between the Q-values is calculated the target Q-value is stable.
@@ -410,17 +410,17 @@ if __name__ == "__main__":
     visualiser = JunctionVisualiser()
 
     # Simulation
-    machine_learning = MachineLearning(junction_file_path, configuration_file_path, visualiser.update)
-    # machine_learning = MachineLearning(junction_file_path, configuration_file_path, None)
+    # machine_learning = MachineLearning(junction_file_path, configuration_file_path, visualiser.update)
+    machine_learning = MachineLearning(junction_file_path, configuration_file_path, None)
 
     # machine_learning.random()
-    # machine_learning.train()
+    machine_learning.train()
     #
     # Visualiser Setup
-    visualiser.define_main(machine_learning.play)
-    visualiser.load_junction(junction_file_path)
-    visualiser.set_scale(scale)
+    # visualiser.define_main(machine_learning.play)
+    # visualiser.load_junction(junction_file_path)
+    # visualiser.set_scale(scale)
 
     # Run Simulation
-    visualiser.open()
+    # visualiser.open()
 
