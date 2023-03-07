@@ -1,3 +1,4 @@
+import copy
 from platform import system
 
 from pynput import keyboard
@@ -11,6 +12,7 @@ import sys
 from simulation.environment import SimulationManager
 from gui.junction_visualiser import JunctionVisualiser
 from time import sleep
+import time as tm
 
 import numpy as np
 import tensorflow as tf
@@ -31,13 +33,13 @@ class MachineLearning:
         self.all_time_reward = 0  # Total reward over all episodes
 
         # TRAINING LIMITS
-        self.max_steps_per_episode = 999  # Maximum number of steps allowed per episode
+        self.max_steps_per_episode = 299  # Maximum number of steps allowed per episode
         self.episode_end_reward = -float('inf')  # Single episode total reward minimum threshold to end episode
-        self.solved_mean_reward = 40000  # Single episode total reward minimum threshold to consider ML trained
+        self.solved_mean_reward = 5000  # Single episode total reward minimum threshold to consider ML trained
 
         # TAKING AN ACTION
         # Random action
-        self.random_action_do_nothing_probability = 0.7
+        self.random_action_do_nothing_probability = 0.9
         self.random_action_selection_probabilities = [self.random_action_do_nothing_probability]
         for action_index in range(1, self.simulation_manager.number_of_possible_actions):
             self.random_action_selection_probabilities.append((1 - self.random_action_do_nothing_probability) / (self.simulation_manager.number_of_possible_actions - 1))
@@ -49,8 +51,8 @@ class MachineLearning:
         self.epsilon_greedy = self.epsilon_greedy_max  # Current probability of selecting a random action
 
         # Exploration
-        self.number_of_steps_of_required_exploration = 10000  # 10000  # Number of steps of just random actions before the network can make some decisions
-        self.number_of_steps_of_exploration_reduction = 50000  # 50000 # Number of steps over which epsilon greedy decays
+        self.number_of_steps_of_required_exploration = 3000  # 10000  # Number of steps of just random actions before the network can make some decisions
+        self.number_of_steps_of_exploration_reduction = 30000  # 50000 # Number of steps over which epsilon greedy decays
 
         # REPLAY
         # Buffers
@@ -62,10 +64,13 @@ class MachineLearning:
         self.episode_reward_history = []
 
         # Number of cached episodes
-        self.reward_history_limit = 20
+        self.reward_history_limit = 10
+
+        # Steps to look into the future to determine the mean reward.
+        self.steps_to_look_into_the_future = 10
 
         # Sample Size
-        self.sample_size = 8  # Size of batch taken from replay buffer
+        self.sample_size = 12  # Size of batch taken from replay buffer
 
         # Discount factor
         self.gamma = 0.95  # Discount factor for past rewards
@@ -76,7 +81,7 @@ class MachineLearning:
 
         # OPTIMISING
         # Note: In the Deepmind paper they use RMSProp however then Adam optimizer
-        self.learning_rate = 0.00001  # 0.00025
+        self.learning_rate = 0.0001  # 0.00025
         self.optimizer = keras.optimizers.legacy.Adam(learning_rate=self.learning_rate, clipnorm=1.0)
 
         # OTHER
@@ -85,13 +90,13 @@ class MachineLearning:
         self.update_after_actions = 10
 
         # How often to update the target network
-        self.update_target_network = 5000
+        self.update_target_network = 3000
 
         # Using huber loss for stability
         self.loss_function = keras.losses.Huber()
 
         # MACHINE LEARNING MODELS
-        self.ml_model_hidden_layers = [48, 48]
+        self.ml_model_hidden_layers = [self.simulation_manager.observation_space_size]
 
         self.ml_model = self.create_q_learning_model(self.simulation_manager.observation_space_size, self.simulation_manager.number_of_possible_actions, self.ml_model_hidden_layers)  # Makes the predictions for Q-values which are used to make an action.
         self.ml_model_target = self.create_q_learning_model(self.simulation_manager.observation_space_size, self.simulation_manager.number_of_possible_actions, self.ml_model_hidden_layers)  # For the prediction of future rewards. The weights of a target model get updated every 10000 steps thus when the loss between the Q-values is calculated the target Q-value is stable.
@@ -134,9 +139,6 @@ class MachineLearning:
 
                 # Run simulation 1 step
                 self.step_simulation()
-
-                # Compute metrics used to get state and calculate reward
-                self.compute_simulation_metrics()
 
                 # Calculate reward
                 reward = self.calculate_reward(action_penalty)
@@ -240,13 +242,19 @@ class MachineLearning:
                 sleep(visualiser_sleep_time)
             else:
                 self.simulation_manager.simulation.compute_single_iteration()
-
-
-    def compute_simulation_metrics(self):
-        self.simulation_manager.compute_simulation_metrics()
+            self.simulation_manager.compute_simulation_metrics()
 
     def calculate_reward(self, action_penalty):
-        return self.simulation_manager.calculate_reward(action_penalty)
+        simulation_manager_copy = copy.deepcopy(self.simulation_manager)
+        future_rewards = [self.simulation_manager.calculate_reward()]
+
+        for step in range(self.steps_to_look_into_the_future):
+            simulation_manager_copy.simulation.compute_single_iteration()
+            simulation_manager_copy.compute_simulation_metrics()
+            future_rewards.append(simulation_manager_copy.calculate_reward())
+
+        sum_wait_time_gradient = simulation_manager_copy.get_sum_wait_time() - self.simulation_manager.get_sum_wait_time()
+        return np.mean(future_rewards) - action_penalty - sum_wait_time_gradient ** 2
 
     def end_episode(self, episode_reward, step):
         if episode_reward < self.episode_end_reward or step > self.max_steps_per_episode:
@@ -350,9 +358,6 @@ class MachineLearning:
                 # Run simulation 1 step
                 self.step_simulation(visualiser_on=True, visualiser_sleep_time=0.01)
 
-                # Compute metrics used to get state and calculate reward
-                self.compute_simulation_metrics()
-
                 # Update reward
                 self.all_time_reward += self.calculate_reward(action_penalty)
 
@@ -365,7 +370,7 @@ class MachineLearning:
             listener.join()
 
     def random(self):
-        episode = 5
+        episode = 1
         for episode in range(1, episode + 1):
             # Reset the environment
             self.simulation_manager.reset()
@@ -384,9 +389,6 @@ class MachineLearning:
                 # Run simulation 1 step
                 self.step_simulation(visualiser_on=True, visualiser_sleep_time=0)
 
-                # Compute metrics used to get state and calculate reward
-                self.compute_simulation_metrics()
-
                 # Calculate reward
                 reward = self.calculate_reward(action_penalty)
 
@@ -397,6 +399,31 @@ class MachineLearning:
                 if self.end_episode(self.all_time_reward, self.number_of_steps_taken):
                     break
 
+    def test(self):
+        model = keras.models.load_model('saved_model')
+        episode = 5
+        for episode in range(1, episode + 1):
+            # Reset the environment
+            self.simulation_manager.reset()
+            self.reset()
+
+            # Run steps in episode
+            while True:
+                # Increment the total number of steps taken by the AI in total.
+                self.number_of_steps_taken += 1
+
+                # Select an action
+                action_index = np.argmax(model(self.get_state().reshape(1, -1)))
+
+                # Take an action
+                self.take_action(action_index)
+
+                # Run simulation 1 step
+                self.step_simulation(visualiser_on=True, visualiser_sleep_time=0.0)
+
+                # Determine if episode is over
+                if self.end_episode(self.all_time_reward, self.number_of_steps_taken):
+                    break
 
 if __name__ == "__main__":
     # Reference Files
@@ -415,12 +442,14 @@ if __name__ == "__main__":
 
     # machine_learning.random()
     machine_learning.train()
-    #
-    # Visualiser Setup
+    # machine_learning.test()
+
+
+    # # Visualiser Setup
     # visualiser.define_main(machine_learning.play)
     # visualiser.load_junction(junction_file_path)
     # visualiser.set_scale(scale)
-
-    # Run Simulation
+    #
+    # # Run Simulation
     # visualiser.open()
 

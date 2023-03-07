@@ -74,9 +74,9 @@ class Simulation:
         # Increment Time
         self.model.tock()
 
-    def add_vehicle(self, route_uid: int, length, width, didstance_delta):
+    def add_vehicle(self, route_uid: int, length, width, delta_distance):
         self.uid += 1
-        initial_speed_multiplier = clamp(didstance_delta, 0, 5) / 5
+        initial_speed_multiplier = clamp(delta_distance, 0, 5) / 5
         self.model.add_vehicle(
             Vehicle(
                 uid=self.uid,

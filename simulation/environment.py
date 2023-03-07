@@ -38,7 +38,7 @@ class SimulationManager:
 
         # Inputs / States
         self.features_per_state_input = 2
-        self.number_of_tracked_vehicles_per_path = 10
+        self.number_of_tracked_vehicles_per_path = 5
         self.observation_space_size = self.features_per_state_input * len(self.light_controlled_path_uids) * (1 + self.number_of_tracked_vehicles_per_path)
         # TODO: Initialize separate boxes by argmax for different inputs
         self.observation_space = Box(0, 50, shape=(1, self.observation_space_size), dtype=float)
@@ -71,24 +71,33 @@ class SimulationManager:
             light = self.simulation.model.lights[0]
             if light.colour == "green":
                 light.set_red()
+            else:
+                penalty = 1000
         elif action_index == 2:
             light = self.simulation.model.lights[1]
             if light.colour == "green":
                 light.set_red()
+            else:
+                penalty = 1000
         elif action_index == 3:
             light = self.simulation.model.lights[0]
             if light.colour == "red":
                 light.set_green()
+            else:
+                penalty = 1000
         elif action_index == 4:
             light = self.simulation.model.lights[1]
             if light.colour == "red":
                 light.set_green()
+            else:
+                penalty = 1000
         return penalty
 
     def get_vehicle_state(self, vehicle: Vehicle):
         return [
             vehicle.get_path_distance_travelled(),
             vehicle.get_speed()
+            # vehicle.wait_time
             # vehicle.get_length(),
             # vehicle.get_acceleration()
         ]
@@ -140,8 +149,8 @@ class SimulationManager:
             if vehicle.get_speed() < 5:
                 vehicle.add_wait_time(self.simulation.model.tick_time)
 
-    def calculate_reward(self, penalty):
-        reward = 50 - self.get_mean_wait_time() ** 2 + penalty
+    def calculate_reward(self):
+        reward = 100 - self.get_mean_wait_time() ** 2
         if len(self.simulation.model.detect_collisions()) > 0:
             reward -= 10000
         return reward
