@@ -1,7 +1,7 @@
 from platform import system
 if system() == 'Windows':
     import sys
-    sys.path.append('../')
+    sys.path.append('./')
 
 from time import sleep
 from gui.junction_visualiser import JunctionVisualiser
@@ -26,10 +26,10 @@ class Simulation:
 
         # Visualiser
         self.visualiser_update_function = visualiser_update_function
-    
+
     def get_last_vehicle_uid_spawned(self):
         return self.model.vehicles[-1].uid
-    
+
     def run_continuous(self, speed_multiplier=None):
         for tick in range(self.model.config.simulation_duration):
             self.run_single_iteration()
@@ -41,12 +41,14 @@ class Simulation:
 
         # Update visualiser
         if self.visualiser_update_function is not None:
-            self.visualiser_update_function(self.vehicle_data, self.model.lights, self.model.calculate_time_of_day(), self.collision)
+            self.visualiser_update_function(
+                self.vehicle_data, self.model.lights, self.model.calculate_time_of_day(), self.collision)
 
     def compute_single_iteration(self):
         # Spawn vehicles
         for index, node_uid in enumerate(self.model.calculate_start_nodes()):
-            nudge_result = self.model.nudge_spawner(node_uid, self.model.calculate_time_of_day())
+            nudge_result = self.model.nudge_spawner(
+                node_uid, self.model.calculate_time_of_day())
             if nudge_result is not None:
                 route_uid, length, width, distance_delta = nudge_result
                 self.add_vehicle(route_uid, length, width, distance_delta)
@@ -57,7 +59,8 @@ class Simulation:
 
         # Remove finished vehicles
         self.model.remove_finished_vehicles()
-        self.collision = True if len(self.model.detect_collisions()) > 0 else False
+        self.collision = True if len(
+            self.model.detect_collisions()) > 0 else False
 
         # Update vehicle position
         self.vehicle_data = []
@@ -66,11 +69,14 @@ class Simulation:
             curvature = self.model.get_vehicle_path_curvature(vehicle.uid)
             angle = self.model.get_vehicle_direction(vehicle.uid)
 
-            object_ahead, delta_distance_ahead = self.model.get_object_ahead(vehicle.uid)
-            vehicle.update(self.model.tick_time, object_ahead, delta_distance_ahead, curvature)
+            object_ahead, delta_distance_ahead = self.model.get_object_ahead(
+                vehicle.uid)
+            vehicle.update(self.model.tick_time, object_ahead,
+                           delta_distance_ahead, curvature)
             vehicle.update_position_data([coord_x, coord_y])
 
-            self.vehicle_data.append([coord_x, coord_y, angle, vehicle.length, vehicle.width, vehicle.uid])
+            self.vehicle_data.append(
+                [coord_x, coord_y, angle, vehicle.length, vehicle.width, vehicle.uid])
 
         # Remove finished vehicles
         self.model.remove_finished_vehicles()
@@ -101,8 +107,10 @@ class Simulation:
 
 if __name__ == "__main__":
     # Reference Files
-    junction_file_path = os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))), "junctions", "cross_road.junc")
-    configuration_file_path = os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))), "configurations", "cross_road.config")
+    junction_file_path = os.path.join(os.path.dirname(os.path.join(
+        os.path.dirname(__file__))), "../", "junctions", "cross_road.junc")
+    configuration_file_path = os.path.join(os.path.dirname(os.path.join(
+        os.path.dirname(__file__))), "../", "configurations", "cross_road.config")
 
     # Settings
     scale = 100
@@ -112,13 +120,14 @@ if __name__ == "__main__":
     visualiser = JunctionVisualiser()
 
     # Simulation
-    simulation = Simulation(junction_file_path, configuration_file_path, visualiser.update)
+    simulation = Simulation(
+        junction_file_path, configuration_file_path, visualiser.update)
 
     # Visualiser Setup
-    visualiser.define_main(partial(simulation.run_continuous, speed_multiplier))
+    visualiser.define_main(
+        partial(simulation.run_continuous, speed_multiplier))
     visualiser.load_junction(junction_file_path)
     visualiser.set_scale(scale)
 
     # Run Simulation
     visualiser.open()
-
