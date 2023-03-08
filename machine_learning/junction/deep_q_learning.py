@@ -1,15 +1,15 @@
 from platform import system
-
-from pynput import keyboard
+import sys
+#from pynput import keyboard
 
 if system() == 'Windows':
-    import sys
-    sys.path.append('../')
+    sys.path.append('./')
 
 import os
 import sys
 from simulation.junction.simulation_manager import SimulationManager
 from analysis_tools.graph_ml_progress import Graph
+from gui.junction_visualiser import JunctionVisualiser
 from time import sleep
 
 import numpy as np
@@ -34,9 +34,12 @@ class MachineLearning:
         self.all_time_reward = 0  # Total reward over all episodes
 
         # TRAINING LIMITS
-        self.max_steps_per_episode = 100000  # Maximum number of steps allowed per episode
-        self.episode_end_reward = -500000  # Single episode total reward minimum threshold to end episode
-        self.solved_mean_reward = 100000  # Single episode total reward minimum threshold to consider ML trained
+        # Maximum number of steps allowed per episode
+        self.max_steps_per_episode = 100000
+        # Single episode total reward minimum threshold to end episode
+        self.episode_end_reward = -500000
+        # Single episode total reward minimum threshold to consider ML trained
+        self.solved_mean_reward = 100000
 
         # TAKING AN ACTION
         # Random action
@@ -52,8 +55,10 @@ class MachineLearning:
         self.epsilon_greedy = self.epsilon_greedy_max  # Current probability of selecting a random action
 
         # Exploration
-        self.number_of_steps_of_required_exploration = 10000  # Number of steps of just random actions before the network can make some decisions
-        self.number_of_steps_of_exploration_reduction = 50000  # Number of steps over which epsilon greedy decays
+        # Number of steps of just random actions before the network can make some decisions
+        self.number_of_steps_of_required_exploration = 10000
+        # Number of steps over which epsilon greedy decays
+        self.number_of_steps_of_exploration_reduction = 50000
 
         # REPLAY
         # Buffers
@@ -93,8 +98,10 @@ class MachineLearning:
         # MACHINE LEARNING MODELS
         self.ml_model_hidden_layers = [512]
 
-        self.ml_model = self.create_q_learning_model(self.simulation_manager.observation_space_size, self.simulation_manager.number_of_possible_actions, self.ml_model_hidden_layers)  # Makes the predictions for Q-values which are used to make a action.
-        self.ml_model_target = self.create_q_learning_model(self.simulation_manager.observation_space_size, self.simulation_manager.number_of_possible_actions, self.ml_model_hidden_layers)  # For the prediction of future rewards. The weights of a target model get updated every 10000 steps thus when the loss between the Q-values is calculated the target Q-value is stable.
+        # Makes the predictions for Q-values which are used to make a action.
+        self.ml_model = self.create_q_learning_model(self.simulation_manager.observation_space_size, self.simulation_manager.number_of_possible_actions, self.ml_model_hidden_layers)
+        # For the prediction of future rewards. The weights of a target model get updated every 10000 steps thus when the loss between the Q-values is calculated the target Q-value is stable.
+        self.ml_model_target = self.create_q_learning_model(self.simulation_manager.observation_space_size, self.simulation_manager.number_of_possible_actions, self.ml_model_hidden_layers)
 
     def create_q_learning_model(self, state_size, action_size, hidden_layers):
         ml_layers = [layers.Input(shape=(state_size, ))]  # input dimension
@@ -432,7 +439,7 @@ class MachineLearning:
 
 if __name__ == "__main__":
     # Reference Files
-    junction_file_path = os.path.join(os.path.dirname(os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))))), "junctions", "cross_road.junc")
+    junction_file_path = os.path.join(os.path.dirname(os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))))), "junctions", "example_junction_with_lanes.junc")
     configuration_file_path = os.path.join(os.path.dirname(os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))))), "configurations", "cross_road.config")
 
     # # Settings
