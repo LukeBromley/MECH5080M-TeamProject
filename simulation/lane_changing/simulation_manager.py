@@ -8,7 +8,20 @@ from gym.spaces import Discrete, Box
 import numpy as np
 from numpy import mean
 
-from simulation.junction.simulation import Simulation
+from simulation.lane_changing.simulation import Simulation
+
+
+"""
+
+Create random environemnt of cars positioned along lanes
+Spawn target car
+Run sim and change lane when ml model says so
+Once lane changing occurs, run sim for X iterations
+Calculate reward
+reset
+
+
+"""
 
 
 class SimulationManager:

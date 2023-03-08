@@ -48,10 +48,6 @@ class Simulation:
                 route_uid, length, width, distance_delta = nudge_result
                 self.add_vehicle(route_uid, length, width, distance_delta)
 
-        # Control lights
-        for light in self.model.lights:
-            light.update(self.model.tick_time)
-
         # Remove finished vehicles
         self.model.remove_finished_vehicles()
         self.collision = True if len(self.model.detect_collisions()) > 0 else False
@@ -98,11 +94,11 @@ class Simulation:
 
 if __name__ == "__main__":
     # Reference Files
-    junction_file_path = os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))), "junctions", "cross_road.junc")
-    configuration_file_path = os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))), "configurations", "cross_road.config")
+    junction_file_path = os.path.join(os.path.dirname(os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))))), "junctions", "lanes.junc")
+    configuration_file_path = os.path.join(os.path.dirname(os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))))), "configurations", "cross_road.config")
 
     # Settings
-    scale = 100
+    scale = 25
     speed_multiplier = 1
 
     # Visualiser Init
