@@ -8,6 +8,18 @@ from gym.spaces import Discrete, Box
 import numpy as np
 from numpy import mean
 
+"""
+
+Create random environemnt of cars positioned along lanes
+Spawn target car
+inputs: vehicles infront / behind current vehicle change location
+Run sim and change lane when ml model says so
+Once lane changing occurs, run sim for X iterations
+Calculate reward
+reset
+
+
+"""
 from simulation.lane_changing.lc_simulation import Simulation
 
 
@@ -21,11 +33,15 @@ class SimulationManager:
         self.simulation = Simulation(self.junction_file_path, self.config_file_path, self.visualiser_update_function)
 
         # Actions
-        self.number_of_possible_actions, self.action_space = self.calculate_actions()
+        self.number_of_possible_actions = 2
+        self.action_space = Discrete(self.number_of_possible_actions)
 
         # Inputs / States
-        self.observation_space_size = 10
+        self.observation_space_size = 5  # distance from change point to car in front and car behind, speed of car in front and car behind, distance to end of lane
         self.observation_space = Box(0, 10, shape=(1, self.observation_space_size), dtype=float)
+
+        # VEHICLE
+        self.vehicle_uid = None
 
         # REWARD
         self.default_reward = 30
@@ -44,7 +60,6 @@ class SimulationManager:
         self.slowing_other_vehicles_reward = -10
 
         self.pre_train_sim_iterations = 1000 #100 seconds
-        self.vehicle_uid = 0
 
         self.reset()
 
@@ -57,10 +72,6 @@ class SimulationManager:
             simulation.run_single_iteration()
         self.vehicle_uid = simulation.get_last_vehicle_uid_spawned()
         return simulation
-
-    def calculate_actions(self):
-        number_of_actions = len(self.simulation.model.lights) + 1
-        return number_of_actions, Discrete(number_of_actions)
 
     def reset(self):
         self.simulation = self.create_simulation()
@@ -76,10 +87,7 @@ class SimulationManager:
         if action_index == 0:
             pass
         else:
-            if self.simulation.model.lights[action_index - 1].colour == "green":
-                self.simulation.model.lights[action_index - 1].set_red()
-            else:
-                penalty = self.action_reward
+            self.simulation.change_lane(self.vehicle_uid)
         return penalty
 
     def compute_simulation_metrics(self):
@@ -123,45 +131,31 @@ class SimulationManager:
     def get_state(self):
         return np.array(
             [
-                self.get_path_occupancy(1),
-                self.get_path_wait_time(1),
-                self.get_mean_speed(1),
-                self.get_path_occupancy(4),
-                self.get_path_wait_time(4),
-                self.get_mean_speed(4),
-                self.simulation.model.lights[0].get_state(),
-                self.simulation.model.lights[0].get_time_remaining(),
-                self.simulation.model.lights[1].get_state(),
-                self.simulation.model.lights[1].get_time_remaining(),
+                self.get_distance_to_end_of_path(self.vehicle_uid)
             ]
         )
 
-    def get_path_occupancy(self, path_uid):
-        state = 0
-        for vehicle in self.simulation.model.vehicles:
-            route = self.simulation.model.get_route(vehicle.get_route_uid())
-            if path_uid == route.get_path_uid(vehicle.get_path_index()):
-                state += 1
-        return state
+    def get_distance_to_end_of_path(self, vehicle_uid):
+        path_uid = self.simulation.model.get_vehicle_path_uid(vehicle_uid)
+        path_length = self.simulation.model.get_path(path_uid).get_length()
+        vehicle = self.simulation.model.get_vehicle(vehicle_uid)
+        distance_traveled = vehicle.get_path_distance_travelled()
+        return path_length - distance_traveled
 
-    def get_path_wait_time(self, path_uid):
-        wait_time = 0
-        for vehicle in self.simulation.model.vehicles:
-            route = self.simulation.model.get_route(vehicle.get_route_uid())
-            if path_uid == route.get_path_uid(vehicle.get_path_index()):
-                wait_time += vehicle.waiting_time
-        return wait_time
+    def get_distance_to_vehicle_in_front_of_change_location(self, vehicle_uid):
+        this_vehicle_path_distance_travelled = self.simulation.model.get_vehicle_path_length_after_lane_change(vehicle_uid)
 
-    def get_mean_speed(self, path_uid):
-        speed = []
-        for vehicle in self.simulation.model.vehicles:
-            route = self.simulation.model.get_route(vehicle.get_route_uid())
-            if path_uid == route.get_path_uid(vehicle.get_path_index()):
-                speed.append(vehicle.get_speed())
-        return mean(speed)
 
-    def get_lights(self):
-        return self.simulation.model.get_lights()
+        # Search the current path
+        min_path_distance_travelled = float('inf')
+        for that_vehicle in self.simulation.model.vehicles:
+            that_path = self.simulation.model.get_path(self.simulation.model.get_route(that_vehicle.get_route_uid()).get_path_uid(that_vehicle.get_path_index()))
+            that_vehicle_path_distance_travelled = that_vehicle.get_path_distance_travelled()
+
+            if that_path.uid == this_path.uid and min_path_distance_travelled > that_vehicle_path_distance_travelled > this_vehicle_path_distance_travelled:
+                min_path_distance_travelled = that_vehicle_path_distance_travelled
+                object_ahead = that_vehicle
+
 
     # REWARD FUNCTIONS
 
