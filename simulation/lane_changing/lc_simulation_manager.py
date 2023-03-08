@@ -8,9 +8,6 @@ from gym.spaces import Discrete, Box
 import numpy as np
 from numpy import mean
 
-from simulation.lane_changing.simulation import Simulation
-
-
 """
 
 Create random environemnt of cars positioned along lanes
