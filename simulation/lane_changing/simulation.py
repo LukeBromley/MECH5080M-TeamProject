@@ -54,6 +54,9 @@ class Simulation:
 
         # Update vehicle position
         self.vehicle_data = []
+
+        self.vehicle_data += self.model.get_ghost_positions(self.model.calculate_time_of_day())
+
         for vehicle in self.model.vehicles:
             coord_x, coord_y = self.model.get_vehicle_coordinates(vehicle.uid)
             curvature = self.model.get_vehicle_path_curvature(vehicle.uid)
@@ -63,7 +66,10 @@ class Simulation:
             vehicle.update(self.model.tick_time, object_ahead, delta_distance_ahead, curvature)
             vehicle.update_position_data([coord_x, coord_y])
 
-            self.vehicle_data.append([coord_x, coord_y, angle, vehicle.length, vehicle.width, vehicle.uid])
+            if vehicle.changing_lane:
+                self.vehicle_data.append([coord_x, coord_y])
+            else:
+                self.vehicle_data.append([coord_x, coord_y, angle, vehicle.length, vehicle.width])
 
         # Remove finished vehicles
         self.model.remove_finished_vehicles()
@@ -90,6 +96,9 @@ class Simulation:
                 min_creep_distance=self.model.config.min_creep_distance
             )
         )
+
+    def change_lane(self, vehicle_uid):
+        self.model.change_vehicle_lane(vehicle_uid, self.model.calculate_time_of_day())
 
 
 if __name__ == "__main__":
