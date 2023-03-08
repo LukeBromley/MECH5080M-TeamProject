@@ -30,23 +30,18 @@ class SimulationManager:
         # REWARD
         self.default_reward = 30
         self.action_reward = -10000
-        # Duration
-        self.simulation_duration_reward = 0.001
-        # Crash
-        self.crash_reward = -5000
-        # Waiting
-        self.waiting_speed = 5
-        self.num_cars_waiting_reward = 0
-        self.wait_time = None
-        self.wait_time_vehicle_limit = None
-        # Total waiting
-        self.total_wait_time_reward = 0
-        self.total_wait_time_exp_reward = 0
-        self.total_wait_time_exponent = 0
-        # Mean Waiting
-        self.mean_wait_time_reward = 0
-        self.mean_wait_time_exp_reward = -1
-        self.mean_wait_time_exponent = 2
+        
+        # Lane changing
+        self.lane_change_complete_reward = 100
+
+        # Crashes
+        self.crash_reward = -1000
+        
+        # Distance along path lane change
+        self.distance_to_end_of_path_reward = 50
+
+        # Change in other vehicle speeds
+        self.slowing_other_vehicles_reward = -10
 
         self.pre_train_sim_iterations = 1000 #100 seconds
         self.vehicle_uid = 0
