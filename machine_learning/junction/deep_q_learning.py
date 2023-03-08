@@ -4,13 +4,12 @@ from pynput import keyboard
 
 if system() == 'Windows':
     import sys
-    sys.path.append('./')
+    sys.path.append('../')
 
 import os
 import sys
-from simulation.simulation_manager import SimulationManager
+from simulation.junction.simulation_manager import SimulationManager
 from analysis_tools.graph_ml_progress import Graph
-from gui.junction_visualiser import JunctionVisualiser
 from time import sleep
 
 import numpy as np
@@ -433,8 +432,8 @@ class MachineLearning:
 
 if __name__ == "__main__":
     # Reference Files
-    junction_file_path = os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))), "junctions", "cross_road.junc")
-    configuration_file_path = os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))), "configurations", "cross_road.config")
+    junction_file_path = os.path.join(os.path.dirname(os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))))), "junctions", "cross_road.junc")
+    configuration_file_path = os.path.join(os.path.dirname(os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))))), "configurations", "cross_road.config")
 
     # # Settings
     # scale = 50

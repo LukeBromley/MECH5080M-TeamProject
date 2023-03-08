@@ -1,18 +1,14 @@
 from platform import system
 
-from library.infrastructure import TrafficLight
-from library.vehicles import Vehicle
-
 if system() == 'Windows':
     import sys
-    sys.path.append('./')
+    sys.path.append('../')
 
-from gym import Env
-from gym.spaces import Discrete, Box, Dict
+from gym.spaces import Discrete, Box
 import numpy as np
 from numpy import mean
 
-from simulation.simulation import Simulation
+from simulation.junction.simulation import Simulation
 
 
 class SimulationManager:

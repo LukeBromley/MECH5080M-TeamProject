@@ -1,7 +1,7 @@
 from platform import system
 if system() == 'Windows':
     import sys
-    sys.path.append('./')
+    sys.path.append('../')
 
 from time import sleep
 from gui.junction_visualiser import JunctionVisualiser

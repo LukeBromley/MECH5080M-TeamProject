@@ -1,6 +1,7 @@
 import csv
 import requests
 import time as Time
+from time import sleep
 
 
 class GoogleMapsTrafficAnalysis:
@@ -22,7 +23,7 @@ class GoogleMapsTrafficAnalysis:
 
             traffic_data = []
 
-            for day in range(7):
+            for day in range(1):
                 for hour in range(24):
                     for quarter in range(4):
                         time = start_time + day * 86400 + hour * 3600 + quarter * 900
@@ -32,12 +33,20 @@ class GoogleMapsTrafficAnalysis:
                         response = requests.get(url)
                         data = response.json()
 
-                        # The current traffic for the road is stored in the "duration_in_traffic" field
-                        duration_in_traffic = data['routes'][0]['legs'][0]['duration_in_traffic']['value']
-                        duration = data['routes'][0]['legs'][0]['duration']['value']
-                        distance = data['routes'][0]['legs'][0]['distance']['value']
-                        print("Day: ", day + 1, "Hour: ", hour, "Quarter: ", quarter * 15, "-", duration_in_traffic, duration)
-                        traffic_data.append([day + 1, hour, quarter * 15, duration_in_traffic, duration, distance])
+                        valid = False
+
+                        while not valid:
+                            try:
+                                # The current traffic for the road is stored in the "duration_in_traffic" field
+                                duration_in_traffic = data['routes'][0]['legs'][0]['duration_in_traffic']['value']
+                                duration = data['routes'][0]['legs'][0]['duration']['value']
+                                distance = data['routes'][0]['legs'][0]['distance']['value']
+                                print("Day: ", day + 1, "Hour: ", hour, "Quarter: ", quarter * 15, "-", duration_in_traffic, duration)
+                                traffic_data.append([day + 1, hour, quarter * 15, duration_in_traffic, duration, distance])
+                                valid = True
+                            except:
+                                print("Failed to get data", data)
+                                sleep(1)
 
             print("Saving data!!")
 
