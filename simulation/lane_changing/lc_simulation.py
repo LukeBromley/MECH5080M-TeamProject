@@ -26,7 +26,10 @@ class Simulation:
 
         # Visualiser
         self.visualiser_update_function = visualiser_update_function
-
+    
+    def get_last_vehicle_uid_spawned(self):
+        return self.model.vehicles[-1].uid
+    
     def run_continuous(self, speed_multiplier=None):
         for tick in range(self.model.config.simulation_duration):
             self.run_single_iteration()

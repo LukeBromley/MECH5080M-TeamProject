@@ -8,7 +8,7 @@ from gym.spaces import Discrete, Box
 import numpy as np
 from numpy import mean
 
-from simulation.junction.simulation import Simulation
+from simulation.lane_changing.lc_simulation import Simulation
 
 
 class SimulationManager:
@@ -48,10 +48,19 @@ class SimulationManager:
         self.mean_wait_time_exp_reward = -1
         self.mean_wait_time_exponent = 2
 
+        self.pre_train_sim_iterations = 1000 #100 seconds
+        self.vehicle_uid = 0
+
         self.reset()
 
     def create_simulation(self):
         simulation = Simulation(self.junction_file_path, self.config_file_path, self.visualiser_update_function)
+        for iteration in range(self.pre_train_sim_iterations):
+            simulation.run_single_iteration()
+        last_car = simulation.get_last_vehicle_uid_spawned()
+        while (simulation.get_last_vehicle_uid_spawned() != last_car):
+            simulation.run_single_iteration()
+        self.vehicle_uid = simulation.get_last_vehicle_uid_spawned()
         return simulation
 
     def calculate_actions(self):
