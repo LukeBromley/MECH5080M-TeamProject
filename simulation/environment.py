@@ -38,10 +38,10 @@ class SimulationManager:
 
         # Inputs / States
         self.features_per_state_input = 2
-        self.number_of_tracked_vehicles_per_path = 5
+        self.number_of_tracked_vehicles_per_path = 6
         self.observation_space_size = self.features_per_state_input * len(self.light_controlled_path_uids) * (1 + self.number_of_tracked_vehicles_per_path)
         # TODO: Initialize separate boxes by argmax for different inputs
-        self.observation_space = Box(0, 50, shape=(1, self.observation_space_size), dtype=float)
+        self.observation_space = Box(0, 30, shape=(1, self.observation_space_size), dtype=float)
 
         self.reset()
 
@@ -152,7 +152,7 @@ class SimulationManager:
     def calculate_reward(self):
         reward = 100 - self.get_mean_wait_time() ** 2
         if len(self.simulation.model.detect_collisions()) > 0:
-            reward -= 10000
+            reward -= 50000
         return reward
 
     def get_mean_wait_time(self):

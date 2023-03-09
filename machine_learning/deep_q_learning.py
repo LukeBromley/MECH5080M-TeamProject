@@ -35,7 +35,8 @@ class MachineLearning:
         # TRAINING LIMITS
         self.max_steps_per_episode = 299  # Maximum number of steps allowed per episode
         self.episode_end_reward = -float('inf')  # Single episode total reward minimum threshold to end episode
-        self.solved_mean_reward = 5000  # Single episode total reward minimum threshold to consider ML trained
+        self.solved_mean_reward = 25000  # Single episode total reward minimum threshold to consider ML trained
+        self.reward_history_limit = 20
 
         # TAKING AN ACTION
         # Random action
@@ -51,8 +52,8 @@ class MachineLearning:
         self.epsilon_greedy = self.epsilon_greedy_max  # Current probability of selecting a random action
 
         # Exploration
-        self.number_of_steps_of_required_exploration = 3000  # 10000  # Number of steps of just random actions before the network can make some decisions
-        self.number_of_steps_of_exploration_reduction = 30000  # 50000 # Number of steps over which epsilon greedy decays
+        self.number_of_steps_of_required_exploration = 5000  # 10000  # Number of steps of just random actions before the network can make some decisions
+        self.number_of_steps_of_exploration_reduction = 100000  # 50000 # Number of steps over which epsilon greedy decays
 
         # REPLAY
         # Buffers
@@ -63,21 +64,18 @@ class MachineLearning:
         self.done_history = []
         self.episode_reward_history = []
 
-        # Number of cached episodes
-        self.reward_history_limit = 10
-
         # Steps to look into the future to determine the mean reward.
-        self.steps_to_look_into_the_future = 10
+        self.steps_to_look_into_the_future = 20
 
         # Sample Size
-        self.sample_size = 12  # Size of batch taken from replay buffer
+        self.sample_size = 28  # Size of batch taken from replay buffer
 
         # Discount factor
         self.gamma = 0.95  # Discount factor for past rewards
 
         # Maximum replay buffer length
         # Note: The Deepmind paper suggests 1000000 however this causes memory issues
-        self.max_replay_buffer_length = 1000000
+        self.max_replay_buffer_length = 100000
 
         # OPTIMISING
         # Note: In the Deepmind paper they use RMSProp however then Adam optimizer
@@ -244,17 +242,20 @@ class MachineLearning:
                 self.simulation_manager.simulation.compute_single_iteration()
             self.simulation_manager.compute_simulation_metrics()
 
-    def calculate_reward(self, action_penalty):
-        simulation_manager_copy = copy.deepcopy(self.simulation_manager)
-        future_rewards = [self.simulation_manager.calculate_reward()]
+    def calculate_reward(self, action_penalty, predict: bool = True):
+        if predict:
+            simulation_manager_copy = copy.deepcopy(self.simulation_manager)
+            future_rewards = [self.simulation_manager.calculate_reward()]
 
-        for step in range(self.steps_to_look_into_the_future):
-            simulation_manager_copy.simulation.compute_single_iteration()
-            simulation_manager_copy.compute_simulation_metrics()
-            future_rewards.append(simulation_manager_copy.calculate_reward())
+            for step in range(self.steps_to_look_into_the_future):
+                simulation_manager_copy.simulation.compute_single_iteration()
+                simulation_manager_copy.compute_simulation_metrics()
+                future_rewards.append(simulation_manager_copy.calculate_reward())
 
-        sum_wait_time_gradient = simulation_manager_copy.get_sum_wait_time() - self.simulation_manager.get_sum_wait_time()
-        return np.mean(future_rewards) - action_penalty - sum_wait_time_gradient ** 2
+            sum_wait_time_gradient = simulation_manager_copy.get_sum_wait_time() - self.simulation_manager.get_sum_wait_time()
+            return np.mean(future_rewards) - action_penalty - sum_wait_time_gradient ** 2
+        else:
+            return self.simulation_manager.calculate_reward() - action_penalty
 
     def end_episode(self, episode_reward, step):
         if episode_reward < self.episode_end_reward or step > self.max_steps_per_episode:
@@ -356,10 +357,10 @@ class MachineLearning:
                 action_penalty = self.take_action(action_index)
 
                 # Run simulation 1 step
-                self.step_simulation(visualiser_on=True, visualiser_sleep_time=0.01)
+                self.step_simulation(visualiser_on=True, visualiser_sleep_time=0.05)
 
                 # Update reward
-                self.all_time_reward += self.calculate_reward(action_penalty)
+                self.all_time_reward += self.calculate_reward(action_penalty, predict=False)
 
                 if self.end_episode(self.all_time_reward, self.number_of_steps_taken):
                     break
@@ -390,7 +391,7 @@ class MachineLearning:
                 self.step_simulation(visualiser_on=True, visualiser_sleep_time=0)
 
                 # Calculate reward
-                reward = self.calculate_reward(action_penalty)
+                reward = self.calculate_reward(action_penalty, predict=False)
 
                 # Update reward
                 self.all_time_reward += reward
@@ -398,6 +399,9 @@ class MachineLearning:
                 # Determine if episode is over
                 if self.end_episode(self.all_time_reward, self.number_of_steps_taken):
                     break
+
+                sys.stdout.write("\rstep: {0} / reward: {1}".format(str(self.number_of_steps_taken), str(self.all_time_reward)))
+                sys.stdout.flush()
 
     def test(self):
         model = keras.models.load_model('saved_model')
@@ -416,14 +420,22 @@ class MachineLearning:
                 action_index = np.argmax(model(self.get_state().reshape(1, -1)))
 
                 # Take an action
-                self.take_action(action_index)
+                action_penalty = self.take_action(action_index)
 
                 # Run simulation 1 step
                 self.step_simulation(visualiser_on=True, visualiser_sleep_time=0.0)
 
+                # Calculate reward
+                reward = self.calculate_reward(action_penalty, predict=False)
+
+                self.all_time_reward += reward
+
                 # Determine if episode is over
                 if self.end_episode(self.all_time_reward, self.number_of_steps_taken):
                     break
+
+                sys.stdout.write("\rstep: {0} / reward: {1}".format(str(self.number_of_steps_taken), str(self.all_time_reward)))
+                sys.stdout.flush()
 
 if __name__ == "__main__":
     # Reference Files
@@ -431,7 +443,7 @@ if __name__ == "__main__":
     configuration_file_path = os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))), "configurations", "cross_road.config")
 
     # Settings
-    scale = 30
+    scale = 50
 
     # Visualiser Init
     visualiser = JunctionVisualiser()
@@ -443,8 +455,7 @@ if __name__ == "__main__":
     # machine_learning.random()
     machine_learning.train()
     # machine_learning.test()
-
-
+    #
     # # Visualiser Setup
     # visualiser.define_main(machine_learning.play)
     # visualiser.load_junction(junction_file_path)
