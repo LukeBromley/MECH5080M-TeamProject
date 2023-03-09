@@ -1,7 +1,7 @@
 from platform import system
 if system() == 'Windows':
     import sys
-    sys.path.append('./')
+    sys.path.append('../')
 
 from time import sleep
 from gui.junction_visualiser import JunctionVisualiser
@@ -52,8 +52,8 @@ class Simulation:
         for light in self.model.lights:
             light.update(self.model.tick_time)
 
-        # Check for collision
-        self.collision = True if len(self.model.detect_collisions()) > 0 else False
+        # Remove finished vehicles
+        self.model.remove_finished_vehicles()
 
         # Update vehicle position
         self.vehicle_data = []
@@ -67,6 +67,8 @@ class Simulation:
             vehicle.update(self.model.tick_time, object_ahead, delta_distance_ahead, curvature)
             vehicle.update_position_data([coord_x, coord_y])
             self.vehicle_data.append([coord_x, coord_y, angle, vehicle.length, vehicle.width, vehicle.uid])
+
+            self.vehicle_data.append([coord_x, coord_y, angle, vehicle.length, vehicle.width])
 
         # Remove finished vehicles
         self.model.remove_finished_vehicles()
@@ -97,8 +99,8 @@ class Simulation:
 
 if __name__ == "__main__":
     # Reference Files
-    junction_file_path = os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))), "junctions", "cross_road.junc")
-    configuration_file_path = os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))), "configurations", "cross_road.config")
+    junction_file_path = os.path.join(os.path.dirname(os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))))), "junctions", "cross_road.junc")
+    configuration_file_path = os.path.join(os.path.dirname(os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))))), "configurations", "cross_road.config")
 
     # Settings
     scale = 100
@@ -109,6 +111,7 @@ if __name__ == "__main__":
 
     # Simulation
     simulation = Simulation(junction_file_path, configuration_file_path, visualiser.update)
+    simulation.model.setup_fixed_spawning(1)
 
     # Visualiser Setup
     visualiser.define_main(partial(simulation.run_continuous, speed_multiplier))

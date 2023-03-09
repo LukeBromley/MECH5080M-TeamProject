@@ -1,15 +1,18 @@
 import copy
 from platform import system
+import sys
 
 from pynput import keyboard
 
+#from pynput import keyboard
+
 if system() == 'Windows':
-    import sys
     sys.path.append('./')
 
 import os
 import sys
-from simulation.environment import SimulationManager
+from simulation.junction.simulation_manager import SimulationManager
+from analysis_tools.graph_ml_progress import Graph
 from gui.junction_visualiser import JunctionVisualiser
 from time import sleep
 import time as tm
@@ -23,9 +26,12 @@ from tensorflow.keras import layers
 
 
 class MachineLearning:
-    def __init__(self, junction_file_path, config_file_path, visualiser_update_function=None):
+    def __init__(self, junction_file_path, config_file_path, visualiser_update_function=None, graph_num_episodes=20, graph_max_step=30000):
         # SIMULATION MANAGER
         self.simulation_manager = SimulationManager(junction_file_path, config_file_path, visualiser_update_function)
+
+        # GRAPH
+        self.graph = Graph(graph_num_episodes, graph_max_step)
 
         # COUNTERS
         self.episode_count = 0  # Number of episodes trained
@@ -33,18 +39,14 @@ class MachineLearning:
         self.all_time_reward = 0  # Total reward over all episodes
 
         # TRAINING LIMITS
-        self.max_steps_per_episode = 299  # Maximum number of steps allowed per episode
+        self.max_steps_per_episode = 100000  # Maximum number of steps allowed per episode
         self.episode_end_reward = -float('inf')  # Single episode total reward minimum threshold to end episode
         self.solved_mean_reward = 25000  # Single episode total reward minimum threshold to consider ML trained
         self.reward_history_limit = 20
 
         # TAKING AN ACTION
         # Random action
-        self.random_action_do_nothing_probability = 0.9
-        self.random_action_selection_probabilities = [self.random_action_do_nothing_probability]
-        for action_index in range(1, self.simulation_manager.number_of_possible_actions):
-            self.random_action_selection_probabilities.append((1 - self.random_action_do_nothing_probability) / (self.simulation_manager.number_of_possible_actions - 1))
-        assert len(self.random_action_selection_probabilities) == self.simulation_manager.number_of_possible_actions
+        self.random_action_selection_probabilities = [0.9, 0.025, 0.025, 0.025, 0.025]
 
         # Probability of selecting a random action
         self.epsilon_greedy_min = 0.1  # Minimum probability of selecting a random action
@@ -52,8 +54,10 @@ class MachineLearning:
         self.epsilon_greedy = self.epsilon_greedy_max  # Current probability of selecting a random action
 
         # Exploration
-        self.number_of_steps_of_required_exploration = 5000  # 10000  # Number of steps of just random actions before the network can make some decisions
-        self.number_of_steps_of_exploration_reduction = 100000  # 50000 # Number of steps over which epsilon greedy decays
+        # Number of steps of just random actions before the network can make some decisions
+        self.number_of_steps_of_required_exploration = 10000
+        # Number of steps over which epsilon greedy decays
+        self.number_of_steps_of_exploration_reduction = 50000
 
         # REPLAY
         # Buffers
@@ -94,10 +98,12 @@ class MachineLearning:
         self.loss_function = keras.losses.Huber()
 
         # MACHINE LEARNING MODELS
-        self.ml_model_hidden_layers = [self.simulation_manager.observation_space_size]
+        self.ml_model_hidden_layers = [2 * self.simulation_manager.observation_space_size]
 
-        self.ml_model = self.create_q_learning_model(self.simulation_manager.observation_space_size, self.simulation_manager.number_of_possible_actions, self.ml_model_hidden_layers)  # Makes the predictions for Q-values which are used to make an action.
-        self.ml_model_target = self.create_q_learning_model(self.simulation_manager.observation_space_size, self.simulation_manager.number_of_possible_actions, self.ml_model_hidden_layers)  # For the prediction of future rewards. The weights of a target model get updated every 10000 steps thus when the loss between the Q-values is calculated the target Q-value is stable.
+        # Makes the predictions for Q-values which are used to make a action.
+        self.ml_model = self.create_q_learning_model(self.simulation_manager.observation_space_size, self.simulation_manager.number_of_possible_actions, self.ml_model_hidden_layers)
+        # For the prediction of future rewards. The weights of a target model get updated every 10000 steps thus when the loss between the Q-values is calculated the target Q-value is stable.
+        self.ml_model_target = self.create_q_learning_model(self.simulation_manager.observation_space_size, self.simulation_manager.number_of_possible_actions, self.ml_model_hidden_layers)
 
     def reset(self):
         self.episode_count = 0  # Number of episodes trained
@@ -113,8 +119,10 @@ class MachineLearning:
         return q_network
 
     def train(self):
+        print("Training Started")
+        mean_reward = 0
         while True:  # Run until solved
-            state = np.array(self.simulation_manager.reset())
+            state = self.simulation_manager.reset()
 
             mean_reward = 0
             episode_reward = 0
@@ -139,7 +147,7 @@ class MachineLearning:
                 self.step_simulation()
 
                 # Calculate reward
-                reward = self.calculate_reward(action_penalty)
+                reward = self.calculate_reward(action_penalty, episode_step)
 
                 # Update reward
                 self.all_time_reward += reward
@@ -215,7 +223,7 @@ class MachineLearning:
         return action
 
     def select_random_action(self):
-        return np.random.choice(self.simulation_manager.number_of_possible_actions, p=self.random_action_selection_probabilities)
+        return np.random.choice(self.simulation_manager.action_space, p=self.random_action_selection_probabilities)
 
     def select_best_action(self, state):
         # Predict action Q-values
@@ -265,8 +273,7 @@ class MachineLearning:
             return False
 
     def get_state(self):
-        state_next = np.asarray(self.simulation_manager.get_state()).astype('float32')
-        return np.array(state_next)
+        return np.array(self.simulation_manager.get_state())
 
     def save_to_replay_buffers(self, action, state, next_state, done, reward):
         self.action_history.append(action)
@@ -385,7 +392,7 @@ class MachineLearning:
                 # Select an action
                 action_index = self.select_random_action()
                 # Take an action
-                action_penalty = self.take_action(action_index)
+                action_penalty = self.take_action(0)
 
                 # Run simulation 1 step
                 self.step_simulation(visualiser_on=True, visualiser_sleep_time=0)
@@ -437,23 +444,59 @@ class MachineLearning:
                 sys.stdout.write("\rstep: {0} / reward: {1}".format(str(self.number_of_steps_taken), str(self.all_time_reward)))
                 sys.stdout.flush()
 
+    def run(self):
+        state = np.array(self.simulation_manager.reset())
+        while True:
+            # Increment the total number of steps taken by the AI in total.
+            self.number_of_steps_taken += 1
+
+            # Select an action
+            action_index = self.select_best_action(state)
+
+            # Take an action
+            self.take_action(action_index)
+
+            # Run simulation 1 step
+            self.step_simulation()
+
+            # Get the next state
+            state = self.get_state()
+
+    def save_model_weights(self, model, file_location, save_name):
+        if os.path.isdir(file_location + "/" + save_name):
+            os.mkdir(file_location + "/" + save_name)
+        model.save_weights(file_location + "/" + save_name)
+
+    def save_model(self, model, file_location, save_name):
+        if os.path.isdir(file_location + "/" + save_name):
+            os.mkdir(file_location + "/" + save_name)
+        model.save(file_location + "/" + save_name)
+
+    def load_weights(self, model, file_location, save_name):
+        model.load_weights(file_location + "/" + save_name)
+        return model
+
+    def load_model(self, file_location, save_name):
+        return keras.models.load_model(file_location + "/" + save_name)
+
+
 if __name__ == "__main__":
     # Reference Files
-    junction_file_path = os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))), "junctions", "cross_road.junc")
-    configuration_file_path = os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))), "configurations", "cross_road.config")
+    junction_file_path = os.path.join(os.path.dirname(os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))))), "junctions", "cross_road.junc")
+    configuration_file_path = os.path.join(os.path.dirname(os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))))), "configurations", "cross_road.config")
 
-    # Settings
-    scale = 50
+    # # Settings
+    # scale = 50
 
-    # Visualiser Init
-    visualiser = JunctionVisualiser()
+    # # Visualiser Init
+    # visualiser = JunctionVisualiser()
 
     # Simulation
     # machine_learning = MachineLearning(junction_file_path, configuration_file_path, visualiser.update)
     machine_learning = MachineLearning(junction_file_path, configuration_file_path, None)
 
-    # machine_learning.random()
-    machine_learning.train()
+    machine_learning.random()
+    # machine_learning.train()
     # machine_learning.test()
     #
     # # Visualiser Setup

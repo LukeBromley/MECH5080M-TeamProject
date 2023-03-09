@@ -37,7 +37,6 @@ class Model:
         self.tick_rate = None
         self.tick_time = None
         self.start_time_of_day = None
-        self.time_of_day = None
 
         self.spawners = []
 
@@ -137,9 +136,6 @@ class Model:
 
     def set_start_time_of_day(self, time):
         self.start_time_of_day = time
-
-    def set_time_of_day(self, time):
-        self.time_of_day = time
 
     def calculate_time_of_day(self):
         return self.start_time_of_day.add_milliseconds(self.calculate_milliseconds_elapsed())
@@ -426,11 +422,15 @@ class Model:
         route = self.get_route(vehicle.route_uid)
         return route.get_path_uid(vehicle.get_path_index())
 
+    def get_vehicle_next_path_uid(self, vehicle_uid):
+        vehicle = self.get_vehicle(vehicle_uid)
+        route = self.get_route(vehicle.route_uid)
+        return route.get_path_uid(vehicle.get_path_index() + 1)
+
     def get_vehicle_coordinates(self, vehicle_uid):
         vehicle = self.get_vehicle(vehicle_uid)
-        path = self.get_path(self.get_route(vehicle.get_route_uid()).get_path_uid(vehicle.get_path_index()))
+        path = self.get_path(self.get_vehicle_path_uid(vehicle_uid))
         path_distance_travelled = vehicle.get_path_distance_travelled()
-
         index = floor(path_distance_travelled / path.discrete_length_increment_size)
         return path.discrete_path[index][1], path.discrete_path[index][2]
 
@@ -461,16 +461,32 @@ class Model:
     def change_vehicle_lane(self, vehicle_uid, time):
         old_path_uid = self.get_vehicle_path_uid(vehicle_uid)
         old_path = self.get_path(old_path_uid)
-        s = old_path.get_s(self.get_vehicle(vehicle_uid).get_path_distance_travelled())
 
         self.ghost_vehicles.append(GhostVehicle(vehicle_uid, old_path_uid, time))
 
+        s = old_path.get_s(self.get_vehicle(vehicle_uid).get_path_distance_travelled())
+
+        new_path_uid = self.get_vehicle_next_path_uid(vehicle_uid)
+        new_path = self.get_path(new_path_uid)
+        arc_length = new_path.get_arc_length_from_s(s)
+
+        vehicle = self.get_vehicle(vehicle_uid)
+        vehicle.increment_path(arc_length)
+
+        vehicle.changing_lane = True
+
+    def get_vehicle_path_length_after_lane_change(self, vehicle_uid):
+        old_path_uid = self.get_vehicle_path_uid(vehicle_uid)
+        old_path = self.get_path(old_path_uid)
+        s = old_path.get_s(self.get_vehicle(vehicle_uid).get_path_distance_travelled())
         new_path_uid = self.get_vehicle_path_uid(vehicle_uid)
         new_path = self.get_path(new_path_uid)
         arc_length = new_path.get_arc_length_from_s(s)
-        self.get_vehicle(vehicle_uid).increment_path(arc_length)
+        return arc_length
 
-    def update_ghosts(self, time, coordinates_angle_size):
+    def get_ghost_positions(self, time):
+        vehicle_data = []
+
         ghost_vehicle_uids_to_remove = []
         for ghost_vehicle in self.ghost_vehicles:
             t_delta = time.total_milliseconds() - ghost_vehicle.time_created.total_milliseconds()
@@ -479,16 +495,19 @@ class Model:
                 delta_x, delta_y, angle, from_x, from_y = self.calculate_delta_xy_for_ghosts(vehicle, ghost_vehicle)
                 x = (t_delta / ghost_vehicle.change_time) * delta_x + from_x
                 y = (t_delta / ghost_vehicle.change_time) * delta_y + from_y
-
-                coordinates_angle_size.append([x, y, angle, vehicle.length, vehicle.width, vehicle.uid])
+                vehicle_data.append([x, y, angle, vehicle.length, vehicle.width, vehicle.uid])
             else:
                 ghost_vehicle_uids_to_remove.append(ghost_vehicle.uid)
         
         for ghost_vehicle_uid in ghost_vehicle_uids_to_remove:
-                for index, ghost_vehicle in enumerate(self.ghost_vehicles):
-                    if ghost_vehicle.uid == ghost_vehicle_uid:
-                        self.ghost_vehicles.pop(index)
-                        break
+            for index, ghost_vehicle in enumerate(self.ghost_vehicles):
+                if ghost_vehicle.uid == ghost_vehicle_uid:
+                    self.ghost_vehicles.pop(index)
+                    vehicle = self.get_vehicle(ghost_vehicle_uid)
+                    vehicle.changing_lane = False
+                    break
+
+        return vehicle_data
     
     def calculate_delta_xy_for_ghosts(self, vehicle, ghost_vehicle):
         new_path = self.get_path(self.get_vehicle_path_uid(ghost_vehicle.uid))
@@ -504,8 +523,8 @@ class Model:
     def detect_nearby_vehicles(self, vehicle_uid):
         nearby_vehicles = []
         vehicle = self.get_vehicle(vehicle_uid)
+        own_x, own_y = self.get_vehicle_coordinates(vehicle_uid)
         for other_vehicle in self.vehicles:
-            own_x, own_y = self.get_vehicle_coordinates(vehicle_uid)
             other_x, other_y = self.get_vehicle_coordinates(other_vehicle.uid)
             distance = calculate_magnitude(
                 (own_x - other_x), (own_y - other_y))
@@ -515,6 +534,17 @@ class Model:
         return nearby_vehicles
 
     def detect_collisions(self):
+        shapely_vehicles = []
+        for vehicle in self.vehicles:
+            shapely_vehicles.append(Polygon(self.get_corner_points(vehicle)))
+
+        for v1_index in range(len(shapely_vehicles)):
+            for v2_index in range(v1_index + 1, len(shapely_vehicles)):
+                if shapely_vehicles[v1_index].intersects(shapely_vehicles[v2_index]):
+                    return True
+        return False
+
+    def determine_cars_collided(self):
         collisions = []
         for vehicle in self.vehicles:
             nearby_vehicles = self.detect_nearby_vehicles(vehicle.uid)
@@ -620,11 +650,9 @@ class Model:
         for index, path_sequence in enumerate(path_sequences):
             route_length = sum([self.get_path(path_uid).get_length() for path_uid in path_sequence])
             self.routes.append(Route(index + 1, path_sequence, route_length))
-            
 
     def get_route_uids(self):
         return [route.uid for route in self.routes]
-
 
     def get_routes_with_starting_node(self, node_uid):
         routes = []

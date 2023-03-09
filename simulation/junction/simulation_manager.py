@@ -6,15 +6,13 @@ from library.vehicles import Vehicle
 
 if system() == 'Windows':
     import sys
+    sys.path.append('../')
 
-    sys.path.append('./')
-
-from gym import Env
-from gym.spaces import Discrete, Box, Dict
+from gym.spaces import Discrete, Box
 import numpy as np
 from numpy import mean
 
-from simulation.simulation import Simulation
+from simulation.junction.simulation import Simulation
 
 
 class SimulationManager:
@@ -25,7 +23,6 @@ class SimulationManager:
 
         # Simulations
         self.simulation = Simulation(self.junction_file_path, self.config_file_path, self.visualiser_update_function)
-        # self.simulation.model.setup_fixed_spawning(3)
 
         # Actions
         self.number_of_possible_actions, self.action_space = self.calculate_actions()
@@ -47,12 +44,11 @@ class SimulationManager:
 
     def create_simulation(self):
         simulation = Simulation(self.junction_file_path, self.config_file_path, self.visualiser_update_function)
-        # simulation.model.setup_fixed_spawning(3)
         return simulation
 
     def calculate_actions(self):
         number_of_actions = 2 * len(self.simulation.model.lights) + 1
-        return number_of_actions, Discrete(number_of_actions)
+        return number_of_actions, list(range(number_of_actions))
 
     def reset(self):
         self.simulation = self.create_simulation()
@@ -61,7 +57,7 @@ class SimulationManager:
         self.wait_time = [0]
         self.wait_time_vehicle_limit = 20
 
-        return np.asarray(np.zeros(self.observation_space_size)).astype('float32')
+        return np.zeros(self.observation_space_size)
 
     def take_action(self, action_index):
         penalty = 0
@@ -151,7 +147,7 @@ class SimulationManager:
 
     def calculate_reward(self):
         reward = 100 - self.get_mean_wait_time() ** 2
-        if len(self.simulation.model.detect_collisions()) > 0:
+        if self.simulation.model.detect_collisions():
             reward -= 50000
         return reward
 
@@ -163,3 +159,33 @@ class SimulationManager:
 
     def get_lights(self):
         return self.simulation.model.get_lights()
+
+    # REWARD FUNCTIONS
+
+    def get_crash(self):
+        return 1 if self.simulation.model.detect_collisions() else 0
+
+    def get_number_of_vehicles_waiting(self):
+        number_of_cars_waiting = 0
+        for vehicle in self.simulation.model.vehicles:
+            if vehicle.get_speed() < self.waiting_speed:
+                number_of_cars_waiting += 1
+        return number_of_cars_waiting
+
+    def get_total_vehicle_wait_time(self):
+        return sum(self.wait_time)
+
+    def get_total_vehicle_wait_time_exp(self, exponent):
+        return self.get_total_vehicle_wait_time()**exponent
+
+    def get_mean_wait_time(self):
+        return mean(self.wait_time)
+
+    def get_mean_wait_time_exp(self, exponent):
+        return self.get_mean_wait_time()**exponent
+
+    def get_summed_speed_of_all_vehicles(self):
+        sum_car_speed = 0
+        for vehicle in self.simulation.model.vehicles:
+            sum_car_speed += vehicle.get_speed()
+        return sum_car_speed
