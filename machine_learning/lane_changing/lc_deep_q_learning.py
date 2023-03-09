@@ -8,7 +8,8 @@ if system() == 'Windows':
 
 import os
 import sys
-from simulation.junction.simulation_manager import SimulationManager
+from simulation.lane_changing.lc_simulation_manager import SimulationManager
+from gui.junction_visualiser import JunctionVisualiser
 from analysis_tools.graph_ml_progress import Graph
 from time import sleep
 
@@ -333,66 +334,18 @@ class MachineLearning:
                 # self.step_simulation()
 
                 # Compute metrics used to get state and calculate reward
-                self.compute_simulation_metrics()
+                # self.compute_simulation_metrics()
 
                 # Calculate reward
-                reward = self.calculate_reward(action_penalty, step)
+                # reward = self.calculate_reward(action_penalty, step)
 
                 # Update reward
-                self.all_time_reward += reward
-                episode_reward += reward
+                # self.all_time_reward += reward
+                # episode_reward += reward
 
                 # Determine if episode is over
                 if self.end_episode(episode, episode_reward, step):
                     break
-
-    def play(self):
-        global keyboard_input
-        keyboard_input = [False for _ in range(4)]
-
-        def on_press(key):
-            global keyboard_input
-            keyboard_input[int(key.char)-1] = True
-
-        def on_release(key):
-            global keyboard_input
-            keyboard_input[int(key.char)-1] = False
-
-        with keyboard.Listener(on_press=on_press, on_release=on_release) as listener:
-            self.simulation_manager.reset()
-            total_reward = 0
-            step = 0
-            while total_reward > -500000:
-                step += 1
-
-                # Select an action
-                if True in keyboard_input:
-                    action_index = keyboard_input.index(True) + 1
-                else:
-                    action_index = 0
-
-                # Take an action
-                action_penalty = self.take_action(action_index)
-
-                # Run simulation 1 step
-                self.step_simulation(visualiser_on=True, visualiser_sleep_time=0.01)
-
-                # Compute metrics used to get state and calculate reward
-                self.compute_simulation_metrics()
-
-                # Calculate reward
-                reward = self.calculate_reward(action_penalty, step)
-
-                # Update reward
-                self.all_time_reward += reward
-                total_reward += reward
-
-                sys.stdout.write("\r{0}".format(str(step)))
-                sys.stdout.write("\r{0}".format(str(total_reward)))
-                sys.stdout.flush()
-
-                # print(f"Step: {i} ({total_reward})")
-            listener.join()
 
     def run(self):
         state = np.array(self.simulation_manager.reset())
@@ -432,27 +385,27 @@ class MachineLearning:
 
 if __name__ == "__main__":
     # Reference Files
-    junction_file_path = os.path.join(os.path.dirname(os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))))), "junctions", "cross_road.junc")
+    junction_file_path = os.path.join(os.path.dirname(os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))))), "junctions", "lanes.junc")
     configuration_file_path = os.path.join(os.path.dirname(os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))))), "configurations", "cross_road.config")
 
-    # # Settings
-    # scale = 50
+    # Settings
+    scale = 25
 
-    # # Visualiser Init
-    # visualiser = JunctionVisualiser()
+    # Visualiser Init
+    visualiser = JunctionVisualiser()
 
     # Simulation
     machine_learning = MachineLearning(junction_file_path, configuration_file_path)
 
     # machine_learning.random()
-    machine_learning.train()
+    # machine_learning.train()
     # machine_learning.save()
 
-    # # Visualiser Setup
-    # visualiser.define_main(machine_learning.train)
-    # visualiser.load_junction(junction_file_path)
-    # visualiser.set_scale(scale)
-    #
-    # # Run Simulation
-    # visualiser.open()
+    # Visualiser Setup
+    visualiser.define_main(machine_learning.random)
+    visualiser.load_junction(junction_file_path)
+    visualiser.set_scale(scale)
+
+    # Run Simulation
+    visualiser.open()
 

@@ -54,7 +54,7 @@ class Simulation:
 
         # Remove finished vehicles
         self.model.remove_finished_vehicles()
-        self.collision = True if len(self.model.detect_collisions()) > 0 else False
+        self.collision = self.model.detect_collisions()
 
         # Update vehicle position
         self.vehicle_data = []
@@ -67,7 +67,7 @@ class Simulation:
             vehicle.update(self.model.tick_time, object_ahead, delta_distance_ahead, curvature)
             vehicle.update_position_data([coord_x, coord_y])
 
-            self.vehicle_data.append([coord_x, coord_y, angle, vehicle.length, vehicle.width, vehicle.uid])
+            self.vehicle_data.append([coord_x, coord_y, angle, vehicle.length, vehicle.width])
 
         # Remove finished vehicles
         self.model.remove_finished_vehicles()
@@ -110,6 +110,7 @@ if __name__ == "__main__":
 
     # Simulation
     simulation = Simulation(junction_file_path, configuration_file_path, visualiser.update)
+    simulation.model.setup_fixed_spawning(1)
 
     # Visualiser Setup
     visualiser.define_main(partial(simulation.run_continuous, speed_multiplier))

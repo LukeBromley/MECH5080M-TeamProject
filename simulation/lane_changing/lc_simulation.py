@@ -26,9 +26,15 @@ class Simulation:
 
         # Visualiser
         self.visualiser_update_function = visualiser_update_function
+
+        # Highlight Vehicles
+        self.highlight_vehicles = []
     
     def get_last_vehicle_uid_spawned(self):
-        return self.model.vehicles[-1].uid
+        if len(self.model.vehicles) > 0:
+            return self.model.vehicles[-1].uid
+        else:
+            return None
     
     def run_continuous(self, speed_multiplier=None):
         for tick in range(self.model.config.simulation_duration):
@@ -53,7 +59,7 @@ class Simulation:
 
         # Remove finished vehicles
         self.model.remove_finished_vehicles()
-        self.collision = True if len(self.model.detect_collisions()) > 0 else False
+        self.collision = self.model.detect_collisions()
 
         # Update vehicle position
         self.vehicle_data = []
@@ -72,7 +78,10 @@ class Simulation:
             if vehicle.changing_lane:
                 self.vehicle_data.append([coord_x, coord_y])
             else:
-                self.vehicle_data.append([coord_x, coord_y, angle, vehicle.length, vehicle.width])
+                if vehicle.uid in self.highlight_vehicles:
+                    self.vehicle_data.append([coord_x, coord_y, angle, vehicle.length, vehicle.width, None])
+                else:
+                    self.vehicle_data.append([coord_x, coord_y, angle, vehicle.length, vehicle.width])
 
         # Remove finished vehicles
         self.model.remove_finished_vehicles()
@@ -101,7 +110,8 @@ class Simulation:
         )
 
     def change_lane(self, vehicle_uid):
-        self.model.change_vehicle_lane(vehicle_uid, self.model.calculate_time_of_day())
+        if self.model.is_lane_change_required(vehicle_uid):
+            self.model.change_vehicle_lane(vehicle_uid, self.model.calculate_time_of_day())
 
 
 if __name__ == "__main__":

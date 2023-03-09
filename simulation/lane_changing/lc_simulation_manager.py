@@ -76,6 +76,7 @@ class SimulationManager:
         while (simulation.get_last_vehicle_uid_spawned() != last_car):
             simulation.run_single_iteration()
         self.vehicle_uid = simulation.get_last_vehicle_uid_spawned()
+        simulation.highlight_vehicles.append(self.vehicle_uid)
         return simulation
 
     def reset(self):
@@ -134,9 +135,17 @@ class SimulationManager:
         return reward
 
     def get_state(self):
+        distance_to_end_of_path = self.get_distance_to_end_of_path(self.vehicle_uid)
+        distance_to_vehicle_in_front, vehicle_in_front = self.get_distance_to_vehicle_in_front_of_change_location(self.vehicle_uid)
+        distance_to_vehicle_behind, vehicle_behind = self.get_distance_to_vehicle_behind_change_location(self.vehicle_uid)
+
         return np.array(
             [
-                self.get_distance_to_end_of_path(self.vehicle_uid)
+                distance_to_end_of_path,
+                distance_to_vehicle_in_front,
+                distance_to_vehicle_behind,
+                vehicle_in_front.get_speed(),
+                vehicle_behind.get_speed()
             ]
         )
 
@@ -148,24 +157,38 @@ class SimulationManager:
         return path_length - distance_traveled
 
     def get_distance_to_vehicle_in_front_of_change_location(self, vehicle_uid):
-        this_vehicle_path_distance_travelled = self.simulation.model.get_vehicle_path_length_after_lane_change(vehicle_uid)
-
+        path_distance_after_lane_change = self.simulation.model.get_vehicle_path_length_after_lane_change(vehicle_uid)
+        path_uid_after_lane_change = self.simulation.model.get_vehicle_next_path_uid(vehicle_uid)
 
         # Search the current path
         min_path_distance_travelled = float('inf')
         for that_vehicle in self.simulation.model.vehicles:
-            that_path = self.simulation.model.get_path(self.simulation.model.get_route(that_vehicle.get_route_uid()).get_path_uid(that_vehicle.get_path_index()))
+            that_path_uid = self.simulation.model.get_route(that_vehicle.get_route_uid()).get_path_uid(that_vehicle.get_path_index())
             that_vehicle_path_distance_travelled = that_vehicle.get_path_distance_travelled()
-
-            if that_path.uid == this_path.uid and min_path_distance_travelled > that_vehicle_path_distance_travelled > this_vehicle_path_distance_travelled:
+            if that_path_uid == path_uid_after_lane_change and min_path_distance_travelled > that_vehicle_path_distance_travelled > path_distance_after_lane_change:
                 min_path_distance_travelled = that_vehicle_path_distance_travelled
-                object_ahead = that_vehicle
 
+        return min_path_distance_travelled, that_vehicle
+
+    def get_distance_to_vehicle_behind_change_location(self, vehicle_uid):
+        path_distance_after_lane_change = self.simulation.model.get_vehicle_path_length_after_lane_change(vehicle_uid)
+        path_uid_after_lane_change = self.simulation.model.get_vehicle_next_path_uid(vehicle_uid)
+
+        # Search the current path
+        max_path_distance_travelled = 0
+        for that_vehicle in self.simulation.model.vehicles:
+            that_path_uid = self.simulation.model.get_route(that_vehicle.get_route_uid()).get_path_uid(
+                that_vehicle.get_path_index())
+            that_vehicle_path_distance_travelled = that_vehicle.get_path_distance_travelled()
+            if that_path_uid == path_uid_after_lane_change and path_distance_after_lane_change > that_vehicle_path_distance_travelled > max_path_distance_travelled:
+                max_path_distance_travelled = that_vehicle_path_distance_travelled
+
+        return max_path_distance_travelled, that_vehicle
 
     # REWARD FUNCTIONS
 
     def get_crash(self):
-        return 1 if len(self.simulation.model.detect_collisions()) > 0 else 0
+        return 1 if self.simulation.model.detect_collisions() else 0
 
     def get_number_of_vehicles_waiting(self):
         number_of_cars_waiting = 0
