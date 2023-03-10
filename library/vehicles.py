@@ -8,7 +8,7 @@ class Vehicle:
     def __init__(self, route_uid: int, start_time: float = 0.0, uid: int = 0,
                  speed: float = 0.0, acceleration: float = 0.0,
                  direction: float = 0.0, sensing_radius: float = 0.0,
-                 maximum_acceleration: float = 9.81, maximum_deceleration: float = 6.0,
+                 maximum_acceleration: float = 1.5, maximum_deceleration: float = 2.0,
                  maximum_speed: float = 20.0, minimum_speed: float = -20.0,
                  distance_travelled: float = 0.0, preferred_time_gap: float = 2.0,
                  length: float = 4.4, width: float = 1.82,
@@ -32,7 +32,6 @@ class Vehicle:
         :param vehicle_length: length of the vehicle [m]
         :param vehicle_width: width of the vehicle [m]
         """
-
         self.uid = uid
         self.route_uid = route_uid
         self.start_time = start_time

@@ -27,7 +27,7 @@ class Simulation:
         # Visualiser
         self.visualiser_update_function = visualiser_update_function
 
-        self.freeze_traffic(200)
+        self.freeze_traffic(150)
 
     def freeze_traffic(self, n: int):
         for light in self.model.lights:

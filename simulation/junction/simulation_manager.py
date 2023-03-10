@@ -155,16 +155,10 @@ class SimulationManager:
         else:
             return 0.0
 
-    def get_sum_wait_time(self):
-        if self.wait_time:
-            return sum(self.wait_time)
-        else:
-            return 0.0
-
     def calculate_reward(self):
-        reward = 100 - self.get_mean_wait_time() ** 2
+        reward = 300 - self.get_mean_wait_time() ** 2
         if self.simulation.model.detect_collisions():
-            reward -= 50000
+            reward -= 100000
         return reward
 
     def get_lights(self):

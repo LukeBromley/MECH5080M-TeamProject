@@ -41,8 +41,8 @@ class MachineLearning:
         # TRAINING LIMITS
         self.max_steps_per_episode = 499  # Maximum number of steps allowed per episode
         self.episode_end_reward = -float('inf')  # Single episode total reward minimum threshold to end episode
-        self.solved_mean_reward = 25000  # Single episode total reward minimum threshold to consider ML trained
-        self.reward_history_limit = 20
+        self.solved_mean_reward = 20000  # Single episode total reward minimum threshold to consider ML trained
+        self.reward_history_limit = 30
 
         # TAKING AN ACTION
         # Random action
@@ -69,13 +69,13 @@ class MachineLearning:
         self.episode_reward_history = []
 
         # Steps to look into the future to determine the mean reward. Should match T = 1/(1-gamma)
-        self.steps_to_look_into_the_future = 20
+        self.steps_to_look_into_the_future = 15
 
         # Sample Size
-        self.sample_size = 128  # Size of batch taken from replay buffer
+        self.sample_size = 48  # Size of batch taken from replay buffer
 
         # Discount factor
-        self.gamma = 0.99  # Discount factor for past rewards
+        self.gamma = 0.995  # Discount factor for past rewards
 
         # Maximum replay buffer length
         # Note: The Deepmind paper suggests 1000000 however this causes memory issues
@@ -89,7 +89,7 @@ class MachineLearning:
         # OTHER
 
         # Train the model after 4 actions
-        self.update_after_actions = 4
+        self.update_after_actions = 8
 
         # How often to update the target network
         self.update_target_network = 5000
@@ -263,8 +263,12 @@ class MachineLearning:
                 simulation_manager_copy.compute_simulation_metrics()
                 future_rewards.append(simulation_manager_copy.calculate_reward())
 
-            sum_wait_time_gradient = simulation_manager_copy.get_sum_wait_time() - self.simulation_manager.get_sum_wait_time()
-            return np.mean(future_rewards) - action_penalty - sum_wait_time_gradient ** 2
+            wait_time_gradient = simulation_manager_copy.get_mean_wait_time() - self.simulation_manager.get_mean_wait_time()
+            if wait_time_gradient > 0:
+                wait_time_reward = -wait_time_gradient**2
+            else:
+                wait_time_reward = wait_time_gradient**2
+            return np.mean(future_rewards) - action_penalty + wait_time_reward
         else:
             self.simulation_manager.compute_simulation_metrics()
             return self.simulation_manager.calculate_reward() - action_penalty
@@ -351,6 +355,7 @@ class MachineLearning:
         def on_release(key):
             global keyboard_input
             keyboard_input[int(key.char)-1] = False
+
 
         with keyboard.Listener(on_press=on_press, on_release=on_release) as listener:
             self.simulation_manager.reset()
@@ -504,15 +509,15 @@ if __name__ == "__main__":
     # machine_learning = MachineLearning(junction_file_path, configuration_file_path, visualiser.update)
     machine_learning = MachineLearning(junction_file_path, configuration_file_path, None)
     #
-    machine_learning.random()
-    # machine_learning.train()
+    # machine_learning.random()
+    machine_learning.train()
     # machine_learning.test()
 
     # # Visualiser Setup
     # visualiser.define_main(machine_learning.play)
     # visualiser.load_junction(junction_file_path)
     # visualiser.set_scale(scale)
-    #
+    # #
     # # Run Simulation
     # visualiser.open()
 
