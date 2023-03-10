@@ -268,7 +268,7 @@ class MachineLearning:
                 wait_time_reward = -wait_time_gradient**2
             else:
                 wait_time_reward = wait_time_gradient**2
-            return np.mean(future_rewards) - action_penalty + wait_time_reward
+            return np.mean(future_rewards) - (action_penalty + wait_time_reward) / 100000
         else:
             self.simulation_manager.compute_simulation_metrics()
             return self.simulation_manager.calculate_reward() - action_penalty
