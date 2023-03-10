@@ -3,6 +3,7 @@ from platform import system
 
 from library.infrastructure import TrafficLight
 from library.vehicles import Vehicle
+from itertools import chain
 
 if system() == 'Windows':
     import sys
@@ -28,8 +29,8 @@ class SimulationManager:
         self.number_of_possible_actions, self.action_space = self.calculate_actions()
 
         # Metrics
-        self.wait_time = None
-        self.wait_time_vehicle_limit = None
+        self.wait_time = []
+
         # TODO: Soft code the id's
         self.light_controlled_path_uids = [1, 4]
 
@@ -52,10 +53,7 @@ class SimulationManager:
 
     def reset(self):
         self.simulation = self.create_simulation()
-
-        # # State
-        self.wait_time = [0]
-        self.wait_time_vehicle_limit = 20
+        self.wait_time = []
 
         return np.zeros(self.observation_space_size)
 
@@ -114,7 +112,13 @@ class SimulationManager:
             route = self.simulation.model.get_route(vehicle.get_route_uid())
             path_uid = route.get_path_uid(vehicle.get_path_index())
             if path_uid in self.light_controlled_path_uids:
-                path_inputs[self.light_controlled_path_uids.index(path_uid)] += self.get_vehicle_state(vehicle)
+                path_inputs[self.light_controlled_path_uids.index(path_uid)].append(self.get_vehicle_state(vehicle))
+
+        # Sort and flatten the inputs by distance travelled
+        for index, path_input in enumerate(path_inputs):
+            sorted_path_input = sorted(path_input, key=lambda features: features[0], reverse=True)
+            flattened_path_input = list(chain.from_iterable(sorted_path_input))
+            path_inputs[index] = flattened_path_input
 
         for path_input in path_inputs:
             inputs += self.pad_state_input(path_input)
@@ -138,24 +142,30 @@ class SimulationManager:
         return state_input
 
     def compute_simulation_metrics(self):
-        for vehicle in self.simulation.model.removed_vehicles:
-            self.wait_time.append(vehicle.wait_time)
-
         for vehicle in self.simulation.model.vehicles:
             if vehicle.get_speed() < 5:
                 vehicle.add_wait_time(self.simulation.model.tick_time)
+            else:
+                vehicle.wait_time = 0.0
+        self.wait_time = [vehicle.wait_time for vehicle in self.simulation.model.vehicles]
+
+    def get_mean_wait_time(self):
+        if self.wait_time:
+            return mean(self.wait_time)
+        else:
+            return 0.0
+
+    def get_sum_wait_time(self):
+        if self.wait_time:
+            return sum(self.wait_time)
+        else:
+            return 0.0
 
     def calculate_reward(self):
         reward = 100 - self.get_mean_wait_time() ** 2
         if self.simulation.model.detect_collisions():
             reward -= 50000
         return reward
-
-    def get_mean_wait_time(self):
-        return mean(self.wait_time[-self.wait_time_vehicle_limit:])
-
-    def get_sum_wait_time(self):
-        return sum(self.wait_time)
 
     def get_lights(self):
         return self.simulation.model.get_lights()
@@ -177,12 +187,6 @@ class SimulationManager:
 
     def get_total_vehicle_wait_time_exp(self, exponent):
         return self.get_total_vehicle_wait_time()**exponent
-
-    def get_mean_wait_time(self):
-        return mean(self.wait_time)
-
-    def get_mean_wait_time_exp(self, exponent):
-        return self.get_mean_wait_time()**exponent
 
     def get_summed_speed_of_all_vehicles(self):
         sum_car_speed = 0

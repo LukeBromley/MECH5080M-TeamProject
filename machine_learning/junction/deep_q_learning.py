@@ -39,7 +39,7 @@ class MachineLearning:
         self.all_time_reward = 0  # Total reward over all episodes
 
         # TRAINING LIMITS
-        self.max_steps_per_episode = 100000  # Maximum number of steps allowed per episode
+        self.max_steps_per_episode = 499  # Maximum number of steps allowed per episode
         self.episode_end_reward = -float('inf')  # Single episode total reward minimum threshold to end episode
         self.solved_mean_reward = 25000  # Single episode total reward minimum threshold to consider ML trained
         self.reward_history_limit = 20
@@ -55,9 +55,9 @@ class MachineLearning:
 
         # Exploration
         # Number of steps of just random actions before the network can make some decisions
-        self.number_of_steps_of_required_exploration = 10000
+        self.number_of_steps_of_required_exploration = 1000
         # Number of steps over which epsilon greedy decays
-        self.number_of_steps_of_exploration_reduction = 50000
+        self.number_of_steps_of_exploration_reduction = 10000
 
         # REPLAY
         # Buffers
@@ -68,14 +68,14 @@ class MachineLearning:
         self.done_history = []
         self.episode_reward_history = []
 
-        # Steps to look into the future to determine the mean reward.
+        # Steps to look into the future to determine the mean reward. Should match T = 1/(1-gamma)
         self.steps_to_look_into_the_future = 20
 
         # Sample Size
-        self.sample_size = 28  # Size of batch taken from replay buffer
+        self.sample_size = 128  # Size of batch taken from replay buffer
 
         # Discount factor
-        self.gamma = 0.95  # Discount factor for past rewards
+        self.gamma = 0.99  # Discount factor for past rewards
 
         # Maximum replay buffer length
         # Note: The Deepmind paper suggests 1000000 however this causes memory issues
@@ -83,22 +83,25 @@ class MachineLearning:
 
         # OPTIMISING
         # Note: In the Deepmind paper they use RMSProp however then Adam optimizer
-        self.learning_rate = 0.0001  # 0.00025
+        self.learning_rate = 0.00001  # 0.00025
         self.optimizer = keras.optimizers.legacy.Adam(learning_rate=self.learning_rate, clipnorm=1.0)
 
         # OTHER
 
         # Train the model after 4 actions
-        self.update_after_actions = 10
+        self.update_after_actions = 4
 
         # How often to update the target network
-        self.update_target_network = 3000
+        self.update_target_network = 5000
 
         # Using huber loss for stability
         self.loss_function = keras.losses.Huber()
 
         # MACHINE LEARNING MODELS
-        self.ml_model_hidden_layers = [2 * self.simulation_manager.observation_space_size]
+        self.ml_model_hidden_layers = [
+            self.simulation_manager.observation_space_size,
+            self.simulation_manager.observation_space_size
+        ]
 
         # Makes the predictions for Q-values which are used to make a action.
         self.ml_model = self.create_q_learning_model(self.simulation_manager.observation_space_size, self.simulation_manager.number_of_possible_actions, self.ml_model_hidden_layers)
@@ -263,6 +266,7 @@ class MachineLearning:
             sum_wait_time_gradient = simulation_manager_copy.get_sum_wait_time() - self.simulation_manager.get_sum_wait_time()
             return np.mean(future_rewards) - action_penalty - sum_wait_time_gradient ** 2
         else:
+            self.simulation_manager.compute_simulation_metrics()
             return self.simulation_manager.calculate_reward() - action_penalty
 
     def end_episode(self, episode_reward, step):
@@ -367,7 +371,8 @@ class MachineLearning:
                 self.step_simulation(visualiser_on=True, visualiser_sleep_time=0.05)
 
                 # Update reward
-                self.all_time_reward += self.calculate_reward(action_penalty, predict=False)
+                reward = self.calculate_reward(action_penalty, predict=False)
+                self.all_time_reward += reward
 
                 if self.end_episode(self.all_time_reward, self.number_of_steps_taken):
                     break
@@ -378,7 +383,7 @@ class MachineLearning:
             listener.join()
 
     def random(self):
-        episode = 1
+        episode = 10
         for episode in range(1, episode + 1):
             # Reset the environment
             self.simulation_manager.reset()
@@ -392,10 +397,10 @@ class MachineLearning:
                 # Select an action
                 action_index = self.select_random_action()
                 # Take an action
-                action_penalty = self.take_action(0)
+                action_penalty = self.take_action(action_index)
 
                 # Run simulation 1 step
-                self.step_simulation(visualiser_on=True, visualiser_sleep_time=0)
+                self.step_simulation(visualiser_on=True, visualiser_sleep_time=0.0)
 
                 # Calculate reward
                 reward = self.calculate_reward(action_penalty, predict=False)
@@ -403,12 +408,16 @@ class MachineLearning:
                 # Update reward
                 self.all_time_reward += reward
 
+                # print(self.all_time_reward)
                 # Determine if episode is over
                 if self.end_episode(self.all_time_reward, self.number_of_steps_taken):
                     break
 
-                sys.stdout.write("\rstep: {0} / reward: {1}".format(str(self.number_of_steps_taken), str(self.all_time_reward)))
+                sys.stdout.write("\rrew: {0}".format(str(self.all_time_reward)))
                 sys.stdout.flush()
+
+                # sys.stdout.write("\rstep: {0} / reward: {1}".format(str(self.number_of_steps_taken), str(self.all_time_reward)))
+                # sys.stdout.flush()
 
     def test(self):
         model = keras.models.load_model('saved_model')
@@ -485,20 +494,20 @@ if __name__ == "__main__":
     junction_file_path = os.path.join(os.path.dirname(os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))))), "junctions", "cross_road.junc")
     configuration_file_path = os.path.join(os.path.dirname(os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))))), "configurations", "cross_road.config")
 
-    # # Settings
-    # scale = 50
+    # Settings
+    scale = 30
 
-    # # Visualiser Init
-    # visualiser = JunctionVisualiser()
+    # Visualiser Init
+    visualiser = JunctionVisualiser()
 
     # Simulation
     # machine_learning = MachineLearning(junction_file_path, configuration_file_path, visualiser.update)
     machine_learning = MachineLearning(junction_file_path, configuration_file_path, None)
-
+    #
     machine_learning.random()
     # machine_learning.train()
     # machine_learning.test()
-    #
+
     # # Visualiser Setup
     # visualiser.define_main(machine_learning.play)
     # visualiser.load_junction(junction_file_path)

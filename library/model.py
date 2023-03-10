@@ -31,8 +31,6 @@ class Model:
         self.routes_hash_table = {}
         self.spawners_hash_table = {}
 
-        self.removed_vehicles = []
-
         self.tick = 0
         self.tick_rate = None
         self.tick_time = None
@@ -349,7 +347,6 @@ class Model:
     
     def remove_finished_vehicles(self):
         vehicles_uids_to_remove = []
-        self.removed_vehicles = []
         for vehicle in self.vehicles:
             route = self.get_route(vehicle.get_route_uid())
             path = self.get_path(route.get_path_uid(vehicle.get_path_index()))
@@ -361,7 +358,6 @@ class Model:
                     vehicle.increment_path(vehicle.get_path_distance_travelled() - path.get_length())
 
         for vehicle_uid in vehicles_uids_to_remove:
-            self.removed_vehicles.append(self.vehicles[self.get_vehicle_index(vehicle_uid)])
             self.remove_vehicle(vehicle_uid)
 
     def get_object_ahead(self, vehicle_uid):
