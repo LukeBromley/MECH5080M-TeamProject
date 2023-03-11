@@ -39,14 +39,15 @@ class MachineLearning:
         self.all_time_reward = 0  # Total reward over all episodes
 
         # TRAINING LIMITS
-        self.max_steps_per_episode = 499  # Maximum number of steps allowed per episode
-        self.episode_end_reward = -float('inf')  # Single episode total reward minimum threshold to end episode
-        self.solved_mean_reward = 20000  # Single episode total reward minimum threshold to consider ML trained
+        self.max_steps_per_episode = 10000  # Maximum number of steps allowed per episode
+        self.episode_end_reward = -10  # Single episode total reward minimum threshold to end episode
+        self.solved_mean_reward = 100  # Single episode total reward minimum threshold to consider ML trained
         self.reward_history_limit = 30
 
         # TAKING AN ACTION
         # Random action
-        self.random_action_selection_probabilities = [0.9, 0.025, 0.025, 0.025, 0.025]
+        # self.random_action_selection_probabilities = [0.9, 0.025, 0.025, 0.025, 0.025]
+        self.random_action_selection_probabilities = [0.2 for _ in range(5)]
 
         # Probability of selecting a random action
         self.epsilon_greedy_min = 0.1  # Minimum probability of selecting a random action
@@ -57,7 +58,7 @@ class MachineLearning:
         # Number of steps of just random actions before the network can make some decisions
         self.number_of_steps_of_required_exploration = 1000
         # Number of steps over which epsilon greedy decays
-        self.number_of_steps_of_exploration_reduction = 10000
+        self.number_of_steps_of_exploration_reduction = 5000
 
         # REPLAY
         # Buffers
@@ -69,13 +70,15 @@ class MachineLearning:
         self.episode_reward_history = []
 
         # Steps to look into the future to determine the mean reward. Should match T = 1/(1-gamma)
-        self.steps_to_look_into_the_future = 15
+
+        self.seconds_to_look_into_the_future = 2
+        self.steps_to_look_into_the_future = int(self.seconds_to_look_into_the_future / self.simulation_manager.simulation.model.tick_time)
 
         # Sample Size
         self.sample_size = 48  # Size of batch taken from replay buffer
 
         # Discount factor
-        self.gamma = 0.995  # Discount factor for past rewards
+        self.gamma = 0.97  # Discount factor for past rewards
 
         # Maximum replay buffer length
         # Note: The Deepmind paper suggests 1000000 however this causes memory issues
@@ -98,10 +101,7 @@ class MachineLearning:
         self.loss_function = keras.losses.Huber()
 
         # MACHINE LEARNING MODELS
-        self.ml_model_hidden_layers = [
-            self.simulation_manager.observation_space_size,
-            self.simulation_manager.observation_space_size
-        ]
+        self.ml_model_hidden_layers = [48]
 
         # Makes the predictions for Q-values which are used to make a action.
         self.ml_model = self.create_q_learning_model(self.simulation_manager.observation_space_size, self.simulation_manager.number_of_possible_actions, self.ml_model_hidden_layers)
@@ -254,6 +254,8 @@ class MachineLearning:
             self.simulation_manager.compute_simulation_metrics()
 
     def calculate_reward(self, action_penalty, predict: bool = True):
+        # TODO: Uncomment
+        action_penalty = 0
         if predict:
             simulation_manager_copy = copy.deepcopy(self.simulation_manager)
             future_rewards = [self.simulation_manager.calculate_reward()]
@@ -263,12 +265,13 @@ class MachineLearning:
                 simulation_manager_copy.compute_simulation_metrics()
                 future_rewards.append(simulation_manager_copy.calculate_reward())
 
-            wait_time_gradient = simulation_manager_copy.get_mean_wait_time() - self.simulation_manager.get_mean_wait_time()
+            wait_time_gradient = 10 * (simulation_manager_copy.get_mean_wait_time() - self.simulation_manager.get_mean_wait_time())
             if wait_time_gradient > 0:
                 wait_time_reward = -wait_time_gradient**2
             else:
                 wait_time_reward = wait_time_gradient**2
-            return np.mean(future_rewards) - (action_penalty + wait_time_reward) / 100000
+            future_rewards = -10 if min(future_rewards) < -9 else 0
+            return future_rewards - (action_penalty + wait_time_reward) / 1000
         else:
             self.simulation_manager.compute_simulation_metrics()
             return self.simulation_manager.calculate_reward() - action_penalty

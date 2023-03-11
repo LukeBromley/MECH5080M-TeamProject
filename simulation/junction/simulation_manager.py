@@ -156,10 +156,10 @@ class SimulationManager:
             return 0.0
 
     def calculate_reward(self):
-        reward = 300 - self.get_mean_wait_time() ** 2
+        reward = 100 - self.get_mean_wait_time()**2
         if self.simulation.model.detect_collisions():
-            reward -= 100000
-        return reward / 10000
+            reward -= 10000
+        return reward / 1000
 
     def get_lights(self):
         return self.simulation.model.get_lights()
