@@ -40,7 +40,7 @@ class MachineLearning:
 
         # TRAINING LIMITS
         self.max_steps_per_episode = 10000  # Maximum number of steps allowed per episode
-        self.episode_end_reward = -10  # Single episode total reward minimum threshold to end episode
+        self.episode_end_reward = -25  # Single episode total reward minimum threshold to end episode
         self.solved_mean_reward = 100  # Single episode total reward minimum threshold to consider ML trained
         self.reward_history_limit = 30
 
