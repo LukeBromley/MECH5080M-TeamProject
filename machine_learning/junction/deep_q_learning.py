@@ -47,7 +47,7 @@ class MachineLearning:
         # TAKING AN ACTION
         # Random action
         # self.random_action_selection_probabilities = [0.9, 0.025, 0.025, 0.025, 0.025]
-        self.random_action_selection_probabilities = [0.2 for _ in range(5)]
+        self.random_action_selection_probabilities = [0.25 for _ in range(4)]
 
         # Probability of selecting a random action
         self.epsilon_greedy_min = 0.1  # Minimum probability of selecting a random action

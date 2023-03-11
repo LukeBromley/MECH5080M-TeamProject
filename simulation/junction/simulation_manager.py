@@ -48,7 +48,7 @@ class SimulationManager:
         return simulation
 
     def calculate_actions(self):
-        number_of_actions = 2 * len(self.simulation.model.lights) + 1
+        number_of_actions = 4 #2 * len(self.simulation.model.lights) + 1
         return number_of_actions, list(range(number_of_actions))
 
     def reset(self):
@@ -60,31 +60,35 @@ class SimulationManager:
     def take_action(self, action_index):
         penalty = 0
         if action_index == 0:
-            pass
+            self.simulation.model.lights[0].set_green()
+            self.simulation.model.lights[1].set_green()
         elif action_index == 1:
             self.simulation.model.lights[0].set_red()
+            self.simulation.model.lights[1].set_green()
             # if light.colour == "green":
             #     light.set_red()
             # else:
             #     penalty = 1000
         elif action_index == 2:
             self.simulation.model.lights[1].set_red()
+            self.simulation.model.lights[0].set_green()
             # if light.colour == "green":
             #     light.set_red()
             # else:
             #     penalty = 1000
         elif action_index == 3:
-            self.simulation.model.lights[0].set_green()
+            self.simulation.model.lights[0].set_red()
+            self.simulation.model.lights[1].set_red()
             # if light.colour == "red":
             #     light.set_green()
             # else:
             #     penalty = 1000
-        elif action_index == 4:
-            self.simulation.model.lights[1].set_green()
-            # if light.colour == "red":
-            #     light.set_green()
-            # else:
-            #     penalty = 1000
+        # elif action_index == 4:
+        #     self.simulation.model.lights[1].set_green()
+        #     # if light.colour == "red":
+        #     #     light.set_green()
+        #     # else:
+        #     #     penalty = 1000
         return penalty
 
     def get_vehicle_state(self, vehicle: Vehicle):
