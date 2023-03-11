@@ -62,29 +62,29 @@ class SimulationManager:
         if action_index == 0:
             pass
         elif action_index == 1:
-            light = self.simulation.model.lights[0]
-            if light.colour == "green":
-                light.set_red()
-            else:
-                penalty = 1000
+            self.simulation.model.lights[0].set_red()
+            # if light.colour == "green":
+            #     light.set_red()
+            # else:
+            #     penalty = 1000
         elif action_index == 2:
-            light = self.simulation.model.lights[1]
-            if light.colour == "green":
-                light.set_red()
-            else:
-                penalty = 1000
+            self.simulation.model.lights[1].set_red()
+            # if light.colour == "green":
+            #     light.set_red()
+            # else:
+            #     penalty = 1000
         elif action_index == 3:
-            light = self.simulation.model.lights[0]
-            if light.colour == "red":
-                light.set_green()
-            else:
-                penalty = 1000
+            self.simulation.model.lights[0].set_green()
+            # if light.colour == "red":
+            #     light.set_green()
+            # else:
+            #     penalty = 1000
         elif action_index == 4:
-            light = self.simulation.model.lights[1]
-            if light.colour == "red":
-                light.set_green()
-            else:
-                penalty = 1000
+            self.simulation.model.lights[1].set_green()
+            # if light.colour == "red":
+            #     light.set_green()
+            # else:
+            #     penalty = 1000
         return penalty
 
     def get_vehicle_state(self, vehicle: Vehicle):

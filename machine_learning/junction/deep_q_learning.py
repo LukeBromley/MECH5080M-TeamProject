@@ -40,7 +40,7 @@ class MachineLearning:
 
         # TRAINING LIMITS
         self.max_steps_per_episode = 10000  # Maximum number of steps allowed per episode
-        self.episode_end_reward = -25  # Single episode total reward minimum threshold to end episode
+        self.episode_end_reward = -50  # Single episode total reward minimum threshold to end episode
         self.solved_mean_reward = 100  # Single episode total reward minimum threshold to consider ML trained
         self.reward_history_limit = 30
 
@@ -56,9 +56,12 @@ class MachineLearning:
 
         # Exploration
         # Number of steps of just random actions before the network can make some decisions
-        self.number_of_steps_of_required_exploration = 1000
+        self.number_of_steps_of_required_exploration = 5000
         # Number of steps over which epsilon greedy decays
-        self.number_of_steps_of_exploration_reduction = 5000
+        self.number_of_steps_of_exploration_reduction = 25000
+        # How often to update the target network
+        self.update_target_network = 1000
+
 
         # REPLAY
         # Buffers
@@ -93,9 +96,6 @@ class MachineLearning:
 
         # Train the model after 4 actions
         self.update_after_actions = 8
-
-        # How often to update the target network
-        self.update_target_network = 5000
 
         # Using huber loss for stability
         self.loss_function = keras.losses.Huber()
