@@ -56,9 +56,9 @@ class MachineLearning:
 
         # Exploration
         # Number of steps of just random actions before the network can make some decisions
-        self.number_of_steps_of_required_exploration = 5000
+        self.number_of_steps_of_required_exploration = 500
         # Number of steps over which epsilon greedy decays
-        self.number_of_steps_of_exploration_reduction = 25000
+        self.number_of_steps_of_exploration_reduction = 5000
         # How often to update the target network
         self.update_target_network = 1000
 
@@ -192,13 +192,12 @@ class MachineLearning:
                     # Backpropagation
                     grads = tape.gradient(loss, self.ml_model.trainable_variables)
                     self.optimizer.apply_gradients(zip(grads, self.ml_model.trainable_variables))
-
                 if self.number_of_steps_taken % self.update_target_network == 0:
                     # update the target network with new weights
                     self.ml_model_target.set_weights(self.ml_model.get_weights())
                     # Log details
                     template = " =============== running reward: {:.2f} at episode {}, frame count {} ================"
-                    print(template.format(self.get_mean_reward(episode_reward), self.episode_count, self.number_of_steps_taken))
+                    print(template.format(self.get_mean_reward(), self.episode_count, self.number_of_steps_taken))
 
                 # Delete old buffer values
                 self.delete_old_replay_buffer_values()
@@ -206,9 +205,10 @@ class MachineLearning:
                 if done:
                     break
 
+            self.episode_reward_history.append(episode_reward)
             self.episode_count += 1
 
-            if self.solved(self.get_mean_reward(episode_reward)):
+            if self.solved(self.get_mean_reward()):
                 self.ml_model_target.save("saved_model")
                 break
 
@@ -328,17 +328,8 @@ class MachineLearning:
             del self.action_history[:1]
             del self.done_history[:1]
 
-    def get_mean_reward(self, episode_reward):
-        self.save_reward_history(episode_reward)
-        self.delete_old_reward_history()
-        return np.mean(self.episode_reward_history)
-
-    def save_reward_history(self, episode_reward):
-        self.episode_reward_history.append(episode_reward)
-
-    def delete_old_reward_history(self):
-        if len(self.episode_reward_history) > self.reward_history_limit:
-            del self.episode_reward_history[:1]
+    def get_mean_reward(self):
+        return np.mean(self.episode_reward_history[-self.reward_history_limit:])
 
     def solved(self, mean_reward):
         if mean_reward > self.solved_mean_reward:  # Condition to consider the task solved
