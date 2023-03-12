@@ -77,8 +77,6 @@ class Simulation:
             vehicle.update_position_data([coord_x, coord_y])
             self.vehicle_data.append([coord_x, coord_y, angle, vehicle.length, vehicle.width, vehicle.uid])
 
-            self.vehicle_data.append([coord_x, coord_y, angle, vehicle.length, vehicle.width])
-
         # Remove finished vehicles
         self.model.remove_finished_vehicles()
 

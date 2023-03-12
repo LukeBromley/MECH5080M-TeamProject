@@ -35,12 +35,11 @@ class SimulationManager:
         self.light_controlled_path_uids = [1, 4]
 
         # Inputs / States
-        self.features_per_state_input = 2
-        self.number_of_tracked_vehicles_per_path = 6
-        self.observation_space_size = self.features_per_state_input * len(self.light_controlled_path_uids) * (1 + self.number_of_tracked_vehicles_per_path)
+        self.features_per_state_input = 3
+        self.number_of_tracked_vehicles_per_path = 5
+        self.observation_space_size = self.features_per_state_input * len(self.light_controlled_path_uids) * (0 + self.number_of_tracked_vehicles_per_path)
         # TODO: Initialize separate boxes by argmax for different inputs
-        self.observation_space = Box(0, 30, shape=(1, self.observation_space_size), dtype=float)
-
+        self.observation_space = Box(0, 50, shape=(1, self.observation_space_size), dtype=float)
         self.reset()
 
     def create_simulation(self):
@@ -49,7 +48,7 @@ class SimulationManager:
 
     def calculate_actions(self):
         number_of_actions = 4 #2 * len(self.simulation.model.lights) + 1
-        return number_of_actions, list(range(number_of_actions))
+        return number_of_actions, Discrete(number_of_actions)
 
     def reset(self):
         self.simulation = self.create_simulation()
@@ -94,8 +93,8 @@ class SimulationManager:
     def get_vehicle_state(self, vehicle: Vehicle):
         return [
             vehicle.get_path_distance_travelled(),
-            vehicle.get_speed()
-            # vehicle.wait_time
+            vehicle.get_speed(),
+            vehicle.wait_time
             # vehicle.get_length(),
             # vehicle.get_acceleration()
         ]
@@ -108,8 +107,8 @@ class SimulationManager:
 
     def get_state(self):
         inputs = []
-        for light in self.simulation.model.lights:
-            inputs += self.get_traffic_light_state(light)
+        # for light in self.simulation.model.lights:
+        #     inputs += self.get_traffic_light_state(light)
 
         path_inputs = [[] for _ in self.light_controlled_path_uids]
         for vehicle in self.simulation.model.vehicles:
@@ -130,9 +129,10 @@ class SimulationManager:
         return inputs
 
     def pad_state_input(self, state_input: list):
-        # TODO: Soft code the traffic light state size
-        state_input = state_input[0: self.features_per_state_input * self.number_of_tracked_vehicles_per_path]
-        state_input += [np.NAN] * (self.features_per_state_input * self.number_of_tracked_vehicles_per_path - int(len(state_input)))
+        if len(state_input) > self.features_per_state_input * self.number_of_tracked_vehicles_per_path:
+            state_input = state_input[:self.features_per_state_input * self.number_of_tracked_vehicles_per_path]
+        else:
+            state_input += [0.0] * (self.features_per_state_input * self.number_of_tracked_vehicles_per_path - len(state_input))
 
         # # TODO: Implement shuffling
         # tupled_state_input = []
@@ -147,15 +147,25 @@ class SimulationManager:
 
     def compute_simulation_metrics(self):
         for vehicle in self.simulation.model.vehicles:
-            if vehicle.get_speed() < 5:
+            if vehicle.get_speed() < 1:
                 vehicle.add_wait_time(self.simulation.model.tick_time)
             else:
                 vehicle.wait_time = 0.0
+        # TODO: Implement weighted average
         self.wait_time = [vehicle.wait_time for vehicle in self.simulation.model.vehicles]
 
     def get_mean_wait_time(self):
         if self.wait_time:
-            return mean(self.wait_time)
+            wait_time = self.wait_time
+            wait_time.sort()
+
+            dot_product = 0
+            sum_coeff = 0
+
+            for index, value in enumerate(wait_time):
+                sum_coeff += (index + 1)**2
+                dot_product += value * (index+1)**2
+            return dot_product / sum_coeff
         else:
             return 0.0
 
