@@ -60,7 +60,7 @@ class SimulationManager:
         self.distance_to_end_of_path_reward = 50
 
         # Change in other vehicle speeds
-        self.slowing_other_vehicles_reward = -10
+        self.acceleration_other_vehicles_reward = 10
 
         self.pre_train_sim_iterations = 1000  # 100 seconds
 
@@ -80,10 +80,6 @@ class SimulationManager:
     def reset(self):
         self.simulation = self.create_simulation()
 
-        # # State
-        self.wait_time = [0]
-        self.wait_time_vehicle_limit = 50
-
         return np.asarray(np.zeros(self.observation_space_size)).astype('float32')
 
     def take_action(self, action_index):
@@ -91,8 +87,9 @@ class SimulationManager:
         if action_index == 0:
             pass
         else:
-            self.simulation.change_lane(self.vehicle_uid)
-            self.lane_changing_complete = 1
+            if self.simulation.model.is_lane_change_required(self.vehicle_uid):
+                self.simulation.change_lane(self.vehicle_uid)
+                self.lane_changing_complete = 1
         return penalty
 
     def calculate_reward(self, action_reward, step):
@@ -102,10 +99,11 @@ class SimulationManager:
         if self.lane_change_complete_reward != 0:
             reward += self.lane_change_complete_reward * self.get_lane_change_complete()
         if self.distance_to_end_of_path_reward != 0:
-            reward += self.distance_to_end_of_path_reward * self.get_distance_to_end_of_path()
-        if self.slowing_other_vehicles_reward != 0:
-            reward += self.slowing_other_vehicles_reward * \
-                self.get_slowing_other_vehicles_behind()
+            reward += self.distance_to_end_of_path_reward * \
+                self.get_distance_to_end_of_path(self.vehicle_uid)
+        if self.acceleration_other_vehicles_reward != 0:
+            reward += self.acceleration_other_vehicles_reward * \
+                self.get_acceleration_other_vehicles_behind()
 
         return reward
 
@@ -117,9 +115,9 @@ class SimulationManager:
         )
 
     def get_distance_to_end_of_path(self, vehicle_uid):
-        path_uid = self.simulation.model.get_vehicle_path_uid(vehicle_uid)
+        path_uid = self.simulation.model.get_vehicle_path_uid(self.vehicle_uid)
         path_length = self.simulation.model.get_path(path_uid).get_length()
-        vehicle = self.simulation.model.get_vehicle(vehicle_uid)
+        vehicle = self.simulation.model.get_vehicle(self.vehicle_uid)
         distance_traveled = vehicle.get_path_distance_travelled()
         return path_length - distance_traveled
 
@@ -143,14 +141,19 @@ class SimulationManager:
     def get_crash(self):
         return 1 if len(self.simulation.model.detect_collisions()) > 0 else 0
 
-    def get_summed_speed_of_all_vehicles(self):
-        sum_car_speed = 0
+    def get_acceleration_other_vehicles_behind(self):
+        sum_acceleration = 0
+        vehicle_path = self.simulation.model.get_vehicle_path_uid(
+            self.vehicle_uid)
+        that_vehicle_path_distance_travelled = self.simulation.model.get_vehicle(
+            self.vehicle_uid).get_path_distance_travelled()
         for vehicle in self.simulation.model.vehicles:
-            sum_car_speed += vehicle.get_speed()
-        return sum_car_speed
-
-    def get_slowing_other_vehicles_behind(self):
-        pass
+            that_path = self.simulation.model.get_path(self.simulation.model.get_route(
+                vehicle.get_route_uid()).get_path_uid(vehicle.get_path_index()))
+            that_vehicle_path_distance_travelled = vehicle.get_path_distance_travelled()
+            if (vehicle.uid != self.vehicle_uid) and that_path == vehicle_path and that_vehicle_path_distance_travelled < vehicle_distance_travelled:
+                sum_acceleration += vehicle.get_acceleration()
+        return sum_acceleration
 
     def get_lane_change_complete(self):
         return self.lane_changing_complete
