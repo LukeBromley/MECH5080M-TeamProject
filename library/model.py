@@ -450,6 +450,14 @@ class Model:
         index = floor(path_distance_travelled / path.discrete_length_increment_size)
         return path.discrete_path[index][3]
 
+    def is_lane_change_required(self, vehicle_uid):
+        vehicle = self.get_vehicle(vehicle_uid)
+        route = self.get_route(vehicle.route_uid)
+        if (vehicle.get_path_index() < (len(route.get_path_uids())-1)) and (route.get_path_uid(vehicle.get_path_index()+1) in self.get_path(route.get_path_uid(vehicle.get_path_index())).parallel_paths):
+            return True
+        else:
+            return False
+        
     def change_vehicle_lane(self, vehicle_uid, time):
         old_path_uid = self.get_vehicle_path_uid(vehicle_uid)
         old_path = self.get_path(old_path_uid)
