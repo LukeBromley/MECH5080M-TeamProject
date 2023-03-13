@@ -26,6 +26,9 @@ class Simulation:
 
         # Visualiser
         self.visualiser_update_function = visualiser_update_function
+
+        # Highlight Vehicles
+        self.highlight_vehicles = []
     
     def get_last_vehicle_uid_spawned(self):
         return self.model.vehicles[-1].uid
