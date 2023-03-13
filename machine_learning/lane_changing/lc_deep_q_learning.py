@@ -10,6 +10,7 @@ import os
 import sys
 from simulation.lane_changing.lc_simulation_manager import SimulationManager
 from analysis_tools.graph_ml_progress import Graph
+from gui.junction_visualiser import JunctionVisualiser
 from time import sleep
 
 import numpy as np
@@ -240,8 +241,7 @@ class MachineLearning:
         return action
 
     def update_epsilon_greedy(self):
-        self.epsilon_greedy -= (self.epsilon_greedy_max - self.epsilon_greedy_min) / \
-            self.number_of_steps_of_exploration_reduction
+        self.epsilon_greedy -= (self.epsilon_greedy_max - self.epsilon_greedy_min) / self.number_of_steps_of_exploration_reduction
         self.epsilon_greedy = max(self.epsilon_greedy, self.epsilon_greedy_min)
 
     def take_action(self, action_index):
@@ -285,12 +285,10 @@ class MachineLearning:
 
         # Using list comprehension to sample from replay buffer
         state_sample = np.array([self.state_history[i] for i in indices])
-        state_next_sample = np.array(
-            [self.state_next_history[i] for i in indices])
+        state_next_sample = np.array([self.state_next_history[i] for i in indices])
         rewards_sample = [self.rewards_history[i] for i in indices]
         action_sample = [self.action_history[i] for i in indices]
-        done_sample = tf.convert_to_tensor(
-            [float(self.done_history[i]) for i in indices])
+        done_sample = tf.convert_to_tensor([float(self.done_history[i]) for i in indices])
 
         return state_sample, state_next_sample, rewards_sample, action_sample, done_sample
 
@@ -356,12 +354,10 @@ class MachineLearning:
                 action_penalty = self.take_action(action_index)
 
                 # Run simulation 1 step
-                self.step_simulation(visualiser_on=True,
-                                     visualiser_sleep_time=0.01)
-                # self.step_simulation()
+                #self.step_simulation(visualiser_on=True,
+                                     #visualiser_sleep_time=0.01)
+                self.step_simulation()
 
-                # Compute metrics used to get state and calculate reward
-                self.compute_simulation_metrics()
 
                 # Calculate reward
                 reward = self.calculate_reward(action_penalty, step)
@@ -467,23 +463,23 @@ if __name__ == "__main__":
         os.path.join(os.path.dirname(__file__))))), "configurations", "cross_road.config")
 
     # # Settings
-    # scale = 50
+    scale = 50
 
     # # Visualiser Init
-    # visualiser = JunctionVisualiser()
+    visualiser = JunctionVisualiser()
 
     # Simulation
     machine_learning = MachineLearning(
         junction_file_path, configuration_file_path)
 
-    # machine_learning.random()
-    machine_learning.train()
+    machine_learning.random()
+    # machine_learning.train()
     # machine_learning.save()
 
     # # Visualiser Setup
-    # visualiser.define_main(machine_learning.train)
-    # visualiser.load_junction(junction_file_path)
-    # visualiser.set_scale(scale)
+    visualiser.define_main(machine_learning.train)
+    visualiser.load_junction(junction_file_path)
+    visualiser.set_scale(scale)
     #
     # # Run Simulation
     # visualiser.open()
