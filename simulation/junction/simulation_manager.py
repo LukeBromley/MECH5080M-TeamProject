@@ -35,7 +35,7 @@ class SimulationManager:
         self.light_controlled_path_uids = [1, 4]
 
         # Inputs / States
-        self.features_per_state_input = 3
+        self.features_per_state_input = 4
         self.number_of_tracked_vehicles_per_path = 5
         self.observation_space_size = self.features_per_state_input * len(self.light_controlled_path_uids) * (0 + self.number_of_tracked_vehicles_per_path)
         # TODO: Initialize separate boxes by argmax for different inputs
@@ -82,6 +82,8 @@ class SimulationManager:
             #     light.set_green()
             # else:
             #     penalty = 1000
+        else:
+            raise Exception("invalid action")
         # elif action_index == 4:
         #     self.simulation.model.lights[1].set_green()
         #     # if light.colour == "red":
@@ -115,7 +117,7 @@ class SimulationManager:
             route = self.simulation.model.get_route(vehicle.get_route_uid())
             path_uid = route.get_path_uid(vehicle.get_path_index())
             if path_uid in self.light_controlled_path_uids:
-                path_inputs[self.light_controlled_path_uids.index(path_uid)].append(self.get_vehicle_state(vehicle))
+                path_inputs[self.light_controlled_path_uids.index(path_uid)].append(self.get_vehicle_state(vehicle) + [path_uid])
 
         # Sort and flatten the inputs by distance travelled
         for index, path_input in enumerate(path_inputs):
@@ -149,7 +151,7 @@ class SimulationManager:
         for vehicle in self.simulation.model.vehicles:
             if vehicle.get_speed() < 1:
                 vehicle.add_wait_time(self.simulation.model.tick_time)
-            else:
+            elif vehicle.get_speed() > 2:
                 vehicle.wait_time = 0.0
         # TODO: Implement weighted average
         self.wait_time = [vehicle.wait_time for vehicle in self.simulation.model.vehicles]

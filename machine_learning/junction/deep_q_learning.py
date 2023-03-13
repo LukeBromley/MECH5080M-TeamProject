@@ -42,28 +42,29 @@ class MachineLearning:
 
         # TRAINING LIMITS
         self.max_steps_per_episode = 10000  # Maximum number of steps allowed per episode
-        self.episode_end_reward = -50  # Single episode total reward minimum threshold to end episode
+        self.episode_end_reward = -30  # Single episode total reward minimum threshold to end episode
         self.solved_mean_reward = 500  # Single episode total reward minimum threshold to consider ML trained
         self.reward_history_limit = 10
 
         # TAKING AN ACTION
         # Random action
         # self.random_action_selection_probabilities = [0.9, 0.025, 0.025, 0.025, 0.025]
-        self.random_action_selection_probabilities = [0.25 for _ in range(4)]
+        self.random_action_selection_probabilities = [0.01, 0.4, 0.4, 0.19]
 
         # Probability of selecting a random action
-        self.epsilon_greedy_min = 0.2  # Minimum probability of selecting a random action
-        self.epsilon_greedy_max = 0.99  # Maximum probability of selecting a random action
+        self.epsilon_greedy_min = 0.05  # Minimum probability of selecting a random action
+        self.epsilon_greedy_max = 0.95  # Maximum probability of selecting a random action
         self.epsilon_greedy = self.epsilon_greedy_max  # Current probability of selecting a random action
 
         # Exploration
         # Number of steps of just random actions before the network can make some decisions
-        self.number_of_steps_of_required_exploration = 1000
+        self.number_of_steps_of_required_exploration = 500
         # Number of steps over which epsilon greedy decays
         self.number_of_steps_of_exploration_reduction = 5000
+        # Train the model after 4 actions
+        self.update_after_actions = 10
         # How often to update the target network
-        self.update_target_network = 500
-
+        self.update_target_network = 1000
 
         # REPLAY
         # Buffers
@@ -76,28 +77,24 @@ class MachineLearning:
 
         # Steps to look into the future to determine the mean reward. Should match T = 1/(1-gamma)
 
-        self.seconds_to_look_into_the_future = 2
+        self.seconds_to_look_into_the_future = 2.5
         self.steps_to_look_into_the_future = int(self.seconds_to_look_into_the_future / self.simulation_manager.simulation.model.tick_time)
         # Sample Size
-        self.sample_size = 36  # Size of batch taken from replay buffer
+        self.sample_size = 128  # Size of batch taken from replay buffer
 
         # Discount factor
-        self.gamma = 0.95  # Discount factor for past rewards
+        self.gamma = 0.99  # Discount factor for past rewards
 
         # Maximum replay buffer length
         # Note: The Deepmind paper suggests 1000000 however this causes memory issues
-        self.max_replay_buffer_length = 1000000
+        self.max_replay_buffer_length = 100000
 
         # OPTIMISING
         # Note: In the Deepmind paper they use RMSProp however then Adam optimizer
-        self.learning_rate = 0.00001  # 0.00025
+        self.learning_rate = 0.0005  # 0.00025
         self.optimizer = keras.optimizers.legacy.Adam(learning_rate=self.learning_rate, clipnorm=1.0)
 
         # OTHER
-
-        # Train the model after 4 actions
-        self.update_after_actions = 3
-
         # Using huber loss for stability
         self.loss_function = keras.losses.Huber()
 
@@ -151,6 +148,7 @@ class MachineLearning:
                 self.step_simulation()
 
                 # Calculate reward
+                # TODO: Reset the state if reward is low so the network can take another try
                 reward = self.calculate_reward(action_penalty, predict=True)
 
                 # Update reward
