@@ -538,7 +538,6 @@ class Model:
 
         for v1_index in range(len(shapely_vehicles)):
             for v2_index in range(v1_index + 1, len(shapely_vehicles)):
-                print(v1_index, v2_index)
                 if shapely_vehicles[v1_index].intersects(shapely_vehicles[v2_index]):
                     return True
         return False

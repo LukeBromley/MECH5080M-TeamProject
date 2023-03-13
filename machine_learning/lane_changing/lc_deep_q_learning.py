@@ -27,7 +27,7 @@ class MachineLearning:
         self.simulation_manager = SimulationManager(junction_file_path, config_file_path, visualiser_update_function)
 
         # GRAPH
-        self.graph = Graph(graph_num_episodes, graph_max_step)
+        # self.graph = Graph(graph_num_episodes, graph_max_step)
 
         # COUNTERS
         self.episode_count = 0  # Number of episodes trained
@@ -41,7 +41,7 @@ class MachineLearning:
 
         # TAKING AN ACTION
         # Random action
-        self.random_action_do_nothing_probability = 0.9
+        self.random_action_do_nothing_probability = 0.95
         self.random_action_selection_probabilities = [self.random_action_do_nothing_probability]
         for action_index in range(1, self.simulation_manager.number_of_possible_actions):
             self.random_action_selection_probabilities.append((1 - self.random_action_do_nothing_probability) / (self.simulation_manager.number_of_possible_actions - 1))
@@ -81,6 +81,9 @@ class MachineLearning:
         self.optimizer = keras.optimizers.legacy.Adam(learning_rate=self.learning_rate, clipnorm=1.0)
 
         # OTHER
+
+        # Number of iterations to gather reward
+        self.number_of_steps_to_gather_reward = 30
 
         # Train the model after 4 actions
         self.update_after_actions = 10
@@ -231,17 +234,32 @@ class MachineLearning:
             else:
                 self.simulation_manager.simulation.compute_single_iteration()
 
-
     def compute_simulation_metrics(self):
         self.simulation_manager.compute_simulation_metrics()
 
-    def calculate_reward(self, action_penalty, step):
-        return self.simulation_manager.calculate_reward(action_penalty, step)
+    def calculate_reward(self, step):
+        return self.simulation_manager.calculate_reward(step)
 
     def end_episode(self, episode_num, episode_reward, step):
-        if episode_reward < self.episode_end_reward:
+        if self.simulation_manager.lane_changed:
+            for i in range(self.number_of_steps_to_gather_reward):
+                step += 1
+
+                # Run simulation 1 step
+                self.step_simulation(visualiser_on=True, visualiser_sleep_time=0.1)
+
+                # Calculate reward
+                reward = self.calculate_reward(step)
+
+                # Update reward
+                self.all_time_reward += reward
+                episode_reward += reward
+
             print("EPISODE:", episode_num, "Reward:", episode_reward, "/ Steps:", step)
-            self.graph.update(step)
+            # self.graph.update(step)
+            return True
+        elif self.simulation_manager.vehicle_uid not in [vehicle.uid for vehicle in self.simulation_manager.simulation.model.vehicles]:
+            print("EPISODE:", episode_num, "Reward:", episode_reward, "/ Steps:", step)
             return True
         else:
             return False
@@ -312,7 +330,7 @@ class MachineLearning:
             return False
 
     def random(self):
-        episode = 5
+        episode = 20
         for episode in range(1, episode + 1):
             self.simulation_manager.reset()
 
@@ -327,25 +345,18 @@ class MachineLearning:
                 action_index = self.select_random_action()
 
                 # Take an action
-                action_penalty = self.take_action(action_index)
+                self.take_action(action_index)
 
                 # Run simulation 1 step
-                self.step_simulation(visualiser_on=True, visualiser_sleep_time=0.01)
-                # self.step_simulation()
+                self.step_simulation(visualiser_on=True, visualiser_sleep_time=0.1)
 
                 # Compute metrics used to get state and calculate reward
-                # self.compute_simulation_metrics()
-
-                # Calculate reward
-                # reward = self.calculate_reward(action_penalty, step)
-
-                # Update reward
-                # self.all_time_reward += reward
-                # episode_reward += reward
+                self.compute_simulation_metrics()
 
                 # Determine if episode is over
                 if self.end_episode(episode, episode_reward, step):
                     break
+        exit()
 
     def run(self):
         state = np.array(self.simulation_manager.reset())
@@ -393,19 +404,19 @@ if __name__ == "__main__":
 
     # Visualiser Init
     visualiser = JunctionVisualiser()
+    visualiser.load_junction(junction_file_path)
+    visualiser.set_scale(scale)
 
     # Simulation
-    machine_learning = MachineLearning(junction_file_path, configuration_file_path)
+    machine_learning = MachineLearning(junction_file_path, configuration_file_path, visualiser_update_function=visualiser.update)
 
-    # machine_learning.random()
+    machine_learning.random()
     # machine_learning.train()
     # machine_learning.save()
 
     # Visualiser Setup
-    visualiser.define_main(machine_learning.random)
-    visualiser.load_junction(junction_file_path)
-    visualiser.set_scale(scale)
+    # visualiser.define_main(machine_learning.random)
 
     # Run Simulation
-    visualiser.open()
+    # visualiser.open()
 

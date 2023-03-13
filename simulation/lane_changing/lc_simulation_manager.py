@@ -42,27 +42,14 @@ class SimulationManager:
 
         # VEHICLE
         self.vehicle_uid = None
+        self.lane_changed = False
 
         # REWARD
         self.default_reward = 30
         self.action_reward = -10000
         # Duration
         self.simulation_duration_reward = 0.001
-        # Crash
-        self.crash_reward = -5000
-        # Waiting
-        self.waiting_speed = 5
-        self.num_cars_waiting_reward = 0
-        self.wait_time = None
-        self.wait_time_vehicle_limit = None
-        # Total waiting
-        self.total_wait_time_reward = 0
-        self.total_wait_time_exp_reward = 0
-        self.total_wait_time_exponent = 0
-        # Mean Waiting
-        self.mean_wait_time_reward = 0
-        self.mean_wait_time_exp_reward = -1
-        self.mean_wait_time_exponent = 2
+        #
 
         self.pre_train_sim_iterations = 1000 #100 seconds
 
@@ -71,10 +58,10 @@ class SimulationManager:
     def create_simulation(self):
         simulation = Simulation(self.junction_file_path, self.config_file_path, self.visualiser_update_function)
         for iteration in range(self.pre_train_sim_iterations):
-            simulation.run_single_iteration()
+            simulation.compute_single_iteration()
         last_car = simulation.get_last_vehicle_uid_spawned()
-        while (simulation.get_last_vehicle_uid_spawned() != last_car):
-            simulation.run_single_iteration()
+        while simulation.get_last_vehicle_uid_spawned() == last_car:
+            simulation.compute_single_iteration()
         self.vehicle_uid = simulation.get_last_vehicle_uid_spawned()
         simulation.highlight_vehicles.append(self.vehicle_uid)
         return simulation
@@ -82,55 +69,41 @@ class SimulationManager:
     def reset(self):
         self.simulation = self.create_simulation()
 
-        # # State
-        self.wait_time = [0]
-        self.wait_time_vehicle_limit = 50
+        self.lane_changed = False
 
         return np.asarray(np.zeros(self.observation_space_size)).astype('float32')
 
     def take_action(self, action_index):
-        penalty = 0
         if action_index == 0:
             pass
         else:
             self.simulation.change_lane(self.vehicle_uid)
-        return penalty
 
     def compute_simulation_metrics(self):
-        self.update_vehicle_wait_time()
-        self.compute_all_wait_times()
+        self.check_lane_change_flag()
 
-    def update_vehicle_wait_time(self):
-        for vehicle in self.simulation.model.vehicles:
-            if vehicle.get_speed() < self.waiting_speed:
-                vehicle.add_wait_time(self.simulation.model.tick_time)
+    def check_lane_change_flag(self):
+        vehicle = self.simulation.model.get_vehicle(self.vehicle_uid)
+        if vehicle.changing_lane:
+            self.lane_changed = True
 
-    def compute_all_wait_times(self):
-        for vehicle in self.simulation.model.vehicles:
-            route = self.simulation.model.get_route(vehicle.get_route_uid())
-            path = self.simulation.model.get_path(route.get_path_uid(vehicle.get_path_index()))
-            if vehicle.get_path_distance_travelled() >= path.get_length():
-                if vehicle.get_path_index() + 1 == len(route.get_path_uids()):
-                    self.wait_time.append(vehicle.get_wait_time())
-                    self.wait_time = self.wait_time[-self.wait_time_vehicle_limit:]
-
-    def calculate_reward(self, action_reward, step):
+    def calculate_reward(self, step):
         reward = self.default_reward
-        reward += action_reward
-        if self.simulation_duration_reward != 0:
-            reward += self.simulation_duration_reward * step
-        if self.crash_reward != 0:
-            reward += self.crash_reward * self.get_crash()
-        if self.num_cars_waiting_reward != 0:
-            reward += self.num_cars_waiting_reward * self.get_number_of_vehicles_waiting()
-        if self.total_wait_time_reward != 0:
-            reward += self.total_wait_time_reward * self.get_total_vehicle_wait_time()
-        if self.total_wait_time_exp_reward != 0:
-            reward += self.total_wait_time_exp_reward * self.get_total_vehicle_wait_time_exp(self.total_wait_time_exponent)
-        if self.mean_wait_time_reward != 0:
-            reward += self.mean_wait_time_reward * self.get_mean_wait_time()
-        if self.mean_wait_time_exp_reward != 0:
-            reward += self.mean_wait_time_exp_reward * self.get_mean_wait_time_exp(self.mean_wait_time_exponent)
+        # reward += action_reward
+        # if self.simulation_duration_reward != 0:
+        #     reward += self.simulation_duration_reward * step
+        # if self.crash_reward != 0:
+        #     reward += self.crash_reward * self.get_crash()
+        # if self.num_cars_waiting_reward != 0:
+        #     reward += self.num_cars_waiting_reward * self.get_number_of_vehicles_waiting()
+        # if self.total_wait_time_reward != 0:
+        #     reward += self.total_wait_time_reward * self.get_total_vehicle_wait_time()
+        # if self.total_wait_time_exp_reward != 0:
+        #     reward += self.total_wait_time_exp_reward * self.get_total_vehicle_wait_time_exp(self.total_wait_time_exponent)
+        # if self.mean_wait_time_reward != 0:
+        #     reward += self.mean_wait_time_reward * self.get_mean_wait_time()
+        # if self.mean_wait_time_exp_reward != 0:
+        #     reward += self.mean_wait_time_exp_reward * self.get_mean_wait_time_exp(self.mean_wait_time_exponent)
 
         return reward
 
