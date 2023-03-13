@@ -162,7 +162,7 @@ class SimulationManager:
     # REWARD FUNCTIONS
 
     def get_crash(self):
-        return 1 if len(self.simulation.model.detect_collisions()) > 0 else 0
+        return 1 if self.simulation.model.detect_collisions() else 0
 
     def get_number_of_vehicles_waiting(self):
         number_of_cars_waiting = 0

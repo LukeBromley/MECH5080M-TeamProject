@@ -441,9 +441,7 @@ class Model:
 
     def get_vehicle_coordinates(self, vehicle_uid):
         vehicle = self.get_vehicle(vehicle_uid)
-        route = self.get_route(vehicle.get_route_uid())
-        path_uid = route.get_path_uid(vehicle.get_path_index())
-        path = self.get_path(path_uid)
+        path = self.get_path(self.get_vehicle_path_uid(vehicle_uid))
         path_distance_travelled = vehicle.get_path_distance_travelled()
         index = floor(path_distance_travelled /
                       path.discrete_length_increment_size)
@@ -547,8 +545,8 @@ class Model:
     def detect_nearby_vehicles(self, vehicle_uid):
         nearby_vehicles = []
         vehicle = self.get_vehicle(vehicle_uid)
+        own_x, own_y = self.get_vehicle_coordinates(vehicle_uid)
         for other_vehicle in self.vehicles:
-            own_x, own_y = self.get_vehicle_coordinates(vehicle_uid)
             other_x, other_y = self.get_vehicle_coordinates(other_vehicle.uid)
             distance = calculate_magnitude(
                 (own_x - other_x), (own_y - other_y))
@@ -559,6 +557,17 @@ class Model:
         return nearby_vehicles
 
     def detect_collisions(self):
+        shapely_vehicles = []
+        for vehicle in self.vehicles:
+            shapely_vehicles.append(Polygon(self.get_corner_points(vehicle)))
+
+        for v1_index in range(len(shapely_vehicles)):
+            for v2_index in range(v1_index + 1, len(shapely_vehicles)):
+                if shapely_vehicles[v1_index].intersects(shapely_vehicles[v2_index]):
+                    return True
+        return False
+
+    def determine_cars_collided(self):
         collisions = []
         for vehicle in self.vehicles:
             nearby_vehicles = self.detect_nearby_vehicles(vehicle.uid)

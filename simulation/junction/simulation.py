@@ -54,7 +54,7 @@ class Simulation:
 
         # Remove finished vehicles
         self.model.remove_finished_vehicles()
-        self.collision = True if len(self.model.detect_collisions()) > 0 else False
+        self.collision = self.model.detect_collisions()
 
         # Update vehicle position
         self.vehicle_data = []
@@ -67,7 +67,7 @@ class Simulation:
             vehicle.update(self.model.tick_time, object_ahead, delta_distance_ahead, curvature)
             vehicle.update_position_data([coord_x, coord_y])
 
-            self.vehicle_data.append([coord_x, coord_y, angle, vehicle.length, vehicle.width, vehicle.uid])
+            self.vehicle_data.append([coord_x, coord_y, angle, vehicle.length, vehicle.width])
 
         # Remove finished vehicles
         self.model.remove_finished_vehicles()
@@ -98,7 +98,7 @@ class Simulation:
 
 if __name__ == "__main__":
     # Reference Files
-    junction_file_path = os.path.join(os.path.dirname(os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))))), "junctions", "cross_road.junc")
+    junction_file_path = os.path.join(os.path.dirname(os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))))), "junctions", "example_junction.junc")
     configuration_file_path = os.path.join(os.path.dirname(os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))))), "configurations", "cross_road.config")
 
     # Settings

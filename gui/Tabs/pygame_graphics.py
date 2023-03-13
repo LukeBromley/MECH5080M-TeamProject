@@ -381,11 +381,16 @@ class PygameGraphics:
                     vehicle_length = 400
                     vehicle_width = 200
 
+                if len(vehicle) > 5:
+                    vehicle_colour = (255, 0, 130)
+                else:
+                    vehicle_colour = (255, 130, 0)
+
                 vehicle_size_x = vehicle_length * self._scale
                 vehicle_size_y = vehicle_width * self._scale
                 rectangle_surface = pygame.Surface((vehicle_size_x, vehicle_size_y))
                 rectangle_surface.set_colorkey((0, 0, 0))
-                pygame.draw.rect(rectangle_surface, (255, 130, 0), (0, 0, vehicle_size_x, vehicle_size_y))
+                pygame.draw.rect(rectangle_surface, vehicle_colour, (0, 0, vehicle_size_x, vehicle_size_y))
                 rectangle_surface = pygame.transform.rotate(rectangle_surface, 180 * -vehicle[2] / pi)
                 self.surface.blit(rectangle_surface, (x - round(rectangle_surface.get_width() / 2), y - round(rectangle_surface.get_height() / 2)))
             else:
