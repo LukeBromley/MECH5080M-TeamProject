@@ -35,9 +35,12 @@ class MachineLearning:
         self.all_time_reward = 0  # Total reward over all episodes
 
         # TRAINING LIMITS
-        self.max_steps_per_episode = 100000  # Maximum number of steps allowed per episode
-        self.episode_end_reward = -500000  # Single episode total reward minimum threshold to end episode
-        self.solved_mean_reward = 100000  # Single episode total reward minimum threshold to consider ML trained
+        # Maximum number of steps allowed per episode
+        self.max_steps_per_episode = 100000
+        # Single episode total reward minimum threshold to end episode
+        self.episode_end_reward = -500000
+        # Single episode total reward minimum threshold to consider ML trained
+        self.solved_mean_reward = 100000
 
         # TAKING AN ACTION
         # Random action
@@ -50,11 +53,14 @@ class MachineLearning:
         # Probability of selecting a random action
         self.epsilon_greedy_min = 0.1  # Minimum probability of selecting a random action
         self.epsilon_greedy_max = 1.0  # Maximum probability of selecting a random action
-        self.epsilon_greedy = self.epsilon_greedy_max  # Current probability of selecting a random action
+        # Current probability of selecting a random action
+        self.epsilon_greedy = self.epsilon_greedy_max
 
         # Exploration
-        self.number_of_steps_of_required_exploration = 10000  # Number of steps of just random actions before the network can make some decisions
-        self.number_of_steps_of_exploration_reduction = 50000  # Number of steps over which epsilon greedy decays
+        # Number of steps of just random actions before the network can make some decisions
+        self.number_of_steps_of_required_exploration = 10000
+        # Number of steps over which epsilon greedy decays
+        self.number_of_steps_of_exploration_reduction = 50000
 
         # REPLAY
         # Buffers
@@ -128,9 +134,6 @@ class MachineLearning:
 
                 # Run simulation 1 step
                 self.step_simulation()
-
-                # Compute metrics used to get state and calculate reward
-                self.compute_simulation_metrics()
 
                 # Calculate reward
                 reward = self.calculate_reward(action_penalty, step)
@@ -358,6 +361,55 @@ class MachineLearning:
                     break
         exit()
 
+    def play(self):
+        global keyboard_input
+        keyboard_input = [False for _ in range(4)]
+
+        def on_press(key):
+            global keyboard_input
+            keyboard_input[int(key.char)-1] = True
+
+        def on_release(key):
+            global keyboard_input
+            keyboard_input[int(key.char)-1] = False
+
+        with keyboard.Listener(on_press=on_press, on_release=on_release) as listener:
+            self.simulation_manager.reset()
+            total_reward = 0
+            step = 0
+            while total_reward > -500000:
+                step += 1
+
+                # Select an action
+                if True in keyboard_input:
+                    action_index = keyboard_input.index(True) + 1
+                else:
+                    action_index = 0
+
+                # Take an action
+                action_penalty = self.take_action(action_index)
+
+                # Run simulation 1 step
+                self.step_simulation(visualiser_on=True,
+                                     visualiser_sleep_time=0.01)
+
+                # Compute metrics used to get state and calculate reward
+                self.compute_simulation_metrics()
+
+                # Calculate reward
+                reward = self.calculate_reward(action_penalty, step)
+
+                # Update reward
+                self.all_time_reward += reward
+                total_reward += reward
+
+                sys.stdout.write("\r{0}".format(str(step)))
+                sys.stdout.write("\r{0}".format(str(total_reward)))
+                sys.stdout.flush()
+
+                # print(f"Step: {i} ({total_reward})")
+            listener.join()
+
     def run(self):
         state = np.array(self.simulation_manager.reset())
         while True:
@@ -419,4 +471,3 @@ if __name__ == "__main__":
 
     # Run Simulation
     # visualiser.open()
-

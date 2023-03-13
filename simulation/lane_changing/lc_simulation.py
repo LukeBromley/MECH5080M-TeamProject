@@ -1,7 +1,7 @@
 from platform import system
 if system() == 'Windows':
     import sys
-    sys.path.append('../')
+    sys.path.append('./')
 
 from time import sleep
 from gui.junction_visualiser import JunctionVisualiser
@@ -26,15 +26,9 @@ class Simulation:
 
         # Visualiser
         self.visualiser_update_function = visualiser_update_function
-
-        # Highlight Vehicles
-        self.highlight_vehicles = []
     
     def get_last_vehicle_uid_spawned(self):
-        if len(self.model.vehicles) > 0:
-            return self.model.vehicles[-1].uid
-        else:
-            return None
+        return self.model.vehicles[-1].uid
     
     def run_continuous(self, speed_multiplier=None):
         for tick in range(self.model.config.simulation_duration):

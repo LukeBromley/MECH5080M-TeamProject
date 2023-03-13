@@ -49,9 +49,21 @@ class SimulationManager:
         self.action_reward = -10000
         # Duration
         self.simulation_duration_reward = 0.001
-        #
 
-        self.pre_train_sim_iterations = 1000 #100 seconds
+        # Lane changing
+        self.lane_changing_complete = 0
+        self.lane_change_complete_reward = 100
+
+        # Crashes
+        self.crash_reward = -1000
+
+        # Distance along path lane change
+        self.distance_to_end_of_path_reward = 50
+
+        # Change in other vehicle speeds
+        self.acceleration_other_vehicles_reward = 10
+
+        self.pre_train_sim_iterations = 1000  # 100 seconds
 
         self.reset()
 
@@ -77,6 +89,9 @@ class SimulationManager:
         if action_index == 0:
             pass
         else:
+            # if self.simulation.model.is_lane_change_required(self.vehicle_uid):
+            #     self.simulation.change_lane(self.vehicle_uid)
+            #     self.lane_changing_complete = 1
             self.simulation.change_lane(self.vehicle_uid)
 
     def compute_simulation_metrics(self):
@@ -89,43 +104,30 @@ class SimulationManager:
 
     def calculate_reward(self, step):
         reward = self.default_reward
-        # reward += action_reward
-        # if self.simulation_duration_reward != 0:
-        #     reward += self.simulation_duration_reward * step
-        # if self.crash_reward != 0:
-        #     reward += self.crash_reward * self.get_crash()
-        # if self.num_cars_waiting_reward != 0:
-        #     reward += self.num_cars_waiting_reward * self.get_number_of_vehicles_waiting()
-        # if self.total_wait_time_reward != 0:
-        #     reward += self.total_wait_time_reward * self.get_total_vehicle_wait_time()
-        # if self.total_wait_time_exp_reward != 0:
-        #     reward += self.total_wait_time_exp_reward * self.get_total_vehicle_wait_time_exp(self.total_wait_time_exponent)
-        # if self.mean_wait_time_reward != 0:
-        #     reward += self.mean_wait_time_reward * self.get_mean_wait_time()
-        # if self.mean_wait_time_exp_reward != 0:
-        #     reward += self.mean_wait_time_exp_reward * self.get_mean_wait_time_exp(self.mean_wait_time_exponent)
+        if self.crash_reward != 0:
+            reward += self.crash_reward * self.get_crash()
+        if self.lane_change_complete_reward != 0:
+            reward += self.lane_change_complete_reward * self.get_lane_change_complete()
+        if self.distance_to_end_of_path_reward != 0:
+            reward += self.distance_to_end_of_path_reward * \
+                self.get_distance_to_end_of_path(self.vehicle_uid)
+        if self.acceleration_other_vehicles_reward != 0:
+            reward += self.acceleration_other_vehicles_reward * \
+                self.get_acceleration_other_vehicles_behind()
 
         return reward
 
     def get_state(self):
-        distance_to_end_of_path = self.get_distance_to_end_of_path(self.vehicle_uid)
-        distance_to_vehicle_in_front, vehicle_in_front = self.get_distance_to_vehicle_in_front_of_change_location(self.vehicle_uid)
-        distance_to_vehicle_behind, vehicle_behind = self.get_distance_to_vehicle_behind_change_location(self.vehicle_uid)
-
         return np.array(
             [
-                distance_to_end_of_path,
-                distance_to_vehicle_in_front,
-                distance_to_vehicle_behind,
-                vehicle_in_front.get_speed(),
-                vehicle_behind.get_speed()
+                self.get_distance_to_end_of_path(self.vehicle_uid)
             ]
         )
 
     def get_distance_to_end_of_path(self, vehicle_uid):
-        path_uid = self.simulation.model.get_vehicle_path_uid(vehicle_uid)
+        path_uid = self.simulation.model.get_vehicle_path_uid(self.vehicle_uid)
         path_length = self.simulation.model.get_path(path_uid).get_length()
-        vehicle = self.simulation.model.get_vehicle(vehicle_uid)
+        vehicle = self.simulation.model.get_vehicle(self.vehicle_uid)
         distance_traveled = vehicle.get_path_distance_travelled()
         return path_length - distance_traveled
 
@@ -163,27 +165,19 @@ class SimulationManager:
     def get_crash(self):
         return 1 if self.simulation.model.detect_collisions() else 0
 
-    def get_number_of_vehicles_waiting(self):
-        number_of_cars_waiting = 0
+    def get_acceleration_other_vehicles_behind(self):
+        sum_acceleration = 0
+        vehicle_path = self.simulation.model.get_vehicle_path_uid(
+            self.vehicle_uid)
+        that_vehicle_path_distance_travelled = self.simulation.model.get_vehicle(
+            self.vehicle_uid).get_path_distance_travelled()
         for vehicle in self.simulation.model.vehicles:
-            if vehicle.get_speed() < self.waiting_speed:
-                number_of_cars_waiting += 1
-        return number_of_cars_waiting
+            that_path = self.simulation.model.get_path(self.simulation.model.get_route(
+                vehicle.get_route_uid()).get_path_uid(vehicle.get_path_index()))
+            that_vehicle_path_distance_travelled = vehicle.get_path_distance_travelled()
+            if (vehicle.uid != self.vehicle_uid) and that_path == vehicle_path and that_vehicle_path_distance_travelled < vehicle_distance_travelled:
+                sum_acceleration += vehicle.get_acceleration()
+        return sum_acceleration
 
-    def get_total_vehicle_wait_time(self):
-        return sum(self.wait_time)
-
-    def get_total_vehicle_wait_time_exp(self, exponent):
-        return self.get_total_vehicle_wait_time()**exponent
-
-    def get_mean_wait_time(self):
-        return mean(self.wait_time)
-
-    def get_mean_wait_time_exp(self, exponent):
-        return self.get_mean_wait_time()**exponent
-
-    def get_summed_speed_of_all_vehicles(self):
-        sum_car_speed = 0
-        for vehicle in self.simulation.model.vehicles:
-            sum_car_speed += vehicle.get_speed()
-        return sum_car_speed
+    def get_lane_change_complete(self):
+        return self.lane_changing_complete
