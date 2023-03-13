@@ -43,13 +43,13 @@ class MachineLearning:
         # TRAINING LIMITS
         self.max_steps_per_episode = 10000  # Maximum number of steps allowed per episode
         self.episode_end_reward = -30  # Single episode total reward minimum threshold to end episode
-        self.solved_mean_reward = 500  # Single episode total reward minimum threshold to consider ML trained
+        self.solved_mean_reward = 380  # Single episode total reward minimum threshold to consider ML trained
         self.reward_history_limit = 10
 
         # TAKING AN ACTION
         # Random action
         # self.random_action_selection_probabilities = [0.9, 0.025, 0.025, 0.025, 0.025]
-        self.random_action_selection_probabilities = [0.01, 0.4, 0.4, 0.19]
+        self.random_action_selection_probabilities = [0.05, 0.4, 0.4, 0.15]
 
         # Probability of selecting a random action
         self.epsilon_greedy_min = 0.05  # Minimum probability of selecting a random action
@@ -353,15 +353,13 @@ class MachineLearning:
 
         with keyboard.Listener(on_press=on_press, on_release=on_release) as listener:
             self.simulation_manager.reset()
-
+            action_index = 3
             while True:
                 self.number_of_steps_taken += 1
 
                 # Select an action
                 if True in keyboard_input:
-                    action_index = keyboard_input.index(True) + 1
-                else:
-                    action_index = 0
+                    action_index = keyboard_input.index(True)
 
                 # Take an action
                 action_penalty = self.take_action(action_index)
@@ -456,7 +454,7 @@ class MachineLearning:
                 action_penalty = self.take_action(action_index)
 
                 # Run simulation 1 step
-                self.step_simulation(visualiser_on=True, visualiser_sleep_time=0.0)
+                self.step_simulation(visualiser_on=True, visualiser_sleep_time=0.00)
 
                 # Calculate reward
                 reward = self.calculate_reward(action_penalty, predict=False)
@@ -518,20 +516,20 @@ if __name__ == "__main__":
     visualiser = JunctionVisualiser()
 
     # Simulation
-    # machine_learning = MachineLearning(junction_file_path, configuration_file_path, visualiser.update)
-    machine_learning = MachineLearning(junction_file_path, configuration_file_path, None)
+    machine_learning = MachineLearning(junction_file_path, configuration_file_path, visualiser.update)
+    # machine_learning = MachineLearning(junction_file_path, configuration_file_path, None)
     #
     # machine_learning.random()
-    machine_learning.train()
+    # machine_learning.train()
     # machine_learning.test()
 
     #
 
-    # # Visualiser Setup
-    # visualiser.define_main(machine_learning.play)
-    # visualiser.load_junction(junction_file_path)
-    # visualiser.set_scale(scale)
-    # #
-    # # Run Simulation
-    # visualiser.open()
+    # Visualiser Setup
+    visualiser.define_main(machine_learning.test)
+    visualiser.load_junction(junction_file_path)
+    visualiser.set_scale(scale)
+    #
+    # Run Simulation
+    visualiser.open()
 

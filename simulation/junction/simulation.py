@@ -30,6 +30,7 @@ class Simulation:
         self.freeze_traffic(150)
 
     def freeze_traffic(self, n: int):
+        # TODO: Randomize freeze duration and lights during freeze
         for light in self.model.lights:
             light.set_red()
 
