@@ -43,17 +43,17 @@ class MachineLearning:
         # TRAINING LIMITS
         self.max_steps_per_episode = 10000  # Maximum number of steps allowed per episode
         self.episode_end_reward = -30  # Single episode total reward minimum threshold to end episode
-        self.solved_mean_reward = 400  # Single episode total reward minimum threshold to consider ML trained
-        self.reward_history_limit = 50
+        self.solved_mean_reward = 1000  # Single episode total reward minimum threshold to consider ML trained
+        self.reward_history_limit = 20
 
         # TAKING AN ACTION
         # Random action
         # self.random_action_selection_probabilities = [0.9, 0.025, 0.025, 0.025, 0.025]
-        self.random_action_selection_probabilities = [0.01, 0.4, 0.4, 0.19]
+        self.random_action_selection_probabilities = [0.01, 0.35, 0.35, 0.29]
 
         # Probability of selecting a random action
-        self.epsilon_greedy_min = 0.01  # Minimum probability of selecting a random action
-        self.epsilon_greedy_max = 0.95  # Maximum probability of selecting a random action
+        self.epsilon_greedy_min = 0.0  # Minimum probability of selecting a random action - zero to avoid future collision penalties
+        self.epsilon_greedy_max = 0.9  # Maximum probability of selecting a random action
         self.epsilon_greedy = self.epsilon_greedy_max  # Current probability of selecting a random action
 
         # Exploration
@@ -79,6 +79,7 @@ class MachineLearning:
 
         self.seconds_to_look_into_the_future = 2.5
         self.steps_to_look_into_the_future = int(self.seconds_to_look_into_the_future / self.simulation_manager.simulation.model.tick_time)
+
         # Sample Size
         self.sample_size = 124  # Size of batch taken from replay buffer
 
@@ -99,7 +100,7 @@ class MachineLearning:
         self.loss_function = keras.losses.Huber()
 
         # MACHINE LEARNING MODELS
-        self.ml_model_hidden_layers = [512, 512]
+        self.ml_model_hidden_layers = [512, 512, 512, 512]
 
         # Makes the predictions for Q-values which are used to make a action.
         self.ml_model = self.create_q_learning_model(self.simulation_manager.observation_space_size, self.simulation_manager.number_of_possible_actions, self.ml_model_hidden_layers)
@@ -170,7 +171,8 @@ class MachineLearning:
                 state = next_state
 
                 # Update
-                if self.number_of_steps_taken % self.update_after_actions == 0 and len(self.done_history) > self.sample_size:
+                if self.number_of_steps_taken % self.update_after_actions == 0 and len(self.done_history) >\
+                        self.sample_size:
 
                     state_sample, state_next_sample, rewards_sample, action_sample, done_sample = self.sample_replay_buffers()
 
@@ -209,7 +211,7 @@ class MachineLearning:
             self.episode_count += 1
 
             if self.solved(self.get_mean_reward()):
-                self.ml_model_target.save("saved_model_new")
+                self.ml_model_target.save("saved_model_2")
                 break
 
     def select_action(self, state):
@@ -294,6 +296,8 @@ class MachineLearning:
         self.rewards_history.append(reward)
 
     def sample_replay_buffers(self):
+        # TODO: Implement priority sampling
+
         # Get indices of samples for replay buffers
         indices = self.get_sample_replay_buffer_indices()
 
@@ -438,7 +442,7 @@ class MachineLearning:
                 sys.stdout.flush()
 
     def test(self):
-        model = keras.models.load_model('saved_model')
+        model = keras.models.load_model('saved_model_2')
         episode = 10
         reward_log = []
         for episode in range(1, episode + 1):
@@ -524,20 +528,20 @@ if __name__ == "__main__":
     visualiser = JunctionVisualiser()
 
     # Simulation
-    machine_learning = MachineLearning(junction_file_path, configuration_file_path, visualiser.update)
-    # machine_learning = MachineLearning(junction_file_path, configuration_file_path, None)
+    # machine_learning = MachineLearning(junction_file_path, configuration_file_path, visualiser.update)
+    machine_learning = MachineLearning(junction_file_path, configuration_file_path, None)
     #
     # machine_learning.random()
     # machine_learning.train()
-    # machine_learning.test()
+    machine_learning.test()
 
     #
 
-    # Visualiser Setup
-    visualiser.define_main(machine_learning.test)
-    visualiser.load_junction(junction_file_path)
-    visualiser.set_scale(scale)
-    #
-    # Run Simulation
-    visualiser.open()
+    # # Visualiser Setup
+    # visualiser.define_main(machine_learning.test)
+    # visualiser.load_junction(junction_file_path)
+    # visualiser.set_scale(scale)
+    # #
+    # # Run Simulation
+    # visualiser.open()
 
