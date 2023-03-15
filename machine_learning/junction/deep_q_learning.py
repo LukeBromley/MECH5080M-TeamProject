@@ -145,6 +145,7 @@ class MachineLearning:
                 # Take an action
                 action_penalty = self.take_action(action_index)
 
+                # TODO: Exceeding 1000 steps results in no traffic
                 # Run simulation 1 step
                 self.step_simulation()
 
@@ -466,7 +467,7 @@ class MachineLearning:
 
                 # Calculate reward
                 # TODO: Add a probability of a collision instead of a binary collision reward
-                reward = self.calculate_reward(action_penalty, predict=True)
+                reward = self.calculate_reward(action_penalty, predict=False)
                 reward_log.append(reward)
                 self.all_time_reward += reward
 
@@ -528,20 +529,20 @@ if __name__ == "__main__":
     visualiser = JunctionVisualiser()
 
     # Simulation
-    # machine_learning = MachineLearning(junction_file_path, configuration_file_path, visualiser.update)
-    machine_learning = MachineLearning(junction_file_path, configuration_file_path, None)
+    machine_learning = MachineLearning(junction_file_path, configuration_file_path, visualiser.update)
+    # machine_learning = MachineLearning(junction_file_path, configuration_file_path, None)
     #
     # machine_learning.random()
     # machine_learning.train()
-    machine_learning.test()
+    # machine_learning.test()
 
     #
 
-    # # Visualiser Setup
-    # visualiser.define_main(machine_learning.test)
-    # visualiser.load_junction(junction_file_path)
-    # visualiser.set_scale(scale)
-    # #
-    # # Run Simulation
-    # visualiser.open()
+    # Visualiser Setup
+    visualiser.define_main(machine_learning.test)
+    visualiser.load_junction(junction_file_path)
+    visualiser.set_scale(scale)
+    #
+    # Run Simulation
+    visualiser.open()
 
