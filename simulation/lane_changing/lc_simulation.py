@@ -13,7 +13,7 @@ from functools import partial
 
 
 class Simulation:
-    def __init__(self, junction_file_path: str, config_file_path, visualiser_update_function = None):
+    def __init__(self, junction_file_path: str, config_file_path, visualiser_update_function=None):
         self.uid = 0
 
         # Model
@@ -27,6 +27,12 @@ class Simulation:
         # Visualiser
         self.visualiser_update_function = visualiser_update_function
 
+        # Highlight Vehicles
+        self.highlight_vehicles = []
+    
+    def get_last_vehicle_uid_spawned(self):
+        return self.model.vehicles[-1].uid
+    
     def run_continuous(self, speed_multiplier=None):
         for tick in range(self.model.config.simulation_duration):
             self.run_single_iteration()
@@ -48,25 +54,31 @@ class Simulation:
                 route_uid, length, width, distance_delta = nudge_result
                 self.add_vehicle(route_uid, length, width, distance_delta)
 
-        # Control lights
-        for light in self.model.lights:
-            light.update(self.model.tick_time)
-
         # Remove finished vehicles
         self.model.remove_finished_vehicles()
-        self.collision = True if len(self.model.detect_collisions()) > 0 else False
+        self.collision = self.model.detect_collisions()
 
         # Update vehicle position
         self.vehicle_data = []
+
+        self.vehicle_data += self.model.get_ghost_positions(self.model.calculate_time_of_day())
+
         for vehicle in self.model.vehicles:
             coord_x, coord_y = self.model.get_vehicle_coordinates(vehicle.uid)
+            curvature = self.model.get_vehicle_path_curvature(vehicle.uid)
             angle = self.model.get_vehicle_direction(vehicle.uid)
 
             object_ahead, delta_distance_ahead = self.model.get_object_ahead(vehicle.uid)
-            vehicle.update(self.model.tick_time, object_ahead, delta_distance_ahead)
+            vehicle.update(self.model.tick_time, object_ahead, delta_distance_ahead, curvature)
             vehicle.update_position_data([coord_x, coord_y])
 
-            self.vehicle_data.append([coord_x, coord_y, angle, vehicle.length, vehicle.width, vehicle.uid])
+            if vehicle.changing_lane:
+                self.vehicle_data.append([coord_x, coord_y])
+            else:
+                if vehicle.uid in self.highlight_vehicles:
+                    self.vehicle_data.append([coord_x, coord_y, angle, vehicle.length, vehicle.width, None])
+                else:
+                    self.vehicle_data.append([coord_x, coord_y, angle, vehicle.length, vehicle.width])
 
         # Remove finished vehicles
         self.model.remove_finished_vehicles()
@@ -94,14 +106,18 @@ class Simulation:
             )
         )
 
+    def change_lane(self, vehicle_uid):
+        if self.model.is_lane_change_required(vehicle_uid):
+            self.model.change_vehicle_lane(vehicle_uid, self.model.calculate_time_of_day())
+
 
 if __name__ == "__main__":
     # Reference Files
-    junction_file_path = os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))), "junctions", "cross_road.junc")
-    configuration_file_path = os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))), "configurations", "cross_road.config")
+    junction_file_path = os.path.join(os.path.dirname(os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))))), "junctions", "lanes.junc")
+    configuration_file_path = os.path.join(os.path.dirname(os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))))), "configurations", "cross_road.config")
 
     # Settings
-    scale = 100
+    scale = 25
     speed_multiplier = 1
 
     # Visualiser Init

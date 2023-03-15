@@ -4,8 +4,10 @@ if system() == 'Windows':
     sys.path.append('./')
 
 import os
-from simulation.environment import SimulationManager
+import sys
+from simulation.lane_changing.lc_simulation_manager import SimulationManager
 from gui.junction_visualiser import JunctionVisualiser
+from analysis_tools.graph_ml_progress import Graph
 from time import sleep
 
 import numpy as np
@@ -18,8 +20,9 @@ from tensorflow.keras import layers
 
 class MachineLearning:
     def __init__(self, junction_file_path, simulation_config_file_path, machine_learning_config, visualiser_update_function=None):
+    def __init__(self, junction_file_path, config_file_path, visualiser_update_function=None, graph_num_episodes=20, graph_max_step=30000):
         # SIMULATION MANAGER
-        self.simulation_manager = SimulationManager(junction_file_path, simulation_config_file_path, visualiser_update_function)
+        self.simulation_manager = SimulationManager(junction_file_path, config_file_path, visualiser_update_function)
 
         # COUNTERS
         self.episode_count = 0  # Number of episodes trained

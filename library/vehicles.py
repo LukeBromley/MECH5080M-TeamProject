@@ -8,11 +8,11 @@ class Vehicle:
     def __init__(self, route_uid: int, start_time: float = 0.0, uid: int = 0,
                  speed: float = 0.0, acceleration: float = 0.0,
                  direction: float = 0.0, sensing_radius: float = 0.0,
-                 maximum_acceleration: float = 9.81, maximum_deceleration: float = 6.0,
+                 maximum_acceleration: float = 1.5, maximum_deceleration: float = 2.0,
                  maximum_speed: float = 20.0, minimum_speed: float = -20.0,
                  distance_travelled: float = 0.0, preferred_time_gap: float = 2.0,
                  length: float = 4.4, width: float = 1.82,
-                 min_creep_distance: float = 0
+                 min_creep_distance: float = 0, maximum_lateral_acceleration: float = 1.1
                  ) -> None:
         """
 
@@ -32,7 +32,6 @@ class Vehicle:
         :param vehicle_length: length of the vehicle [m]
         :param vehicle_width: width of the vehicle [m]
         """
-
         self.uid = uid
         self.route_uid = route_uid
         self.start_time = start_time
@@ -43,6 +42,7 @@ class Vehicle:
         self._sensing_radius = sensing_radius
         self._maximum_acceleration = maximum_acceleration
         self._maximum_deceleration = maximum_deceleration
+        self._maximum_lateral_acceleration = maximum_lateral_acceleration
         self._maximum_speed = maximum_speed
         self._minimum_speed = minimum_speed
         self._path_distance_travelled = 0.0
@@ -52,9 +52,9 @@ class Vehicle:
         self._path_index = 0
         self.changing_lane = False
         self._min_creep_distance = min_creep_distance
-        self.waiting_time = 0
+        self.wait_time = 0
 
-    def update(self, time_delta: float, object_ahead: "Vehicle", delta_distance_ahead: float) -> None:
+    def update(self, time_delta: float, object_ahead: "Vehicle", delta_distance_ahead: float, curvature: float = 0.0) -> None:
         """
         :param object_ahead:
         :param delta_distance_ahead:
@@ -69,12 +69,15 @@ class Vehicle:
             delta_distance_ahead = delta_distance_ahead - \
                 0.5 * (self.length + object_ahead.get_length())
 
-        self._acceleration = self._calculate_acceleration(
-            speed_object_ahead, delta_distance_ahead)
-        self._speed = clamp((self._speed + (self._acceleration * time_delta)), self._minimum_speed,
-                            self._maximum_speed)
+        self._acceleration = self._calculate_acceleration(speed_object_ahead, delta_distance_ahead)
+
+        maximum_speed = min(self._calculate_maximum_speed_due_lateral_acceleration(curvature), self._maximum_speed)
+        self._speed = clamp((self._speed + (self._acceleration * time_delta)), self._minimum_speed, maximum_speed)
 
         self._path_distance_travelled += self._speed * time_delta
+
+    def _calculate_maximum_speed_due_lateral_acceleration(self, curvature):
+        return sqrt(self._maximum_lateral_acceleration / (curvature + 1e-6))
 
     def get_path_index(self):
         return self._path_index
@@ -119,9 +122,6 @@ class Vehicle:
     def get_path_distance_travelled(self) -> float:
         return self._path_distance_travelled
 
-    def set_path_distance_travelled(self, path_distance_travelled: float):
-        self._path_distance_travelled = path_distance_travelled
-
     def increment_path(self, path_distance_travelled: float):
         self._path_distance_travelled = path_distance_travelled
         self._path_index += 1
@@ -164,7 +164,7 @@ class Vehicle:
         return self.route_uid
 
     def add_wait_time(self, time):
-        self.waiting_time += time
+        self.wait_time += time
 
 
 class GhostVehicle:
