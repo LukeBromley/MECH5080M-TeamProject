@@ -46,38 +46,6 @@ class MachineLearningConfiguration:
         # Config
         self.config_id = 0
 
-        # Limits
-        self.max_steps_per_episode = 100000  # Maximum number of steps allowed per episode
-        self.episode_end_reward = -500000  # Single episode total reward minimum threshold to end episode
-        self.solved_mean_reward = 100000  # Single episode total reward minimum threshold to consider ML trained
-
-        # Action Probabilities
-        self.random_action_do_nothing_probability = 0.9  # Probability of the "Do nothing" action
-        self.epsilon_greedy_min = 0.1  # Minimum probability of selecting a random action
-        self.epsilon_greedy_max = 1.0  # Maximum probability of selecting a random action
-
-        # Exploration
-        self.number_of_steps_of_required_exploration = 1000  # 10000  # Number of steps of just random actions before the network can make some decisions
-        self.number_of_steps_of_exploration_reduction = 5000  # 50000 # Number of steps over which epsilon greedy decays
-
-        # Sample Size
-        self.sample_size = 32  # Size of batch taken from replay buffer
-
-        # Discount factor
-        self.gamma = 0.9  # Discount factor for past rewards
-
-        # Maximum replay buffer length
-        self.max_replay_buffer_length = 100000
-
-        # Optimisations
-        self.learning_rate = 0.01
-
-        # Train the model after number of actions
-        self.update_after_actions = 10
-
-        # How often to update the target network
-        self.update_target_network = 10000
-
 
 class Time:
     def __init__(self, hour, minute, second, millisecond=0):

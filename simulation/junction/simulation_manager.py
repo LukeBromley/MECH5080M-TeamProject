@@ -47,7 +47,7 @@ class SimulationManager:
         return simulation
 
     def calculate_actions(self):
-        number_of_actions = 4 #2 * len(self.simulation.model.lights) + 1
+        number_of_actions = 2 ** len(self.simulation.model.lights)
         return number_of_actions, Discrete(number_of_actions)
 
     def reset(self):

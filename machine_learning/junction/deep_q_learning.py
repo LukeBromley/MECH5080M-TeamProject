@@ -27,10 +27,10 @@ from tensorflow.keras import layers
 
 
 class MachineLearning:
-    def __init__(self, junction_file_path, config_file_path, visualiser_update_function=None, graph_num_episodes=20, graph_max_step=30000):
+    def __init__(self, simulation, machine_learning_config = None, graph_num_episodes=20, graph_max_step=30000):
         # SIMULATION MANAGER
         self.future_wait_time = None
-        self.simulation_manager = SimulationManager(junction_file_path, config_file_path, visualiser_update_function)
+        self.simulation_manager = simulation
 
         # GRAPH
         # self.graph = Graph(graph_num_episodes, graph_max_step)
@@ -101,11 +101,33 @@ class MachineLearning:
         # MACHINE LEARNING MODELS
         self.ml_model_hidden_layers = [512, 512]
 
+        # Change configurations to ones supplied in machine_learning_config
+        if machine_learning_config is not None:
+            self.apply_ML_configurations(machine_learning_config)
+
         # Makes the predictions for Q-values which are used to make a action.
         self.ml_model = self.create_q_learning_model(self.simulation_manager.observation_space_size, self.simulation_manager.number_of_possible_actions, self.ml_model_hidden_layers)
         # For the prediction of future rewards. The weights of a target model get updated every 10000 steps thus when the loss between the Q-values is calculated the target Q-value is stable.
         self.ml_model_target = self.create_q_learning_model(self.simulation_manager.observation_space_size, self.simulation_manager.number_of_possible_actions, self.ml_model_hidden_layers)
 
+    def apply_ML_configurations(self, config):
+        self.max_steps_per_episode = config.max_steps_per_episode
+        self.episode_end_reward = config.episode_end_reward
+        self.solved_mean_reward = config.solved_mean_reward
+        self.reward_history_limit = config.reward_history_limit
+        self.random_action_selection_probabilities = config.random_action_selection_probabilities
+        self.epsilon_greedy_min = config.epsilon_greedy_min
+        self.epsilon_greedy_max = config.epsilon_greedy_max
+        self.number_of_steps_of_required_exploration = config.number_of_steps_of_required_exploration
+        self.number_of_steps_of_exploration_reduction = config.number_of_steps_of_exploration_reduction
+        self.update_after_actions = config.update_after_actions
+        self.update_target_network = config.update_target_network
+        self.seconds_to_look_into_the_future = config.seconds_to_look_into_the_future
+        self.sample_size = config.sample_size
+        self.gamma = config.gamma
+        self.max_replay_buffer_length = config.max_replay_buffer_length
+        self.learning_rate = config.learning_rate
+        self.ml_model_hidden_layers = config.ml_model_hidden_layers
     def reset(self):
         self.episode_count = 0  # Number of episodes trained
         self.number_of_steps_taken = 0  # Total number of steps taken over all episodes
@@ -120,7 +142,6 @@ class MachineLearning:
         return q_network
 
     def train(self):
-        print("Training Started")
         mean_reward = 0
         while True:  # Run until solved
             state = self.simulation_manager.reset()
@@ -195,8 +216,8 @@ class MachineLearning:
                     # update the target network with new weights
                     self.ml_model_target.set_weights(self.ml_model.get_weights())
                     # Log details
-                    template = " =============== running reward: {:.2f} at episode {}, frame count {} ================"
-                    print(template.format(self.get_mean_reward(), self.episode_count, self.number_of_steps_taken))
+                    #template = " =============== running reward: {:.2f} at episode {}, frame count {} ================"
+                    #print(template.format(self.get_mean_reward(), self.episode_count, self.number_of_steps_taken))
 
                 # Delete old buffer values
                 self.delete_old_replay_buffer_values()
@@ -211,6 +232,7 @@ class MachineLearning:
             if self.solved(self.get_mean_reward()):
                 self.ml_model_target.save("saved_model_new")
                 break
+        return self.get_mean_reward()
 
     def select_action(self, state):
         # Exploration vs Exploitation
@@ -278,7 +300,9 @@ class MachineLearning:
 
     def end_episode(self, episode_reward, step):
         if episode_reward < self.episode_end_reward or step > self.max_steps_per_episode:
-            print("Score at episode end:", episode_reward, "/ Steps:", step)
+            #print("Score at episode end:", episode_reward, "/ Steps:", step)
+            sys.stdout.write("\rEpisode: {0} / Mean Reward: {1}".format(str(self.episode_count), str(self.get_mean_reward())))
+            sys.stdout.flush()
             return True
         else:
             return False
@@ -329,7 +353,10 @@ class MachineLearning:
             del self.done_history[:1]
 
     def get_mean_reward(self):
-        return np.mean(self.episode_reward_history[-self.reward_history_limit:])
+        if self.episode_count > 0:
+            return np.mean(self.episode_reward_history[-self.reward_history_limit:])
+        else:
+            return "Unavailable"
 
     def solved(self, mean_reward):
         if mean_reward > self.solved_mean_reward:  # Condition to consider the task solved
@@ -390,7 +417,6 @@ class MachineLearning:
             previous_action = 1
             reward_log = []
             light_change_log = []
-
             # Run steps in episode
             while True:
                 # Increment the total number of steps taken by the AI in total.
@@ -426,16 +452,20 @@ class MachineLearning:
                 # Determine if episode is over
                 if self.end_episode(self.all_time_reward, self.number_of_steps_taken):
                     rewards = [reward for reward in reward_log if reward > -9]
-                    print(rewards)
-                    print(light_change_log)
-                    plt.plot(rewards)
-                    for timestamp in light_change_log:
-                        plt.axvline(timestamp, c='green')
-                    plt.show()
+                    #print(rewards)
+                    #print(light_change_log)
+                    #plt.plot(rewards)
+                    #for timestamp in light_change_log:
+                        #plt.axvline(timestamp, c='green')
+                    #plt.show()
                     break
 
                 sys.stdout.write("\rstep: {0} / reward: {1}".format(str(self.number_of_steps_taken), str(self.all_time_reward)))
                 sys.stdout.flush()
+        return str(self.all_time_reward)
+
+    def save_model_to_folder(self, file_path):
+        self.ml_model_target.save(file_path)
 
     def test(self):
         model = keras.models.load_model('saved_model')
@@ -515,17 +545,18 @@ class MachineLearning:
 if __name__ == "__main__":
     # Reference Files
     junction_file_path = os.path.join(os.path.dirname(os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))))), "junctions", "cross_road.junc")
-    configuration_file_path = os.path.join(os.path.dirname(os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))))), "configurations", "cross_road.config")
+    configuration_file_path = os.path.join(os.path.dirname(os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))))), "configurations", "simulation_config", "cross_road.config")
 
     # Settings
     scale = 30
 
     # Visualiser Init
     visualiser = JunctionVisualiser()
-
+    visualiser_update_function = visualiser.update
+    # visualiser_update_function = None
     # Simulation
-    machine_learning = MachineLearning(junction_file_path, configuration_file_path, visualiser.update)
-    # machine_learning = MachineLearning(junction_file_path, configuration_file_path, None)
+    simulation = SimulationManager(junction_file_path, configuration_file_path, visualiser_update_function)
+    machine_learning = MachineLearning(simulation, machine_learning_config=None)
     #
     # machine_learning.random()
     # machine_learning.train()
