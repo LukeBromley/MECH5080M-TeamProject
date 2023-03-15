@@ -1,3 +1,4 @@
+import random
 from platform import system
 
 from pynput import keyboard
@@ -40,11 +41,11 @@ class MachineLearning:
         # Single episode total reward minimum threshold to end episode
         self.episode_end_reward = -500000
         # Single episode total reward minimum threshold to consider ML trained
-        self.solved_mean_reward = 100000
+        self.solved_mean_reward = 10000000000
 
         # TAKING AN ACTION
         # Random action
-        self.random_action_do_nothing_probability = 0.95
+        self.random_action_do_nothing_probability = 0.98
         self.random_action_selection_probabilities = [self.random_action_do_nothing_probability]
         for action_index in range(1, self.simulation_manager.number_of_possible_actions):
             self.random_action_selection_probabilities.append((1 - self.random_action_do_nothing_probability) / (self.simulation_manager.number_of_possible_actions - 1))
@@ -58,9 +59,9 @@ class MachineLearning:
 
         # Exploration
         # Number of steps of just random actions before the network can make some decisions
-        self.number_of_steps_of_required_exploration = 10000
+        self.number_of_steps_of_required_exploration = 1000
         # Number of steps over which epsilon greedy decays
-        self.number_of_steps_of_exploration_reduction = 50000
+        self.number_of_steps_of_exploration_reduction = 5000
 
         # REPLAY
         # Buffers
@@ -130,64 +131,72 @@ class MachineLearning:
                 action_index = self.select_action(state)
 
                 # Take an action
-                action_penalty = self.take_action(action_index)
+                self.take_action(action_index)
 
                 # Run simulation 1 step
                 self.step_simulation()
 
-                # Calculate reward
-                reward = self.calculate_reward(action_penalty, step)
+                # Compute metrics used to get state and calculate reward
+                self.compute_simulation_metrics()
+
+                if self.simulation_manager.lane_changed:
+                    reward = self.calculate_reward(step)
+                    done = True
+                elif self.simulation_manager.vehicle_uid not in [vehicle.uid for vehicle in self.simulation_manager.simulation.model.vehicles]:
+                    reward = -10000
+                    done = True
+                else:
+                    reward = 0
+                    done = False
 
                 # Update reward
                 self.all_time_reward += reward
                 episode_reward += reward
 
-                # Determine if episode is over
-                done = self.end_episode(self.episode_count, episode_reward, step)
-
                 # Get the next state
                 next_state = self.get_state()
 
                 # Save actions and states in replay buffer
-                self.save_to_replay_buffers(action_index, state, next_state, done, reward)
+                # self.save_to_replay_buffers(action_index, state, next_state, done, reward)
 
                 # Update State
                 state = next_state
 
-                # Update every fourth frame and once batch size is over 32
-                if self.number_of_steps_taken % self.update_after_actions == 0 and len(self.done_history) > self.sample_size:
-
-                    state_sample, state_next_sample, rewards_sample, action_sample, done_sample = self.sample_replay_buffers()
-
-                    updated_q_values = self.calculate_updated_q_values(state_next_sample, rewards_sample, done_sample)
-
-                    with tf.GradientTape() as tape:
-                        # Train the model on the states and updated Q-values
-                        q_values = self.ml_model(state_sample)
-
-                        # Apply the masks to the Q-values to get the Q-value for action taken
-                        # Create a mask so we only calculate loss on the updated Q-values
-                        masks = tf.one_hot(action_sample, self.simulation_manager.number_of_possible_actions)
-                        q_action = tf.reduce_sum(tf.multiply(q_values, masks), axis=1)
-
-                        # Calculate loss between new Q-value and old Q-value
-                        loss = self.loss_function(updated_q_values, q_action)
-
-                    # Backpropagation
-                    grads = tape.gradient(loss, self.ml_model.trainable_variables)
-                    self.optimizer.apply_gradients(zip(grads, self.ml_model.trainable_variables))
-
-                if self.number_of_steps_taken % self.update_target_network == 0:
-                    # update the the target network with new weights
-                    self.ml_model_target.set_weights(self.ml_model.get_weights())
-                    # Log details
-                    print_template = "RUNNING REWARD: {:.2f} at episode {}, step count {}"
-                    print(print_template.format(mean_reward, self.episode_count, self.number_of_steps_taken))
-
-                # Delete old buffer values
-                self.delete_old_replay_buffer_values()
+                # # Update every fourth frame and once batch size is over 32
+                # if self.number_of_steps_taken % self.update_after_actions == 0 and len(self.done_history) > self.sample_size:
+                #
+                #     state_sample, state_next_sample, rewards_sample, action_sample, done_sample = self.sample_replay_buffers()
+                #
+                #     updated_q_values = self.calculate_updated_q_values(state_next_sample, rewards_sample, done_sample)
+                #
+                #     with tf.GradientTape() as tape:
+                #         # Train the model on the states and updated Q-values
+                #         q_values = self.ml_model(state_sample)
+                #
+                #         # Apply the masks to the Q-values to get the Q-value for action taken
+                #         # Create a mask so we only calculate loss on the updated Q-values
+                #         masks = tf.one_hot(action_sample, self.simulation_manager.number_of_possible_actions)
+                #         q_action = tf.reduce_sum(tf.multiply(q_values, masks), axis=1)
+                #
+                #         # Calculate loss between new Q-value and old Q-value
+                #         loss = self.loss_function(updated_q_values, q_action)
+                #
+                #     # Backpropagation
+                #     grads = tape.gradient(loss, self.ml_model.trainable_variables)
+                #     self.optimizer.apply_gradients(zip(grads, self.ml_model.trainable_variables))
+                #
+                # if self.number_of_steps_taken % self.update_target_network == 0:
+                #     # update the the target network with new weights
+                #     self.ml_model_target.set_weights(self.ml_model.get_weights())
+                #     # Log details
+                #     print_template = "RUNNING REWARD: {:.2f} at episode {}, step count {}"
+                #     print(print_template.format(mean_reward, self.episode_count, self.number_of_steps_taken))
+                #
+                # # Delete old buffer values
+                # self.delete_old_replay_buffer_values()
 
                 if done:
+                    print("EPISODE:", self.episode_count, "Reward:", episode_reward, "/ Steps:", step, "/ Epsilon Greedy:", self.epsilon_greedy)
                     break
 
             mean_reward = self.get_mean_reward(episode_reward)
@@ -241,31 +250,17 @@ class MachineLearning:
         self.simulation_manager.compute_simulation_metrics()
 
     def calculate_reward(self, step):
-        return self.simulation_manager.calculate_reward(step)
+        reward = 0
+        for i in range(self.number_of_steps_to_gather_reward):
+            step += 1
 
-    def end_episode(self, episode_num, episode_reward, step):
-        if self.simulation_manager.lane_changed:
-            for i in range(self.number_of_steps_to_gather_reward):
-                step += 1
+            # Run simulation 1 step
+            self.step_simulation(visualiser_on=True, visualiser_sleep_time=0.1)
 
-                # Run simulation 1 step
-                self.step_simulation(visualiser_on=True, visualiser_sleep_time=0.1)
+            # Calculate reward
+            reward += self.simulation_manager.calculate_reward(step)
 
-                # Calculate reward
-                reward = self.calculate_reward(step)
-
-                # Update reward
-                self.all_time_reward += reward
-                episode_reward += reward
-
-            print("EPISODE:", episode_num, "Reward:", episode_reward, "/ Steps:", step)
-            # self.graph.update(step)
-            return True
-        elif self.simulation_manager.vehicle_uid not in [vehicle.uid for vehicle in self.simulation_manager.simulation.model.vehicles]:
-            print("EPISODE:", episode_num, "Reward:", episode_reward, "/ Steps:", step)
-            return True
-        else:
-            return False
+        return reward
 
     def get_state(self):
         state_next = np.asarray(self.simulation_manager.get_state()).astype('float32')
@@ -351,13 +346,23 @@ class MachineLearning:
                 self.take_action(action_index)
 
                 # Run simulation 1 step
-                self.step_simulation(visualiser_on=True, visualiser_sleep_time=0.1)
+                self.step_simulation()
 
                 # Compute metrics used to get state and calculate reward
                 self.compute_simulation_metrics()
 
-                # Determine if episode is over
-                if self.end_episode(episode, episode_reward, step):
+                if self.simulation_manager.lane_changed:
+                    reward = self.calculate_reward(step)
+                    done = True
+                elif self.simulation_manager.vehicle_uid not in [vehicle.uid for vehicle in self.simulation_manager.simulation.model.vehicles]:
+                    reward = -10000
+                    done = True
+                else:
+                    reward = 0
+                    done = False
+
+                if done:
+                    print("EPISODE:", episode, "Reward:", reward, "/ Steps:", step)
                     break
         exit()
 
@@ -390,8 +395,7 @@ class MachineLearning:
                 action_penalty = self.take_action(action_index)
 
                 # Run simulation 1 step
-                self.step_simulation(visualiser_on=True,
-                                     visualiser_sleep_time=0.01)
+                self.step_simulation(visualiser_on=True, visualiser_sleep_time=0.01)
 
                 # Compute metrics used to get state and calculate reward
                 self.compute_simulation_metrics()
@@ -462,12 +466,12 @@ if __name__ == "__main__":
     # Simulation
     machine_learning = MachineLearning(junction_file_path, configuration_file_path, visualiser_update_function=visualiser.update)
 
-    machine_learning.random()
+    # machine_learning.random()
     # machine_learning.train()
     # machine_learning.save()
 
     # Visualiser Setup
-    # visualiser.define_main(machine_learning.random)
+    visualiser.define_main(machine_learning.random)
 
     # Run Simulation
-    # visualiser.open()
+    visualiser.open()

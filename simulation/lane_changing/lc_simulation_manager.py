@@ -10,14 +10,12 @@ from numpy import mean
 
 """
 
-Create random environemnt of cars positioned along lanes
 Spawn target car
 inputs: vehicles infront / behind current vehicle change location
 Run sim and change lane when ml model says so
 Once lane changing occurs, run sim for X iterations
 Calculate reward
 reset
-
 
 """
 from simulation.lane_changing.lc_simulation import Simulation
@@ -47,15 +45,13 @@ class SimulationManager:
         # REWARD
         self.default_reward = 30
         self.action_reward = -10000
-        # Duration
-        self.simulation_duration_reward = 0.001
 
         # Lane changing
         self.lane_changing_complete = 0
         self.lane_change_complete_reward = 100
 
         # Crashes
-        self.crash_reward = -1000
+        self.crash_reward = -100000
 
         # Distance along path lane change
         self.distance_to_end_of_path_reward = 50
@@ -64,6 +60,7 @@ class SimulationManager:
         self.acceleration_other_vehicles_reward = 10
 
         self.pre_train_sim_iterations = 1000  # 100 seconds
+        self.post_spawn_sim_iterations = 30  # 3 seconds
 
         self.reset()
 
@@ -75,7 +72,12 @@ class SimulationManager:
         while simulation.get_last_vehicle_uid_spawned() == last_car:
             simulation.compute_single_iteration()
         self.vehicle_uid = simulation.get_last_vehicle_uid_spawned()
+        for route in simulation.model.routes:
+            if len(route.get_path_uids()) > 1:
+                simulation.model.vehicles[simulation.model.get_vehicle_index(self.vehicle_uid)].route_uid = route.uid
         simulation.highlight_vehicles.append(self.vehicle_uid)
+        for iteration in range(self.post_spawn_sim_iterations):
+            simulation.compute_single_iteration()
         return simulation
 
     def reset(self):
@@ -88,10 +90,7 @@ class SimulationManager:
     def take_action(self, action_index):
         if action_index == 0:
             pass
-        else:
-            # if self.simulation.model.is_lane_change_required(self.vehicle_uid):
-            #     self.simulation.change_lane(self.vehicle_uid)
-            #     self.lane_changing_complete = 1
+        elif action_index == 1:
             self.simulation.change_lane(self.vehicle_uid)
 
     def compute_simulation_metrics(self):
