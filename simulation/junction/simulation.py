@@ -107,7 +107,7 @@ class Simulation:
 
 if __name__ == "__main__":
     # Reference Files
-    junction_file_path = os.path.join(os.path.dirname(os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))))), "junctions", "cross_road.junc")
+    junction_file_path = os.path.join(os.path.dirname(os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))))), "junctions", "example_junction.junc")
     configuration_file_path = os.path.join(os.path.dirname(os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))))), "configurations", "cross_road.config")
 
     # Settings
@@ -119,7 +119,6 @@ if __name__ == "__main__":
 
     # Simulation
     simulation = Simulation(junction_file_path, configuration_file_path, visualiser.update)
-    simulation.model.setup_fixed_spawning(1)
 
     # Visualiser Setup
     visualiser.define_main(partial(simulation.run_continuous, speed_multiplier))
