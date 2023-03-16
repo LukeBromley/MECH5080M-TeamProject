@@ -78,11 +78,12 @@ class MachineLearning:
 
         # Steps to look into the future to determine the mean reward. Should match T = 1/(1-gamma)
 
-        self.seconds_to_look_into_the_future = 2.5
+        self.seconds_to_look_into_the_future = 2.0
         self.steps_to_look_into_the_future = int(self.seconds_to_look_into_the_future / self.simulation_manager.simulation.model.tick_time)
 
         # Sample Size
-        self.sample_size = 1028  # Size of batch taken from replay buffer
+        self.sample_size = 64  # Size of batch taken from replay buffer
+        # Important proportion to the most recent state
 
         # TODO: Reduce tick rate to increase time distance between current and future states
         # Discount factor
@@ -214,7 +215,7 @@ class MachineLearning:
             self.episode_count += 1
 
             if self.solved(self.get_mean_reward()):
-                self.ml_model_target.save("saved_model_2")
+                self.ml_model_target.save("saved_model")
                 break
 
     def select_action(self, state):
@@ -283,7 +284,7 @@ class MachineLearning:
 
     def end_episode(self, episode_reward, step):
         if episode_reward < self.episode_end_reward or step > self.max_steps_per_episode:
-            print("Score at episode end:", episode_reward, "/ Steps:", step)
+            print(f"Score: {episode_reward:.2f} / Steps: {step}")
             return True
         else:
             return False
