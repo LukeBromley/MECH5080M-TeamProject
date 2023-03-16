@@ -50,7 +50,7 @@ class MachineLearning:
 
         # TAKING AN ACTION
         # Random action
-        self.random_action_selection_probabilities = [0.01, 0.33, 0.33, 0.33]
+        self.random_action_selection_probabilities = [0.35, 0.35, 0.3]
 
         # Probability of selecting a random action
         self.epsilon_greedy_min = 0.0  # Minimum probability of selecting a random action - zero to avoid future collision penalties
@@ -347,7 +347,7 @@ class MachineLearning:
 
     def play(self):
         global keyboard_input
-        keyboard_input = [False for _ in range(4)]
+        keyboard_input = [False for _ in range(self.simulation_manager.number_of_possible_actions)]
 
         def on_press(key):
             global keyboard_input
