@@ -32,6 +32,7 @@ class MachineLearning:
         self.future_wait_time = None
         self.simulation_manager = SimulationManager(junction_file_path, config_file_path, visualiser_update_function)
 
+
         # GRAPH
         # self.graph = Graph(graph_num_episodes, graph_max_step)
 
@@ -41,28 +42,28 @@ class MachineLearning:
         self.all_time_reward = 0  # Total reward over all episodes
 
         # TRAINING LIMITS
-        self.max_steps_per_episode = 10000  # Maximum number of steps allowed per episode
+        self.max_episode_length_in_seconds = 60
+        self.max_steps_per_episode = self.max_episode_length_in_seconds * self.simulation_manager.simulation.model.tick_rate  # Maximum number of steps allowed per episode
         self.episode_end_reward = -30  # Single episode total reward minimum threshold to end episode
-        self.solved_mean_reward = 1000  # Single episode total reward minimum threshold to consider ML trained
-        self.reward_history_limit = 20
+        self.solved_mean_reward = 0.9 * self.max_steps_per_episode  # Single episode total reward minimum threshold to consider ML trained
+        self.reward_history_limit = 10
 
         # TAKING AN ACTION
         # Random action
-        # self.random_action_selection_probabilities = [0.9, 0.025, 0.025, 0.025, 0.025]
-        self.random_action_selection_probabilities = [0.01, 0.35, 0.35, 0.29]
+        self.random_action_selection_probabilities = [0.01, 0.33, 0.33, 0.33]
 
         # Probability of selecting a random action
         self.epsilon_greedy_min = 0.0  # Minimum probability of selecting a random action - zero to avoid future collision penalties
-        self.epsilon_greedy_max = 0.9  # Maximum probability of selecting a random action
+        self.epsilon_greedy_max = 1.0  # Maximum probability of selecting a random action
         self.epsilon_greedy = self.epsilon_greedy_max  # Current probability of selecting a random action
 
         # Exploration
         # Number of steps of just random actions before the network can make some decisions
-        self.number_of_steps_of_required_exploration = 1000
+        self.number_of_steps_of_required_exploration = 5000
         # Number of steps over which epsilon greedy decays
-        self.number_of_steps_of_exploration_reduction = 10000
+        self.number_of_steps_of_exploration_reduction = 5000
         # Train the model after 4 actions
-        self.update_after_actions = 10
+        self.update_after_actions = 28
         # How often to update the target network
         self.update_target_network = 1000
 
@@ -81,8 +82,9 @@ class MachineLearning:
         self.steps_to_look_into_the_future = int(self.seconds_to_look_into_the_future / self.simulation_manager.simulation.model.tick_time)
 
         # Sample Size
-        self.sample_size = 124  # Size of batch taken from replay buffer
+        self.sample_size = 1028  # Size of batch taken from replay buffer
 
+        # TODO: Reduce tick rate to increase time distance between current and future states
         # Discount factor
         self.gamma = 0.99  # Discount factor for past rewards
 
@@ -100,7 +102,7 @@ class MachineLearning:
         self.loss_function = keras.losses.Huber()
 
         # MACHINE LEARNING MODELS
-        self.ml_model_hidden_layers = [512, 512, 512, 512]
+        self.ml_model_hidden_layers = [258, 258, 258]
 
         # Makes the predictions for Q-values which are used to make a action.
         self.ml_model = self.create_q_learning_model(self.simulation_manager.observation_space_size, self.simulation_manager.number_of_possible_actions, self.ml_model_hidden_layers)
@@ -198,8 +200,8 @@ class MachineLearning:
                     # update the target network with new weights
                     self.ml_model_target.set_weights(self.ml_model.get_weights())
                     # Log details
-                    template = " =============== running reward: {:.2f} at episode {}, frame count {} ================"
-                    print(template.format(self.get_mean_reward(), self.episode_count, self.number_of_steps_taken))
+                    template = " =============== running reward: {:.2f} / {:.2f} at episode {}, frame count {} ================"
+                    print(template.format(self.get_mean_reward(), self.solved_mean_reward, self.episode_count, self.number_of_steps_taken))
 
                 # Delete old buffer values
                 self.delete_old_replay_buffer_values()
@@ -443,7 +445,7 @@ class MachineLearning:
                 sys.stdout.flush()
 
     def test(self):
-        model = keras.models.load_model('saved_model_2')
+        model = keras.models.load_model('saved_model')
         episode = 10
         reward_log = []
         for episode in range(1, episode + 1):
@@ -463,7 +465,7 @@ class MachineLearning:
                 action_penalty = self.take_action(action_index)
 
                 # Run simulation 1 step
-                self.step_simulation(visualiser_on=True, visualiser_sleep_time=0.00)
+                self.step_simulation(visualiser_on=True, visualiser_sleep_time=0.05)
 
                 # Calculate reward
                 # TODO: Add a probability of a collision instead of a binary collision reward
@@ -529,20 +531,20 @@ if __name__ == "__main__":
     visualiser = JunctionVisualiser()
 
     # Simulation
-    machine_learning = MachineLearning(junction_file_path, configuration_file_path, visualiser.update)
-    # machine_learning = MachineLearning(junction_file_path, configuration_file_path, None)
+    # machine_learning = MachineLearning(junction_file_path, configuration_file_path, visualiser.update)
+    machine_learning = MachineLearning(junction_file_path, configuration_file_path, None)
     #
     # machine_learning.random()
-    # machine_learning.train()
+    machine_learning.train()
     # machine_learning.test()
 
     #
 
-    # Visualiser Setup
-    visualiser.define_main(machine_learning.test)
-    visualiser.load_junction(junction_file_path)
-    visualiser.set_scale(scale)
-    #
-    # Run Simulation
-    visualiser.open()
+    # # Visualiser Setup
+    # visualiser.define_main(machine_learning.test)
+    # visualiser.load_junction(junction_file_path)
+    # visualiser.set_scale(scale)
+    # #
+    # # Run Simulation
+    # visualiser.open()
 
