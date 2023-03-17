@@ -1,16 +1,13 @@
-import random
 from platform import system
-
-from pynput import keyboard
-
 if system() == 'Windows':
     import sys
-    sys.path.append('../')
+    sys.path.append('./')
 
 import os
 import sys
-from simulation.lane_changing.lc_simulation_manager import SimulationManager
+
 from gui.junction_visualiser import JunctionVisualiser
+from simulation.lane_changing.lc_simulation_manager import SimulationManager
 from analysis_tools.graph_ml_progress import Graph
 from time import sleep
 
@@ -23,12 +20,9 @@ from tensorflow.keras import layers
 
 
 class MachineLearning:
-    def __init__(self, junction_file_path, config_file_path, visualiser_update_function=None, graph_num_episodes=20, graph_max_step=30000):
+    def __init__(self, simulation, machine_learning_config):
         # SIMULATION MANAGER
-        self.simulation_manager = SimulationManager(junction_file_path, config_file_path, visualiser_update_function)
-
-        # GRAPH
-        # self.graph = Graph(graph_num_episodes, graph_max_step)
+        self.simulation_manager = simulation
 
         # COUNTERS
         self.episode_count = 0  # Number of episodes trained
@@ -36,16 +30,13 @@ class MachineLearning:
         self.all_time_reward = 0  # Total reward over all episodes
 
         # TRAINING LIMITS
-        # Maximum number of steps allowed per episode
-        self.max_steps_per_episode = 100000
-        # Single episode total reward minimum threshold to end episode
-        self.episode_end_reward = -500000
-        # Single episode total reward minimum threshold to consider ML trained
-        self.solved_mean_reward = 10000000000
+        self.max_steps_per_episode = 100000  # Maximum number of steps allowed per episode
+        self.episode_end_reward = -500000  # Single episode total reward minimum threshold to end episode
+        self.solved_mean_reward = 100000  # Single episode total reward minimum threshold to consider ML trained
 
         # TAKING AN ACTION
         # Random action
-        self.random_action_do_nothing_probability = 0.98
+        self.random_action_do_nothing_probability = 0.9
         self.random_action_selection_probabilities = [self.random_action_do_nothing_probability]
         for action_index in range(1, self.simulation_manager.number_of_possible_actions):
             self.random_action_selection_probabilities.append((1 - self.random_action_do_nothing_probability) / (self.simulation_manager.number_of_possible_actions - 1))
@@ -54,14 +45,11 @@ class MachineLearning:
         # Probability of selecting a random action
         self.epsilon_greedy_min = 0.1  # Minimum probability of selecting a random action
         self.epsilon_greedy_max = 1.0  # Maximum probability of selecting a random action
-        # Current probability of selecting a random action
-        self.epsilon_greedy = self.epsilon_greedy_max
+        self.epsilon_greedy = self.epsilon_greedy_max  # Current probability of selecting a random action
 
         # Exploration
-        # Number of steps of just random actions before the network can make some decisions
-        self.number_of_steps_of_required_exploration = 1000
-        # Number of steps over which epsilon greedy decays
-        self.number_of_steps_of_exploration_reduction = 5000
+        self.number_of_steps_of_required_exploration = 1000  # 10000  # Number of steps of just random actions before the network can make some decisions
+        self.number_of_steps_of_exploration_reduction = 5000  # 50000 # Number of steps over which epsilon greedy decays
 
         # REPLAY
         # Buffers
@@ -84,13 +72,10 @@ class MachineLearning:
 
         # OPTIMISING
         # Note: In the Deepmind paper they use RMSProp however then Adam optimizer
-        self.learning_rate = 0.00025
+        self.learning_rate = 0.00001  # 0.00025
         self.optimizer = keras.optimizers.legacy.Adam(learning_rate=self.learning_rate, clipnorm=1.0)
 
         # OTHER
-
-        # Number of iterations to gather reward
-        self.number_of_steps_to_gather_reward = 30
 
         # Train the model after 4 actions
         self.update_after_actions = 10
@@ -116,11 +101,11 @@ class MachineLearning:
         return q_network
 
     def train(self):
-        print("Training Started")
-        mean_reward = 0
         while True:  # Run until solved
             state = np.array(self.simulation_manager.reset())
             episode_reward = 0
+            mean_reward = 0
+
             # Run steps in episode
             for step in range(1, self.max_steps_per_episode):
 
@@ -131,7 +116,7 @@ class MachineLearning:
                 action_index = self.select_action(state)
 
                 # Take an action
-                self.take_action(action_index)
+                action_penalty = self.take_action(action_index)
 
                 # Run simulation 1 step
                 self.step_simulation()
@@ -139,64 +124,59 @@ class MachineLearning:
                 # Compute metrics used to get state and calculate reward
                 self.compute_simulation_metrics()
 
-                if self.simulation_manager.lane_changed:
-                    reward = self.calculate_reward(step)
-                    done = True
-                elif self.simulation_manager.vehicle_uid not in [vehicle.uid for vehicle in self.simulation_manager.simulation.model.vehicles]:
-                    reward = -10000
-                    done = True
-                else:
-                    reward = 0
-                    done = False
+                # Calculate reward
+                reward = self.calculate_reward(action_penalty, step)
 
                 # Update reward
                 self.all_time_reward += reward
                 episode_reward += reward
 
+                # Determine if episode is over
+                done = self.end_episode(episode_reward, step)
+
                 # Get the next state
                 next_state = self.get_state()
 
                 # Save actions and states in replay buffer
-                # self.save_to_replay_buffers(action_index, state, next_state, done, reward)
+                self.save_to_replay_buffers(action_index, state, next_state, done, reward)
 
                 # Update State
                 state = next_state
 
-                # # Update every fourth frame and once batch size is over 32
-                # if self.number_of_steps_taken % self.update_after_actions == 0 and len(self.done_history) > self.sample_size:
-                #
-                #     state_sample, state_next_sample, rewards_sample, action_sample, done_sample = self.sample_replay_buffers()
-                #
-                #     updated_q_values = self.calculate_updated_q_values(state_next_sample, rewards_sample, done_sample)
-                #
-                #     with tf.GradientTape() as tape:
-                #         # Train the model on the states and updated Q-values
-                #         q_values = self.ml_model(state_sample)
-                #
-                #         # Apply the masks to the Q-values to get the Q-value for action taken
-                #         # Create a mask so we only calculate loss on the updated Q-values
-                #         masks = tf.one_hot(action_sample, self.simulation_manager.number_of_possible_actions)
-                #         q_action = tf.reduce_sum(tf.multiply(q_values, masks), axis=1)
-                #
-                #         # Calculate loss between new Q-value and old Q-value
-                #         loss = self.loss_function(updated_q_values, q_action)
-                #
-                #     # Backpropagation
-                #     grads = tape.gradient(loss, self.ml_model.trainable_variables)
-                #     self.optimizer.apply_gradients(zip(grads, self.ml_model.trainable_variables))
-                #
-                # if self.number_of_steps_taken % self.update_target_network == 0:
-                #     # update the the target network with new weights
-                #     self.ml_model_target.set_weights(self.ml_model.get_weights())
-                #     # Log details
-                #     print_template = "RUNNING REWARD: {:.2f} at episode {}, step count {}"
-                #     print(print_template.format(mean_reward, self.episode_count, self.number_of_steps_taken))
-                #
-                # # Delete old buffer values
-                # self.delete_old_replay_buffer_values()
+                # Update every fourth frame and once batch size is over 32
+                if self.number_of_steps_taken % self.update_after_actions == 0 and len(self.done_history) > self.sample_size:
+
+                    state_sample, state_next_sample, rewards_sample, action_sample, done_sample = self.sample_replay_buffers()
+
+                    updated_q_values = self.calculate_updated_q_values(state_next_sample, rewards_sample, done_sample)
+
+                    with tf.GradientTape() as tape:
+                        # Train the model on the states and updated Q-values
+                        q_values = self.ml_model(state_sample)
+
+                        # Apply the masks to the Q-values to get the Q-value for action taken
+                        # Create a mask so we only calculate loss on the updated Q-values
+                        masks = tf.one_hot(action_sample, self.simulation_manager.number_of_possible_actions)
+                        q_action = tf.reduce_sum(tf.multiply(q_values, masks), axis=1)
+
+                        # Calculate loss between new Q-value and old Q-value
+                        loss = self.loss_function(updated_q_values, q_action)
+
+                    # Backpropagation
+                    grads = tape.gradient(loss, self.ml_model.trainable_variables)
+                    self.optimizer.apply_gradients(zip(grads, self.ml_model.trainable_variables))
+
+                if self.number_of_steps_taken % self.update_target_network == 0:
+                    # update the the target network with new weights
+                    self.ml_model_target.set_weights(self.ml_model.get_weights())
+                    # Log details
+                    template = "running reward: {:.2f} at episode {}, frame count {}"
+                    print(template.format(mean_reward, self.episode_count, self.number_of_steps_taken))
+
+                # Delete old buffer values
+                self.delete_old_replay_buffer_values()
 
                 if done:
-                    print("EPISODE:", self.episode_count, "Reward:", episode_reward, "/ Steps:", step, "/ Epsilon Greedy:", self.epsilon_greedy)
                     break
 
             mean_reward = self.get_mean_reward(episode_reward)
@@ -246,21 +226,19 @@ class MachineLearning:
             else:
                 self.simulation_manager.simulation.compute_single_iteration()
 
+
     def compute_simulation_metrics(self):
         self.simulation_manager.compute_simulation_metrics()
 
-    def calculate_reward(self, step):
-        reward = 0
-        for i in range(self.number_of_steps_to_gather_reward):
-            step += 1
+    def calculate_reward(self, action_penalty, iteration):
+        return self.simulation_manager.calculate_reward(action_penalty, iteration)
 
-            # Run simulation 1 step
-            self.step_simulation(visualiser_on=True, visualiser_sleep_time=0.1)
-
-            # Calculate reward
-            reward += self.simulation_manager.calculate_reward(step)
-
-        return reward
+    def end_episode(self, episode_reward, step):
+        if episode_reward < self.episode_end_reward:
+            print("Score at episode end:", episode_reward, "/ Steps:", step)
+            return True
+        else:
+            return False
 
     def get_state(self):
         state_next = np.asarray(self.simulation_manager.get_state()).astype('float32')
@@ -328,7 +306,7 @@ class MachineLearning:
             return False
 
     def random(self):
-        episode = 20
+        episode = 5
         for episode in range(1, episode + 1):
             self.simulation_manager.reset()
 
@@ -343,56 +321,7 @@ class MachineLearning:
                 action_index = self.select_random_action()
 
                 # Take an action
-                self.take_action(action_index)
-
-                # Run simulation 1 step
-                self.step_simulation()
-
-                # Compute metrics used to get state and calculate reward
-                self.compute_simulation_metrics()
-
-                if self.simulation_manager.lane_changed:
-                    reward = self.calculate_reward(step)
-                    done = True
-                elif self.simulation_manager.vehicle_uid not in [vehicle.uid for vehicle in self.simulation_manager.simulation.model.vehicles]:
-                    reward = -10000
-                    done = True
-                else:
-                    reward = 0
-                    done = False
-
-                if done:
-                    print("EPISODE:", episode, "Reward:", reward, "/ Steps:", step)
-                    break
-        exit()
-
-    def play(self):
-        global keyboard_input
-        keyboard_input = [False for _ in range(4)]
-
-        def on_press(key):
-            global keyboard_input
-            keyboard_input[int(key.char)-1] = True
-
-        def on_release(key):
-            global keyboard_input
-            keyboard_input[int(key.char)-1] = False
-
-        with keyboard.Listener(on_press=on_press, on_release=on_release) as listener:
-            self.simulation_manager.reset()
-            total_reward = 0
-            step = 0
-            while total_reward > -500000:
-                step += 1
-
-                # Select an action
-                if True in keyboard_input:
-                    action_index = keyboard_input.index(True) + 1
-                else:
-                    action_index = 0
-
-                # Take an action
-                action_penalty = self.take_action(action_index)
+                action_penalty = self.take_action(0)
 
                 # Run simulation 1 step
                 self.step_simulation(visualiser_on=True, visualiser_sleep_time=0.01)
@@ -405,73 +334,37 @@ class MachineLearning:
 
                 # Update reward
                 self.all_time_reward += reward
-                total_reward += reward
+                episode_reward += reward
 
-                sys.stdout.write("\r{0}".format(str(step)))
-                sys.stdout.write("\r{0}".format(str(total_reward)))
-                sys.stdout.flush()
-
-                # print(f"Step: {i} ({total_reward})")
-            listener.join()
-
-    def run(self):
-        state = np.array(self.simulation_manager.reset())
-        while True:
-            # Increment the total number of steps taken by the AI in total.
-            self.number_of_steps_taken += 1
-
-            # Select an action
-            action_index = self.select_best_action(state)
-
-            # Take an action
-            self.take_action(action_index)
-
-            # Run simulation 1 step
-            self.step_simulation()
-
-            # Get the next state
-            state = self.get_state()
-
-    def save_model_weights(self, model, file_location, save_name):
-        if os.path.isdir(file_location + "/" + save_name):
-            os.mkdir(file_location + "/" + save_name)
-        model.save_weights(file_location + "/" + save_name)
-
-    def save_model(self, model, file_location, save_name):
-        if os.path.isdir(file_location + "/" + save_name):
-            os.mkdir(file_location + "/" + save_name)
-        model.save(file_location + "/" + save_name)
-
-    def load_weights(self, model, file_location, save_name):
-        model.load_weights(file_location + "/" + save_name)
-        return model
-
-    def load_model(self, file_location, save_name):
-        return keras.models.load_model(file_location + "/" + save_name)
+                # Determine if episode is over
+                if self.end_episode(episode_reward, step):
+                    break
 
 
 if __name__ == "__main__":
     # Reference Files
-    junction_file_path = os.path.join(os.path.dirname(os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))))), "junctions", "lanes.junc")
-    configuration_file_path = os.path.join(os.path.dirname(os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))))), "configurations", "cross_road.config")
+    junction_file_path = os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))), "junctions", "cross_road.junc")
+    configuration_file_path = os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))), "configurations", "cross_road.config")
 
     # Settings
-    scale = 25
+    scale = 100
 
     # Visualiser Init
     visualiser = JunctionVisualiser()
-    visualiser.load_junction(junction_file_path)
-    visualiser.set_scale(scale)
-
+    visualiser_update_function = visualiser.update
+    # visualiser_update_function = None
     # Simulation
-    machine_learning = MachineLearning(junction_file_path, configuration_file_path, visualiser_update_function=visualiser.update)
+    simulation = SimulationManager(junction_file_path, configuration_file_path, visualiser_update_function)
+    machine_learning = MachineLearning(simulation)
 
     # machine_learning.random()
     # machine_learning.train()
-    # machine_learning.save()
 
     # Visualiser Setup
     visualiser.define_main(machine_learning.random)
+    visualiser.load_junction(junction_file_path)
+    visualiser.set_scale(scale)
 
     # Run Simulation
     visualiser.open()
+
