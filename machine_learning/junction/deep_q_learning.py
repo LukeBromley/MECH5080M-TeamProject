@@ -464,8 +464,6 @@ class MachineLearning:
                 sys.stdout.flush()
         return str(self.all_time_reward)
 
-    def save_model_to_folder(self, file_path):
-        self.ml_model_target.save(file_path)
 
     def test(self):
         model = keras.models.load_model('saved_model')
@@ -524,15 +522,15 @@ class MachineLearning:
             # Get the next state
             state = self.get_state()
 
-    def save_model_weights(self, model, file_location, save_name):
+    def save_model_weights(self, file_location, save_name):
         if os.path.isdir(file_location + "/" + save_name):
             os.mkdir(file_location + "/" + save_name)
-        model.save_weights(file_location + "/" + save_name)
+        self.ml_model.save_weights(file_location + "/" + save_name)
 
-    def save_model(self, model, file_location, save_name):
+    def save_model(self,file_location, save_name):
         if os.path.isdir(file_location + "/" + save_name):
             os.mkdir(file_location + "/" + save_name)
-        model.save(file_location + "/" + save_name)
+        self.ml_model.save(file_location + "/" + save_name)
 
     def load_weights(self, model, file_location, save_name):
         model.load_weights(file_location + "/" + save_name)

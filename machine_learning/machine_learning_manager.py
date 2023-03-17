@@ -70,8 +70,6 @@ class MachineLearningManager:
         simulation = JunctionSimulationManager(junction_file_path, simulation_config_file_path, visualiser_update_function=None)
         self.machine_learning = JunctionMachineLearning(simulation, machine_learning_config)
 
-        #machine_learning = LaneChangingMachineLearning(simulation, machine_learning_config)
-
         # Train ML
         print("Running Machine Learning:\n    RunUID: " + str(run_uid) + "\n    Junction: " + junction_file_name + "\n    Simulation Config: "
               + sim_config_file + "\n    Machine Learning Config: " + machine_learning_config_file + "\n    Machine Learning Config ID: "
@@ -101,8 +99,10 @@ class MachineLearningManager:
     def make_directory(self, run):
         results_directory_path = self.get_file_path([self.output_directory_path, ("training_results_run_" + str(run["RunUID"]))])
         os.mkdir(results_directory_path)
-        self.machine_learning.save_model_to_folder(results_directory_path+"/ml_model")
-        with open(results_directory_path + "/ml_model_parameters.txt", "a", newline='') as file:
+        os.mkdir((results_directory_path + "/ml_model_weights"))
+        self.machine_learning.save_model_weights((results_directory_path + "/ml_model_weights"), "ml_model_weights")
+        self.machine_learning.save_model(results_directory_path, "ml_model")
+        with open(results_directory_path + "/training_run_parameters.txt", "a", newline='') as file:
             file.write("This is a summary of the parameters for this Model:")
             for line in run:
                 file.write("\n" + line + ": " + str(run[line]))
