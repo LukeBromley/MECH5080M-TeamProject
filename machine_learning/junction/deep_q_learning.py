@@ -563,7 +563,7 @@ if __name__ == "__main__":
     #
 
     # Visualiser Setup
-    visualiser.define_main(machine_learning.test)
+    visualiser.define_main(machine_learning.random())
     visualiser.load_junction(junction_file_path)
     visualiser.set_scale(scale)
     #
