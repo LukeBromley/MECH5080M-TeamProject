@@ -32,11 +32,10 @@ class Simulation:
 
     def freeze_traffic(self, n: int = None):
         if n is None:
-            n = random.randint(5 * self.model.tick_rate, 20 * self.model.tick_rate)
+            n = random.randint(15 * self.model.tick_rate, 25 * self.model.tick_rate)
 
         for light in self.model.lights:
-            if random.random() > 0.25:
-                light.set_red()
+            light.set_red()
 
         for step in range(n):
             self.compute_single_iteration()
@@ -84,7 +83,7 @@ class Simulation:
 
             if vehicle.get_speed() < 1:
                 vehicle.add_wait_time(self.model.tick_time)
-            elif vehicle.get_speed() > 2:
+            elif vehicle.get_speed() > 3:
                 vehicle.wait_time = 0.0
 
         # Remove finished vehicles

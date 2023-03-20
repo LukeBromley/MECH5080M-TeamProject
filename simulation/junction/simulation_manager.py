@@ -28,9 +28,6 @@ class SimulationManager:
         # Actions
         self.number_of_possible_actions, self.action_space = self.calculate_actions()
 
-        # Metrics
-        self.wait_time = []
-
         # TODO: Soft code the id's
         self.light_controlled_path_uids = [1, 4, 2, 5]
         # self.light_path_uids = [2, 5]
@@ -54,8 +51,6 @@ class SimulationManager:
 
     def reset(self):
         self.simulation = self.create_simulation()
-        self.wait_time = []
-
         return np.zeros(self.observation_space_size)
 
     def take_action(self, action_index):

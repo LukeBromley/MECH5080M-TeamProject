@@ -45,9 +45,9 @@ class MachineLearning:
         # TRAINING LIMITS
         self.max_episode_length_in_seconds = 60
         # Exceeding 1000 steps results in no traffic
-        self.max_steps_per_episode = self.max_episode_length_in_seconds * self.tick_rate  # Maximum number of steps allowed per episode
+        self.max_steps_per_episode = self.max_episode_length_in_seconds * self.simulation_manager.simulation.model.tick_rate  # Maximum number of steps allowed per episode
         self.episode_end_reward = -30  # Single episode total reward minimum threshold to end episode
-        self.solved_mean_reward = 0.8 * self.max_steps_per_episode  # Single episode total reward minimum threshold to consider ML trained
+        self.solved_mean_reward = 0.9 * self.max_steps_per_episode  # Single episode total reward minimum threshold to consider ML trained
         self.reward_history_limit = 10
 
         # TAKING AN ACTION
@@ -150,12 +150,17 @@ class MachineLearning:
                 # Take an action
                 action_penalty = self.take_action(action_index)
 
-                # Run simulation
-                self.step_simulation()
+                previous_reward = self.simulation_manager.calculate_reward()
 
-                # Calculate reward
+                # Run simulation
+                iteration_rewards = []
+                for step in range(self.number_of_steps_per_iteration):
+                    self.step_simulation()
+                    iteration_rewards.append(self.simulation_manager.calculate_reward())
+
+                # print(iteration_rewards)
                 # TODO: Reset the state if reward is low so the network can take another try
-                reward = self.calculate_reward(action_penalty, predict=True)
+                reward = min(iteration_rewards) - previous_reward
 
                 # TODO: Continue if early collision is detected
                 # Update reward
@@ -253,13 +258,11 @@ class MachineLearning:
         return self.simulation_manager.take_action(action_index)
 
     def step_simulation(self, visualiser_on=False, visualiser_sleep_time: float = 0):
-        for step in range(self.number_of_steps_per_iteration):
-            if visualiser_on:
-                self.simulation_manager.simulation.run_single_iteration()
-                sleep(visualiser_sleep_time)
-            else:
-                self.simulation_manager.simulation.compute_single_iteration()
-
+        if visualiser_on:
+            self.simulation_manager.simulation.run_single_iteration()
+            sleep(visualiser_sleep_time)
+        else:
+            self.simulation_manager.simulation.compute_single_iteration()
 
     def calculate_reward(self, action_penalty, predict: bool = True):
         action_penalty = 0
@@ -387,7 +390,7 @@ class MachineLearning:
             listener.join()
 
     def random(self):
-        episode = 1
+        episode = 5
         for episode in range(1, episode + 1):
             # Reset the environment
             self.simulation_manager.reset()
@@ -421,7 +424,7 @@ class MachineLearning:
                 action_penalty = self.take_action(action)
 
                 # Run simulation 1 step
-                self.step_simulation(visualiser_on=True, visualiser_sleep_time=0.0)
+                self.step_simulation(visualiser_on=True, visualiser_sleep_time=0.05)
 
                 # Calculate reward
                 reward = self.calculate_reward(action_penalty, predict=False)
@@ -432,11 +435,6 @@ class MachineLearning:
 
                 # Determine if episode is over
                 if self.end_episode(self.all_time_reward, self.number_of_steps_taken):
-                    rewards = [reward for reward in reward_log if reward > -9]
-                    plt.plot(rewards)
-                    for timestamp in light_change_log:
-                        plt.axvline(timestamp, c='green')
-                    plt.show()
                     break
 
                 sys.stdout.write("\rstep: {0} / reward: {1}".format(str(self.number_of_steps_taken), str(self.all_time_reward)))
@@ -529,17 +527,17 @@ if __name__ == "__main__":
     visualiser = JunctionVisualiser()
 
     # Simulation
-    # machine_learning = MachineLearning(junction_file_path, configuration_file_path, visualiser.update)
-    machine_learning = MachineLearning(junction_file_path, configuration_file_path, None)
+    machine_learning = MachineLearning(junction_file_path, configuration_file_path, visualiser.update)
+    # machine_learning = MachineLearning(junction_file_path, configuration_file_path, None)
     #
     # machine_learning.random()
-    machine_learning.train()
+    # machine_learning.train()
     # machine_learning.test()
 
-    # # Visualiser Setup
-    # visualiser.define_main(machine_learning.random)
-    # visualiser.load_junction(junction_file_path)
-    # visualiser.set_scale(scale)
-    # #
-    # # Run Simulation
-    # visualiser.open()
+    # Visualiser Setup
+    visualiser.define_main(machine_learning.random)
+    visualiser.load_junction(junction_file_path)
+    visualiser.set_scale(scale)
+    #
+    # Run Simulation
+    visualiser.open()
