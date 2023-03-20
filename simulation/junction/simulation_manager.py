@@ -32,7 +32,8 @@ class SimulationManager:
         self.wait_time = []
 
         # TODO: Soft code the id's
-        self.light_controlled_path_uids = [1, 4]
+        self.light_controlled_path_uids = [1, 4, 2, 5]
+        # self.light_path_uids = [2, 5]
 
         # Inputs / States
         self.features_per_state_input = 4
@@ -120,6 +121,7 @@ class SimulationManager:
 
         # Sort and flatten the inputs by distance travelled
         for index, path_input in enumerate(path_inputs):
+            # Sorted adds more weight to the neural inputs of vehicles close to the traffic light
             sorted_path_input = sorted(path_input, key=lambda features: features[0], reverse=True)
             flattened_path_input = list(chain.from_iterable(sorted_path_input))
             path_inputs[index] = flattened_path_input
@@ -146,15 +148,6 @@ class SimulationManager:
         #     state_input += tuple
         return state_input
 
-    def compute_simulation_metrics(self):
-        for vehicle in self.simulation.model.vehicles:
-            if vehicle.get_speed() < 1:
-                vehicle.add_wait_time(self.simulation.model.tick_time)
-            elif vehicle.get_speed() > 2:
-                vehicle.wait_time = 0.0
-        # TODO: Implement weighted average
-        self.wait_time = [vehicle.wait_time for vehicle in self.simulation.model.vehicles]
-
     def get_mean_wait_time(self):
         if self.wait_time:
             wait_time = self.wait_time
@@ -171,6 +164,7 @@ class SimulationManager:
             return 0.0
 
     def calculate_reward(self):
+        self.wait_time = [vehicle.wait_time for vehicle in self.simulation.model.vehicles]
         reward = 100 - self.get_mean_wait_time()**2
         if self.simulation.model.detect_collisions():
             reward -= 10000

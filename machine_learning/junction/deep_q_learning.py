@@ -32,9 +32,8 @@ class MachineLearning:
         self.future_wait_time = None
         self.simulation_manager = SimulationManager(junction_file_path, config_file_path, visualiser_update_function)
 
-        self.state_tick_rate = 10
-        self.number_of_steps_per_iteration = int(self.simulation_manager.simulation.model.tick_rate / self.state_tick_rate)
-
+        self.tick_rate = 1
+        self.number_of_steps_per_iteration = int(self.simulation_manager.simulation.model.tick_rate / self.tick_rate)
         # GRAPH
         # self.graph = Graph(graph_num_episodes, graph_max_step)
 
@@ -46,7 +45,7 @@ class MachineLearning:
         # TRAINING LIMITS
         self.max_episode_length_in_seconds = 60
         # Exceeding 1000 steps results in no traffic
-        self.max_steps_per_episode = self.max_episode_length_in_seconds * self.simulation_manager.simulation.model.tick_rate  # Maximum number of steps allowed per episode
+        self.max_steps_per_episode = self.max_episode_length_in_seconds * self.tick_rate  # Maximum number of steps allowed per episode
         self.episode_end_reward = -30  # Single episode total reward minimum threshold to end episode
         self.solved_mean_reward = 0.8 * self.max_steps_per_episode  # Single episode total reward minimum threshold to consider ML trained
         self.reward_history_limit = 10
@@ -87,7 +86,6 @@ class MachineLearning:
         # Sample Size
         self.sample_size = 124  # Size of batch taken from replay buffer
         # TODO: Proportion to the most recent state
-
 
         # Discount factor
         self.gamma = 0.99  # Discount factor for past rewards
@@ -131,7 +129,7 @@ class MachineLearning:
         mean_reward = 0
         while True:  # Run until solved
             state = self.simulation_manager.reset()
-
+            previous_reward = None
             episode_reward = 0
             episode_step = 0
             action_log = []
@@ -140,18 +138,19 @@ class MachineLearning:
             while True:
 
                 # Increment the total number of steps taken by the AI in total.
-                self.number_of_steps_taken += 1
+                self.number_of_steps_taken += self.number_of_steps_per_iteration
 
                 # Increment the episode step
-                episode_step += 1
+                episode_step += self.number_of_steps_per_iteration
 
                 # Select an action
                 action_index = self.select_action(state)
                 action_log.append(action_index)
+
                 # Take an action
                 action_penalty = self.take_action(action_index)
 
-                # Run simulation 1 step
+                # Run simulation
                 self.step_simulation()
 
                 # Calculate reward
@@ -260,28 +259,27 @@ class MachineLearning:
                 sleep(visualiser_sleep_time)
             else:
                 self.simulation_manager.simulation.compute_single_iteration()
-            self.simulation_manager.compute_simulation_metrics()
+
 
     def calculate_reward(self, action_penalty, predict: bool = True):
         action_penalty = 0
-        if predict:
-            simulation_manager_copy = copy.deepcopy(self.simulation_manager)
-            future_rewards = [self.simulation_manager.calculate_reward()]
-
-            for step in range(self.steps_to_look_into_the_future):
-                simulation_manager_copy.simulation.compute_single_iteration()
-                simulation_manager_copy.compute_simulation_metrics()
-                future_rewards.append(simulation_manager_copy.calculate_reward())
-
-            self.future_wait_time = simulation_manager_copy.get_mean_wait_time()
-            wait_time_gradient = 10 * (simulation_manager_copy.get_mean_wait_time()**2 - self.simulation_manager.get_mean_wait_time()**2)
-
-            # Could be considered illegal action, however this gives the algorithm more freedom and less bias
-            future_rewards = -10 if min(future_rewards) < -9 else 0
-            return future_rewards - action_penalty - wait_time_gradient / 1000 - 1/1000
-        else:
-            self.simulation_manager.compute_simulation_metrics()
-            return self.simulation_manager.calculate_reward() - action_penalty
+        # if predict:
+        #     simulation_manager_copy = copy.deepcopy(self.simulation_manager)
+        #     future_rewards = [self.simulation_manager.calculate_reward()]
+        #
+        #     for step in range(self.steps_to_look_into_the_future):
+        #         simulation_manager_copy.simulation.compute_single_iteration()
+        #         simulation_manager_copy.compute_simulation_metrics()
+        #         future_rewards.append(simulation_manager_copy.calculate_reward())
+        #
+        #     self.future_wait_time = simulation_manager_copy.get_mean_wait_time()
+        #     wait_time_gradient = 10 * (simulation_manager_copy.get_mean_wait_time()**2 - self.simulation_manager.get_mean_wait_time()**2)
+        #
+        #     # Could be considered illegal action, however this gives the algorithm more freedom and less bias
+        #     future_rewards = -10 if min(future_rewards) < -9 else 0
+        #     return future_rewards - action_penalty - wait_time_gradient / 1000 - 1/1000
+        # else:
+        return self.simulation_manager.calculate_reward() - action_penalty
 
     def end_episode(self, episode_reward, step):
         if episode_reward < self.episode_end_reward or step > self.max_steps_per_episode:

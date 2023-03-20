@@ -82,6 +82,11 @@ class Simulation:
             vehicle.update_position_data([coord_x, coord_y])
             self.vehicle_data.append([coord_x, coord_y, angle, vehicle.length, vehicle.width, vehicle.uid])
 
+            if vehicle.get_speed() < 1:
+                vehicle.add_wait_time(self.model.tick_time)
+            elif vehicle.get_speed() > 2:
+                vehicle.wait_time = 0.0
+
         # Remove finished vehicles
         self.model.remove_finished_vehicles()
 
