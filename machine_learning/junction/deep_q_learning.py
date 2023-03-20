@@ -32,6 +32,8 @@ class MachineLearning:
         self.future_wait_time = None
         self.simulation_manager = SimulationManager(junction_file_path, config_file_path, visualiser_update_function)
 
+        self.state_tick_rate = 10
+        self.number_of_steps_per_iteration = int(self.simulation_manager.simulation.model.tick_rate / self.state_tick_rate)
 
         # GRAPH
         # self.graph = Graph(graph_num_episodes, graph_max_step)
@@ -46,7 +48,7 @@ class MachineLearning:
         # Exceeding 1000 steps results in no traffic
         self.max_steps_per_episode = self.max_episode_length_in_seconds * self.simulation_manager.simulation.model.tick_rate  # Maximum number of steps allowed per episode
         self.episode_end_reward = -30  # Single episode total reward minimum threshold to end episode
-        self.solved_mean_reward = 0.9 * self.max_steps_per_episode  # Single episode total reward minimum threshold to consider ML trained
+        self.solved_mean_reward = 0.8 * self.max_steps_per_episode  # Single episode total reward minimum threshold to consider ML trained
         self.reward_history_limit = 10
 
         # TAKING AN ACTION
@@ -86,8 +88,6 @@ class MachineLearning:
         self.sample_size = 124  # Size of batch taken from replay buffer
         # TODO: Proportion to the most recent state
 
-        self.state_tick_rate = 1
-        self.number_of_steps_per_iteration = int(self.simulation_manager.simulation.model.tick_rate / self.state_tick_rate)
 
         # Discount factor
         self.gamma = 0.99  # Discount factor for past rewards
@@ -158,6 +158,7 @@ class MachineLearning:
                 # TODO: Reset the state if reward is low so the network can take another try
                 reward = self.calculate_reward(action_penalty, predict=True)
 
+                # TODO: Continue if early collision is detected
                 # Update reward
                 self.all_time_reward += reward
 
@@ -262,7 +263,6 @@ class MachineLearning:
             self.simulation_manager.compute_simulation_metrics()
 
     def calculate_reward(self, action_penalty, predict: bool = True):
-        # TODO: Uncomment
         action_penalty = 0
         if predict:
             simulation_manager_copy = copy.deepcopy(self.simulation_manager)
@@ -275,6 +275,8 @@ class MachineLearning:
 
             self.future_wait_time = simulation_manager_copy.get_mean_wait_time()
             wait_time_gradient = 10 * (simulation_manager_copy.get_mean_wait_time()**2 - self.simulation_manager.get_mean_wait_time()**2)
+
+            # Could be considered illegal action, however this gives the algorithm more freedom and less bias
             future_rewards = -10 if min(future_rewards) < -9 else 0
             return future_rewards - action_penalty - wait_time_gradient / 1000 - 1/1000
         else:
@@ -543,4 +545,3 @@ if __name__ == "__main__":
     # #
     # # Run Simulation
     # visualiser.open()
-
