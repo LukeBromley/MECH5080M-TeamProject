@@ -1,3 +1,4 @@
+import random
 from platform import system
 if system() == 'Windows':
     import sys
@@ -17,6 +18,7 @@ class Simulation:
         self.uid = 0
 
         # Model
+        # TODO: Start at random TOD's
         self.model = Model()
         self.model.load_junction(junction_file_path)
         self.model.generate_routes()
@@ -26,14 +28,15 @@ class Simulation:
 
         # Visualiser
         self.visualiser_update_function = visualiser_update_function
+        self.freeze_traffic()
 
+    def freeze_traffic(self, n: int = None):
+        if n is None:
+            n = random.randint(5 * self.model.tick_rate, 20 * self.model.tick_rate)
 
-        self.freeze_traffic(30 * self.model.tick_rate)
-
-    def freeze_traffic(self, n: int):
-        # TODO: Randomize freeze duration and lights during freeze
         for light in self.model.lights:
-            light.set_red()
+            if random.random() > 0.25:
+                light.set_red()
 
         for step in range(n):
             self.compute_single_iteration()

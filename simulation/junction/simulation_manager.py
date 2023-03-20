@@ -38,6 +38,7 @@ class SimulationManager:
         self.features_per_state_input = 4
         self.number_of_tracked_vehicles_per_path = 5
         self.observation_space_size = self.features_per_state_input * len(self.light_controlled_path_uids) * (0 + self.number_of_tracked_vehicles_per_path)
+
         # TODO: Initialize separate boxes by argmax for different inputs
         self.observation_space = Box(0, 50, shape=(1, self.observation_space_size), dtype=float)
         self.reset()
@@ -105,6 +106,7 @@ class SimulationManager:
         ]
 
     def get_state(self):
+        # TODO: Add info about vehicles past the traffic light
         inputs = []
         # for light in self.simulation.model.lights:
         #     inputs += self.get_traffic_light_state(light)
