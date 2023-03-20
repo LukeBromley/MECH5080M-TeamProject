@@ -458,11 +458,11 @@ class MachineLearning:
                 action_penalty = self.take_action(action_index)
 
                 # Run simulation 1 step
-                self.step_simulation(visualiser_on=True, visualiser_sleep_time=0.00)
+                self.step_simulation(visualiser_on=True, visualiser_sleep_time=0.05)
 
                 # Calculate reward
                 # TODO: Add a probability of a collision instead of a binary collision reward
-                reward = self.calculate_reward(action_penalty, predict=True)
+                reward = self.calculate_reward(action_penalty, predict=False)
                 reward_log.append(reward)
                 self.all_time_reward += reward
 

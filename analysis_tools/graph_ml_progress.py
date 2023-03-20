@@ -1,6 +1,5 @@
 import matplotlib.pyplot as plt
 
-
 class Graph:
     def __init__(self, num_episodes_displayed, max_steps_displayed):
         self.num_episodes_displayed = num_episodes_displayed
@@ -8,15 +7,16 @@ class Graph:
         # to run GUI event loop
         plt.ion()
 
-        # here we are creating sub plots
-        self.figure, self.graph = plt.subplots(figsize=(10, 8))
-
         # setting title
         plt.title("Reward", fontsize=20)
 
         # setting x-axis label and y-axis label
         plt.xlabel("Episode")
         plt.ylabel("Steps")
+
+        # here we are creating sub plots
+        self.figure, self.graph = plt.subplots(figsize=(10, 8))
+
         plt.ylim([0, max_steps_displayed])
 
         self.x = [i for i in range(self.num_episodes_displayed, 0, -1)]
@@ -41,3 +41,9 @@ class Graph:
 
     def hide_graph(self):
         plt.close()
+
+
+if __name__ == "__main__":
+    graph = Graph(100, 100)
+    for i in range(100):
+        graph.update(i)

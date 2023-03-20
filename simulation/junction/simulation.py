@@ -27,7 +27,7 @@ class Simulation:
         # Visualiser
         self.visualiser_update_function = visualiser_update_function
 
-        self.freeze_traffic(150)
+        self.freeze_traffic(100)
 
     def freeze_traffic(self, n: int):
         # TODO: Randomize freeze duration and lights during freeze
@@ -86,7 +86,7 @@ class Simulation:
 
     def add_vehicle(self, route_uid: int, length, width, delta_distance):
         self.uid += 1
-        initial_speed_multiplier = clamp(delta_distance, 0, 5) / 5
+        initial_speed_multiplier = clamp(delta_distance, 0, 20) / 20
         self.model.add_vehicle(
             Vehicle(
                 uid=self.uid,
