@@ -101,7 +101,7 @@ class MachineLearning:
         # MACHINE LEARNING MODELS
         self.ml_model_hidden_layers = [6, 12, 6]
 
-        self.ml_model = self.create_q_learning_model(self.simulation_manager.observation_space_size, self.simulation_manager.number_of_possible_actions, self.ml_model_hidden_layers)  # Makes the predictions for Q-values which are used to make a action.
+        self.ml_model = self.create_q_learning_model(self.simulation_manager.observation_space_size, self.simulation_manager.number_of_possible_actions, self.ml_model_hidden_layers)  # Makes the predictions for Q-values which are used to make an action.
         self.ml_model_target = self.create_q_learning_model(self.simulation_manager.observation_space_size, self.simulation_manager.number_of_possible_actions, self.ml_model_hidden_layers)  # For the prediction of future rewards. The weights of a target model get updated every 10000 steps thus when the loss between the Q-values is calculated the target Q-value is stable.
 
     def create_q_learning_model(self, state_size, action_size, hidden_layers):
@@ -184,7 +184,7 @@ class MachineLearning:
                     self.optimizer.apply_gradients(zip(grads, self.ml_model.trainable_variables))
 
                 if self.number_of_steps_taken % self.update_target_network == 0:
-                    # update the the target network with new weights
+                    # update the target network with new weights
                     self.ml_model_target.set_weights(self.ml_model.get_weights())
                     # Log details
                     print_template = "RUNNING REWARD: {:.2f} at episode {}, step count {}"
