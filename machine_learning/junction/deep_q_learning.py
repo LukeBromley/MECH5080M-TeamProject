@@ -42,7 +42,7 @@ class MachineLearning:
 
         # TRAINING LIMITS
         self.max_steps_per_episode = 10000  # Maximum number of steps allowed per episode
-        self.episode_end_reward = -30  # Single episode total reward minimum threshold to end episode
+        self.episode_end_reward = -1000  # Single episode total reward minimum threshold to end episode
         self.solved_mean_reward = 400  # Single episode total reward minimum threshold to consider ML trained
         self.reward_history_limit = 50
 
@@ -226,7 +226,7 @@ class MachineLearning:
         return action
 
     def select_random_action(self):
-        return np.random.choice(self.simulation_manager.number_of_possible_actions, p=self.random_action_selection_probabilities)
+        return np.random.choice(self.simulation_manager.number_of_possible_actions) #, p=self.random_action_selection_probabilities)
 
     def select_best_action(self, state):
         # Predict action Q-values
@@ -399,25 +399,25 @@ class MachineLearning:
                 # Select an action
                 action_index = self.select_random_action()
 
-                if self.number_of_steps_taken % 20 == 0:
-                    if action in [1, 2]:
-                        action = 3
-                    else:
-                        if previous_action == 1:
-                            action = 2
-                            previous_action = 2
-                        else:
-                            action = 1
-                            previous_action = 1
-                    light_change_log.append(self.number_of_steps_taken)
+                # if self.number_of_steps_taken % 20 == 0:
+                #     if action in [1, 2]:
+                #         action = 3
+                #     else:
+                #         if previous_action == 1:
+                #             action = 2
+                #             previous_action = 2
+                #         else:
+                #             action = 1
+                #             previous_action = 1
+                #     light_change_log.append(self.number_of_steps_taken)
 
-                action_penalty = self.take_action(action)
+                action_penalty = self.take_action(action_index)
 
                 # Run simulation 1 step
-                self.step_simulation(visualiser_on=False, visualiser_sleep_time=0.0)
+                self.step_simulation(visualiser_on=True, visualiser_sleep_time=0.0)
 
                 # Calculate reward
-                reward = self.calculate_reward(action_penalty, predict=True)
+                reward = self.calculate_reward(action_penalty, predict=False)
                 reward_log.append(reward)
 
                 # Update reward
@@ -425,13 +425,6 @@ class MachineLearning:
 
                 # Determine if episode is over
                 if self.end_episode(self.all_time_reward, self.number_of_steps_taken):
-                    rewards = [reward for reward in reward_log if reward > -9]
-                    print(rewards)
-                    print(light_change_log)
-                    plt.plot(rewards)
-                    for timestamp in light_change_log:
-                        plt.axvline(timestamp, c='green')
-                    plt.show()
                     break
 
                 sys.stdout.write("\rstep: {0} / reward: {1}".format(str(self.number_of_steps_taken), str(self.all_time_reward)))
@@ -517,7 +510,7 @@ class MachineLearning:
 
 if __name__ == "__main__":
     # Reference Files
-    junction_file_path = os.path.join(os.path.dirname(os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))))), "junctions", "cross_road.junc")
+    junction_file_path = os.path.join(os.path.dirname(os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))))), "junctions", "scale_library_pub_junction.junc")
     configuration_file_path = os.path.join(os.path.dirname(os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))))), "configurations", "cross_road.config")
 
     # Settings
@@ -527,20 +520,18 @@ if __name__ == "__main__":
     visualiser = JunctionVisualiser()
 
     # Simulation
-    machine_learning = MachineLearning(junction_file_path, configuration_file_path, visualiser.update)
-    # machine_learning = MachineLearning(junction_file_path, configuration_file_path, None)
+    # machine_learning = MachineLearning(junction_file_path, configuration_file_path, visualiser.update)
+    machine_learning = MachineLearning(junction_file_path, configuration_file_path, None)
     #
     # machine_learning.random()
-    # machine_learning.train()
+    machine_learning.train()
     # machine_learning.test()
 
-    #
-
-    # Visualiser Setup
-    visualiser.define_main(machine_learning.test)
-    visualiser.load_junction(junction_file_path)
-    visualiser.set_scale(scale)
-    #
-    # Run Simulation
-    visualiser.open()
+    # # Visualiser Setup
+    # visualiser.define_main(machine_learning.random)
+    # visualiser.load_junction(junction_file_path)
+    # visualiser.set_scale(scale)
+    # #
+    # # Run Simulation
+    # visualiser.open()
 
