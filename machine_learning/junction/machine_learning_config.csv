@@ -1,6 +1,0 @@
-config_id,max_steps_per_episode,episode_end_reward,solved_mean_reward,random_action_do_nothing_probability,epsilon_greedy_min,epsilon_greedy_max,number_of_steps_of_required_exploration,number_of_steps_of_exploration_reduction,sample_size,gamma,max_replay_buffer_length,learning_rate,update_after_actions,update_target_network
-0,100000,-500000,100000,0.9,0.1,1.0,1000,5000,32,0.9,100000,0.01,10,10000
-1,100000,-500000,100000,0.9,0.1,1.0,1000,5000,32,0.9,100000,0.01,10,10000
-2,900000,-500000,100000,0.9,0.1,1.0,1000,5000,32,0.9,100000,0.01,10,10000
-3,10000,-500000,100000,0.9,0.1,1.0,1000,5000,32,0.9,100000,0.01,10,10000
-4,200000,-500000,100000,0.9,0.1,1.0,1000,5000,32,0.9,100000,0.01,10,10000

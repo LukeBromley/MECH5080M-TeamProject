@@ -1,0 +1,6 @@
+config_id,max_steps_per_episode,episode_end_reward,solved_mean_reward,reward_history_limit,random_action_selection_probabilities,epsilon_greedy_min,epsilon_greedy_max,number_of_steps_of_required_exploration,number_of_steps_of_exploration_reduction,update_after_actions,update_target_network,seconds_to_look_into_the_future,sample_size,gamma,max_replay_buffer_length,learning_rate,ml_model_hidden_layers
+0,10000,-30,400,50,0.01|0.4|0.4|0.19,0.01,0.95,1000,10000,10,1000,2.5,124,0.99,500000,0.0001,512|512
+1,10000,-30,400,50,0.01|0.4|0.4|0.19,0.01,0.95,1000,10000,10,1000,2.5,124,0.99,500000,0.0002,512|512
+2,10000,-30,400,50,0.01|0.4|0.4|0.19,0.01,0.95,1000,10000,10,1000,2.5,124,0.99,500000,0.0003,512|512
+3,10000,-30,400,50,0.01|0.4|0.4|0.19,0.01,0.95,1000,10000,10,1000,2.5,124,0.99,500000,0.0004,512|512
+4,10000,-30,400,50,0.01|0.4|0.4|0.19,0.01,0.95,1000,10000,10,1000,2.5,124,0.99,500000,0.0005,512|512

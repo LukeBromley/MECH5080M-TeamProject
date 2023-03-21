@@ -69,6 +69,7 @@ class SimulationManager:
             self.simulation.compute_single_iteration()
 
     def take_action(self, action_index):
+        # TODO: soft code
         penalty = 0
         if action_index == 0:
             self.simulation.model.lights[0].set_red()

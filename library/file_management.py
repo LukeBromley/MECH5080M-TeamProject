@@ -1,6 +1,6 @@
 import json
 import csv
-from library.environment import Configuration, Time, MLConfiguration
+from library.environment import SimulationConfiguration, Time, MachineLearningConfiguration
 from library.infrastructure import Node, Path, TrafficLight
 from library.vehicles import VehicleResults
 
@@ -66,49 +66,6 @@ class FileManagement:
         # Car results data identifiers
         self.start_time_key = "start_time"
         self.position_data_key = "position_data"
-
-        # MACHINE LEARNING
-        # Config
-        self.config_id_key = "config_id"
-        # Limits
-        self.max_steps_per_episode_key = "max_steps_per_episode"
-        self.episode_end_reward_key = "episode_end_reward"
-        self.solved_mean_reward_key = "solved_mean_reward"
-
-        # Action Probabilities
-        self.random_action_do_nothing_probability_key = "random_action_do_nothing_probability"
-        self.epsilon_greedy_min_key = "epsilon_greedy_min"
-        self.epsilon_greedy_max_key = "epsilon_greedy_max"
-
-        # Exploration
-        self.number_of_steps_of_required_exploration_key = "number_of_steps_of_required_exploration"
-        self.number_of_steps_of_exploration_reduction_key = "number_of_steps_of_exploration_reduction"
-
-        # Sample Size
-        self.sample_size_key = "sample_size"
-
-        # Discount factor
-        self.gamma_key = "gamma"
-
-        # Maximum replay buffer length
-        self.max_replay_buffer_length_key = "max_replay_buffer_length"
-
-        # Optimisations
-        self.learning_rate_key = "learning_rate"
-
-        # Train the model after number of actions
-        self.update_after_actions_key = "update_after_actions"
-
-        # How often to update the target network
-        self.update_target_network_key = "update_target_network"
-
-        self.header = [self.config_id_key, self.max_steps_per_episode_key, self.episode_end_reward_key, self.solved_mean_reward_key,
-                       self.random_action_do_nothing_probability_key, self.epsilon_greedy_min_key,
-                       self.epsilon_greedy_max_key, self.number_of_steps_of_required_exploration_key,
-                       self.number_of_steps_of_exploration_reduction_key, self.sample_size_key, self.gamma_key,
-                       self.max_replay_buffer_length_key, self.learning_rate_key, self.update_after_actions_key,
-                       self.update_target_network_key]
-
 
     def load_from_junction_file(self, file_path: str, quick_load=False) -> tuple:
         """
@@ -212,7 +169,7 @@ class FileManagement:
         with open(file_path, "w") as file:
             json.dump(file_dict, file)
 
-    def save_config_file(self, file_path: str, config: Configuration) -> None:
+    def save_config_file(self, file_path: str, config: SimulationConfiguration) -> None:
         """
 
         :param file_path: where the config file is saved
@@ -261,7 +218,7 @@ class FileManagement:
         with open(file_path, "w") as file:
             json.dump(file_dict, file)
 
-    def load_config_file(self, file_path: str) -> Configuration:
+    def load_config_file(self, file_path: str) -> SimulationConfiguration:
         """
 
         :param file_path: where to load configuration from
@@ -270,7 +227,7 @@ class FileManagement:
         with open(file_path, "r") as file:
             file_dict = json.load(file)
 
-        config = Configuration()
+        config = SimulationConfiguration()
 
         # Configuration identifiers
         config.tick_rate = file_dict[self.tick_rate_key]
@@ -347,14 +304,14 @@ class FileManagement:
 
             return vehicles
         
-    def save_ML_configs_to_file(self, file_path, ml_configs):
+    def save_ML_configs_to_file(self, file_path, ml_configs, header):
         with open(file_path, "w", newline='') as file:
-            writer = csv.DictWriter(file, fieldnames=self.header)
+            writer = csv.DictWriter(file, fieldnames=header)
             writer.writeheader()
             for i, config in enumerate(ml_configs):
                 file_dict = self.save_ML_config(config, i)
                 writer.writerow(file_dict)
-
+ # TODO Fix saving
     def save_ML_config(self, config, i) -> None:
         """
 
@@ -410,47 +367,49 @@ class FileManagement:
                 machine_learning_configs.append(self.load_ML_config(file_dict))
         return machine_learning_configs
 
-    def load_ML_config(self, file_dict) -> MLConfiguration:
+    def load_ML_config(self, file_dict):
         """
 
         :param file_path: where to load configuration from
         :return: the loaded configuration
         """
-        config = MLConfiguration()
-
+        config = MachineLearningConfiguration()
         # Config
-        config.config_id = file_dict[self.config_id_key]
+        config.config_id = int(file_dict["config_id"])
 
         # Limits
-        config.max_steps_per_episode = file_dict[self.max_steps_per_episode_key]
-        config.episode_end_reward = file_dict[self.episode_end_reward_key]
-        config.solved_mean_reward = file_dict[self.solved_mean_reward_key]
+        config.max_steps_per_episode = int(file_dict["max_steps_per_episode"])
+        config.episode_end_reward = int(file_dict["episode_end_reward"])
+        config.solved_mean_reward = int(file_dict["solved_mean_reward"])
+        config.reward_history_limit = int(file_dict["reward_history_limit"])
 
         # Action Probabilities
-        config.random_action_do_nothing_probability = file_dict[self.random_action_do_nothing_probability_key]
-        config.epsilon_greedy_min = file_dict[self.epsilon_greedy_min_key]
-        config.epsilon_greedy_max = file_dict[self.epsilon_greedy_max_key]
+        config.random_action_selection_probabilities = list(map(float, file_dict["random_action_selection_probabilities"].split("|")))
+        config.epsilon_greedy_min = float(file_dict["epsilon_greedy_min"])
+        config.epsilon_greedy_max = float(file_dict["epsilon_greedy_max"])
 
         # Exploration
-        config.number_of_steps_of_required_exploration = file_dict[self.number_of_steps_of_required_exploration_key]
-        config.number_of_steps_of_exploration_reduction = file_dict[self.number_of_steps_of_exploration_reduction_key]
+        config.number_of_steps_of_required_exploration = int(file_dict["number_of_steps_of_required_exploration"])
+        config.number_of_steps_of_exploration_reduction = int(file_dict["number_of_steps_of_exploration_reduction"])
+
+        # Update
+        config.update_after_actions = int(file_dict["update_after_actions"])
+        config.update_target_network = int(file_dict["update_target_network"])
+
+        # Look Into Future
+        config.seconds_to_look_into_the_future = float(file_dict["seconds_to_look_into_the_future"])
 
         # Sample Size
-        config.sample_size = file_dict[self.sample_size_key]
+        config.sample_size = int(file_dict["sample_size"])
 
         # Discount factor
-        config.gamma = file_dict[self.gamma_key]
+        config.gamma = float(file_dict["gamma"])
 
         # Maximum replay buffer length
-        config.max_replay_buffer_length = file_dict[self.max_replay_buffer_length_key]
+        config.max_replay_buffer_length = int(file_dict["max_replay_buffer_length"])
 
         # Optimisations
-        config.learning_rate = file_dict[self.learning_rate_key]
-
-        # Train the model after number of actions
-        config.update_after_actions = file_dict[self.update_after_actions_key]
-
-        # How often to update the target network
-        config.update_target_network = file_dict[self.update_target_network_key]
+        config.learning_rate = float(file_dict["learning_rate"])
+        config.ml_model_hidden_layers = list(map(float, file_dict["ml_model_hidden_layers"].split("|")))
 
         return config

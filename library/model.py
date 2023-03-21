@@ -164,7 +164,7 @@ class Model:
         if self.spawners[index].nudge(time):
             length, width = self.get_spawner_vehicle_size(node_uid)
             distance = self.distance_of_first_vehicle_from_start_node(node_uid)
-            if distance > length:
+            if distance > 2 * length:
                 route_uid = self.get_spawner_route(node_uid)
                 distance_delta = distance - (length/2)
                 return route_uid, length, width, distance_delta
@@ -421,7 +421,8 @@ class Model:
     def get_vehicle_next_path_uid(self, vehicle_uid):
         vehicle = self.get_vehicle(vehicle_uid)
         route = self.get_route(vehicle.route_uid)
-        return route.get_path_uid(vehicle.get_path_index() + 1)
+        index = vehicle.get_path_index() + 1
+        return route.get_path_uid(index)
 
     def get_vehicle_coordinates(self, vehicle_uid):
         vehicle = self.get_vehicle(vehicle_uid)

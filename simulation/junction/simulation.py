@@ -72,6 +72,7 @@ class Simulation:
 
             if vehicle.get_speed() < 1:
                 vehicle.add_wait_time(self.model.tick_time)
+            # TODO: an educated guess
             elif vehicle.get_speed() > 3:
                 vehicle.wait_time = 0.0
 
@@ -83,7 +84,7 @@ class Simulation:
 
     def add_vehicle(self, route_uid: int, length, width, delta_distance):
         self.uid += 1
-        initial_speed_multiplier = clamp(delta_distance, 0, 5) / 5
+        initial_speed_multiplier = clamp(delta_distance, 0, 20) / 20
         self.model.add_vehicle(
             Vehicle(
                 uid=self.uid,

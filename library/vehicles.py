@@ -98,11 +98,7 @@ class Vehicle:
         else:
             anticipation_time = 1.0
 
-        acceleration = (speed_vehicle_ahead ** 2 - self._speed ** 2 + 2 * self._maximum_deceleration * (
-            anticipation_time * (
-                speed_vehicle_ahead - self._speed) + delta_distance_ahead - self._speed * self._preferred_time_gap)) / (
-            anticipation_time * (
-                2 * self._maximum_deceleration * self._preferred_time_gap + self._maximum_deceleration * anticipation_time + 2 * self._speed))
+        acceleration = (speed_vehicle_ahead ** 2 - self._speed ** 2 + 2 * self._maximum_deceleration * (anticipation_time * (speed_vehicle_ahead - self._speed) + delta_distance_ahead - self._speed * self._preferred_time_gap)) / (anticipation_time * (2 * self._maximum_deceleration * self._preferred_time_gap + self._maximum_deceleration * anticipation_time + 2 * self._speed))
 
         return clamp(acceleration, -self._maximum_deceleration, self._maximum_acceleration)
 
