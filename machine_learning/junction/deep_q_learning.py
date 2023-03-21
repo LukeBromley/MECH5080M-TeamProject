@@ -446,23 +446,26 @@ class MachineLearning:
             self.simulation_manager.reset()
             self.reset()
 
+            action_index = np.argmax(model(self.get_state().reshape(1, -1)))
             # Run steps in episode
             while True:
                 # Increment the total number of steps taken by the AI in total.
                 self.number_of_steps_taken += 1
 
                 # Select an action
-                action_index = np.argmax(model(self.get_state().reshape(1, -1)))
+
 
                 # Take an action
-                action_penalty = self.take_action(action_index)
+                if self.number_of_steps_taken % 10 == 0:
+                    action_index = np.argmax(model(self.get_state().reshape(1, -1)))
 
+                self.take_action(action_index)
                 # Run simulation 1 step
-                self.step_simulation(visualiser_on=True, visualiser_sleep_time=0.00)
+                self.step_simulation(visualiser_on=True, visualiser_sleep_time=0.02)
 
                 # Calculate reward
                 # TODO: Add a probability of a collision instead of a binary collision reward
-                reward = self.calculate_reward(action_penalty, predict=True)
+                reward = self.calculate_reward(0, predict=False)
                 reward_log.append(reward)
                 self.all_time_reward += reward
 
