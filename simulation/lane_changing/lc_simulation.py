@@ -46,13 +46,13 @@ class Simulation:
         if self.visualiser_update_function is not None:
             self.visualiser_update_function(self.vehicle_data, self.model.lights, self.model.calculate_time_of_day(), self.collision)
 
-    def compute_single_iteration(self):
+    def compute_single_iteration(self, lane_change=False):
         # Spawn vehicles
         for index, node_uid in enumerate(self.model.calculate_start_nodes()):
             nudge_result = self.model.nudge_spawner(node_uid, self.model.calculate_time_of_day())
             if nudge_result is not None:
                 route_uid, length, width, distance_delta = nudge_result
-                self.add_vehicle(route_uid, length, width, distance_delta)
+                self.add_vehicle(node_uid, length, width, distance_delta, lane_change)
 
         # Remove finished vehicles
         self.model.remove_finished_vehicles()
@@ -86,14 +86,14 @@ class Simulation:
         # Increment Time
         self.model.tock()
 
-    def add_vehicle(self, route_uid: int, length, width, didstance_delta):
+    def add_vehicle(self, node_uid: int, length, width, didstance_delta, lane_change=False):
         self.uid += 1
-        initial_speed_multiplier = clamp(didstance_delta, 0, 5) / 5
+        initial_speed_multiplier = clamp(didstance_delta, 0, 20) / 20
         self.model.add_vehicle(
             Vehicle(
                 uid=self.uid,
                 start_time=self.model.calculate_seconds_elapsed(),
-                route_uid=route_uid,
+                route_uid=self.route_without_lane_change(node_uid) if not lane_change else self.route_with_lane_change(node_uid),
                 speed=self.model.config.initial_speed * initial_speed_multiplier,
                 acceleration=self.model.config.initial_acceleration,
                 maximum_acceleration=self.model.config.maximum_acceleration,
@@ -105,6 +105,26 @@ class Simulation:
                 min_creep_distance=self.model.config.min_creep_distance
             )
         )
+
+    def route_with_lane_change(self, start_node_uid):
+        start_path_uid = None
+        for path in self.model.paths:
+            if path.start_node_uid == start_node_uid:
+                start_path_uid = path.uid
+        for route in self.model.routes:
+            if len(route.get_path_uids()) > 1:
+                if route.get_path_uids()[0] == start_path_uid:
+                    return route.uid
+
+    def route_without_lane_change(self, start_node_uid):
+        start_path_uid = None
+        for path in self.model.paths:
+            if path.start_node_uid == start_node_uid:
+                start_path_uid = path.uid
+        for route in self.model.routes:
+            if len(route.get_path_uids()) == 1:
+                if route.get_path_uids()[0] == start_path_uid:
+                    return route.uid
 
     def change_lane(self, vehicle_uid):
         if self.model.is_lane_change_required(vehicle_uid):
