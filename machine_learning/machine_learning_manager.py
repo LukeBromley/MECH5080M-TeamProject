@@ -12,8 +12,9 @@ from machine_learning.junction.deep_q_learning import MachineLearning as Junctio
 from simulation.junction.simulation_manager import SimulationManager as JunctionSimulationManager
 
 from machine_learning.lane_changing.lc_deep_q_learning import MachineLearning as LaneChangingMachineLearning
-from simulation.lane_changing.lc_simulation_manager import SimulationManager as LaneChangingMachineLearning
+from simulation.lane_changing.lc_simulation_manager import SimulationManager as LaneChangingSimulationManager
 import time
+
 
 class MachineLearningManager:
     def __init__(self, file_path) -> None:
@@ -43,14 +44,14 @@ class MachineLearningManager:
         with open(file_path, "r") as file:
             csv_reader = csv.DictReader(file)
             self.fieldnames = csv_reader.fieldnames
-            self.fieldnames = self.fieldnames + ["Time Taken", "Mean Reward"]
+            self.fieldnames += ["Time Taken", "Mean Reward"]
             for file_dict in csv_reader:
                 self.training_runs.append(file_dict)
 
     def run_training_runs(self):
         time_begin = time.perf_counter()
         for run in self.training_runs:
-            time_taken, reward = self.run_training_run(run["RunUID"], run["Junction"], run["SimulationConfig"], run["MachineLearningConfig"], run["MachineLearningConfigID"])
+            time_taken, reward = self.run_training_run(run["RunUID"], run["RunType"], run["Junction"], run["SimulationConfig"], run["MachineLearningConfig"], run["MachineLearningConfigID"])
             run.update({"Time Taken": time_taken, "Mean Reward": reward})
             self.save_summary_results(run)
             self.make_directory(run)
@@ -59,19 +60,25 @@ class MachineLearningManager:
               str(time_taken) + "\n    Total Training Runs: " + str(len(self.training_runs)) + "\n    Results Directory: " + self.output_directory_path +
               "\n================================================")
 
-    def run_training_run(self, run_uid, junction_file_name, sim_config_file, machine_learning_config_file,machine_learning_config_id):
+    def run_training_run(self, run_uid, run_type, junction_file_name, sim_config_file, machine_learning_config_file, machine_learning_config_id):
         # Get file paths for configs
-        junction_file_path = self.get_file_path(["junctions",junction_file_name])
+        junction_file_path = self.get_file_path(["junctions", junction_file_name])
         simulation_config_file_path = self.get_file_path(["configurations", "simulation_config", sim_config_file])
-        machine_learning_file_path = self.get_file_path(["configurations","machine_learning_config", machine_learning_config_file])
+        machine_learning_file_path = self.get_file_path(["configurations", "machine_learning_config", machine_learning_config_file])
         machine_learning_config_options = FileManagement().load_ML_configs_from_file(machine_learning_file_path)
         machine_learning_config = machine_learning_config_options[int(machine_learning_config_id)]
-        # Initialise simulation and ML (Uncomment required ML model)
-        simulation = JunctionSimulationManager(junction_file_path, simulation_config_file_path, visualiser_update_function=None)
-        self.machine_learning = JunctionMachineLearning(simulation, machine_learning_config)
-
+        # Initialise simulation
+        if run_type.lower() == "junction":
+            simulation = JunctionSimulationManager(junction_file_path, simulation_config_file_path, visualiser_update_function=None)
+            self.machine_learning = JunctionMachineLearning(simulation, machine_learning_config)
+        elif run_type.lower() == "lane changing":
+            simulation = LaneChangingSimulationManager(junction_file_path, simulation_config_file_path, visualiser_update_function=None)
+            self.machine_learning = LaneChangingMachineLearning(simulation, machine_learning_config)
+        else:
+            print("ERROR Incompatible Type in config UID:" + str(run_uid))
+            exit()
         # Train ML
-        print("Running Machine Learning:\n    RunUID: " + str(run_uid) + "\n    Junction: " + junction_file_name + "\n    Simulation Config: "
+        print("Running Machine Learning:\n    RunUID: " + str(run_uid) + "\n    Run Type: " + run_type + "\n    Junction: " + junction_file_name + "\n    Simulation Config: "
               + sim_config_file + "\n    Machine Learning Config: " + machine_learning_config_file + "\n    Machine Learning Config ID: "
               + machine_learning_config_id + "\nStarting Training...")
         time_begin = time.perf_counter()
