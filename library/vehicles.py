@@ -9,7 +9,7 @@ class Vehicle:
                  speed: float = 0.0, acceleration: float = 0.0,
                  direction: float = 0.0, sensing_radius: float = 0.0,
                  maximum_acceleration: float = 1.5, maximum_deceleration: float = 2.0,
-                 maximum_speed: float = 20.0, minimum_speed: float = -20.0,
+                 maximum_speed: float = 30.0, minimum_speed: float = 0.0,
                  distance_travelled: float = 0.0, preferred_time_gap: float = 2.0,
                  length: float = 4.4, width: float = 1.82,
                  min_creep_distance: float = 0, maximum_lateral_acceleration: float = 1.1

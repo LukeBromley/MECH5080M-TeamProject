@@ -1,3 +1,4 @@
+import random
 from platform import system
 if system() == 'Windows':
     import sys
@@ -17,6 +18,7 @@ class Simulation:
         self.uid = 0
 
         # Model
+        # TODO: Start at random TOD's
         self.model = Model()
         self.model.load_junction(junction_file_path)
         self.model.generate_routes()
@@ -26,16 +28,6 @@ class Simulation:
 
         # Visualiser
         self.visualiser_update_function = visualiser_update_function
-
-        self.freeze_traffic(100)
-
-    def freeze_traffic(self, n: int):
-        # TODO: Randomize freeze duration and lights during freeze
-        for light in self.model.lights:
-            light.set_red()
-
-        for step in range(n):
-            self.compute_single_iteration()
 
     def run_continuous(self, speed_multiplier=None):
         for tick in range(self.model.config.simulation_duration):
@@ -77,6 +69,12 @@ class Simulation:
             vehicle.update(self.model.tick_time, object_ahead, delta_distance_ahead, curvature)
             vehicle.update_position_data([coord_x, coord_y])
             self.vehicle_data.append([coord_x, coord_y, angle, vehicle.length, vehicle.width, vehicle.uid])
+
+            if vehicle.get_speed() < 1:
+                vehicle.add_wait_time(self.model.tick_time)
+            # TODO: an educated guess
+            elif vehicle.get_speed() > 3:
+                vehicle.wait_time = 0.0
 
         # Remove finished vehicles
         self.model.remove_finished_vehicles()
