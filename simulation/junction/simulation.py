@@ -28,17 +28,6 @@ class Simulation:
 
         # Visualiser
         self.visualiser_update_function = visualiser_update_function
-        self.freeze_traffic()
-
-    def freeze_traffic(self, n: int = None):
-        if n is None:
-            n = random.randint(15 * self.model.tick_rate, 25 * self.model.tick_rate)
-
-        for light in self.model.lights:
-            light.set_red()
-
-        for step in range(n):
-            self.compute_single_iteration()
 
     def run_continuous(self, speed_multiplier=None):
         for tick in range(self.model.config.simulation_duration):

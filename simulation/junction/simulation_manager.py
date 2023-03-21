@@ -27,15 +27,19 @@ class SimulationManager:
 
         # Actions
         self.number_of_possible_actions, self.action_space = self.calculate_actions()
+        self.wait_time = []
 
         # TODO: Soft code the id's
-        self.light_controlled_path_uids = [1, 4, 2, 5]
-        # self.light_path_uids = [2, 5]
+        self.light_controlled_path_uids = [1, 4]
+        self.light_path_uids = [2, 5]
 
         # Inputs / States
         self.features_per_state_input = 4
         self.number_of_tracked_vehicles_per_path = 5
-        self.observation_space_size = self.features_per_state_input * len(self.light_controlled_path_uids) * (0 + self.number_of_tracked_vehicles_per_path)
+        self.observation_space_size = self.features_per_state_input * len(self.light_controlled_path_uids) * (self.number_of_tracked_vehicles_per_path)
+
+        self.light_controlled_path_uids += self.light_path_uids
+        self.observation_space_size += self.features_per_state_input * len(self.light_path_uids)
 
         # TODO: Initialize separate boxes by argmax for different inputs
         self.observation_space = Box(0, 50, shape=(1, self.observation_space_size), dtype=float)
@@ -51,7 +55,18 @@ class SimulationManager:
 
     def reset(self):
         self.simulation = self.create_simulation()
+        self.freeze_traffic()
         return np.zeros(self.observation_space_size)
+
+    def freeze_traffic(self, n: int = None):
+        if n is None:
+            n = random.randint(25 * self.simulation.model.tick_rate, 30 * self.simulation.model.tick_rate)
+
+        for light in self.simulation.model.lights:
+            light.set_red()
+
+        for step in range(n):
+            self.simulation.compute_single_iteration()
 
     def take_action(self, action_index):
         penalty = 0
@@ -121,16 +136,18 @@ class SimulationManager:
             flattened_path_input = list(chain.from_iterable(sorted_path_input))
             path_inputs[index] = flattened_path_input
 
-        for path_input in path_inputs:
-            inputs += self.pad_state_input(path_input)
-
+        for index, path_input in enumerate(path_inputs):
+            if index < 2:
+                inputs += self.pad_state_input(path_input, self.number_of_tracked_vehicles_per_path)
+            else:
+                inputs += self.pad_state_input(path_input, 1)
         return inputs
 
-    def pad_state_input(self, state_input: list):
-        if len(state_input) > self.features_per_state_input * self.number_of_tracked_vehicles_per_path:
-            state_input = state_input[:self.features_per_state_input * self.number_of_tracked_vehicles_per_path]
+    def pad_state_input(self, state_input: list, n: int):
+        if len(state_input) > self.features_per_state_input * n:
+            state_input = state_input[:self.features_per_state_input * n]
         else:
-            state_input += [0.0] * (self.features_per_state_input * self.number_of_tracked_vehicles_per_path - len(state_input))
+            state_input += [np.NAN] * (self.features_per_state_input * n - len(state_input))
 
         # # TODO: Implement shuffling
         # tupled_state_input = []
