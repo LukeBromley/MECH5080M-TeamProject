@@ -27,14 +27,15 @@ from tensorflow.keras import layers
 
 
 class MachineLearning:
-    def __init__(self, simulation_manager, machine_learning_config = None, graph_num_episodes=20, graph_max_step=30000):
+    def __init__(self, simulation_manager, machine_learning_config=None, graph_num_episodes=20, graph_max_step=30000):
         # SIMULATION MANAGER
         self.future_wait_time = None
         self.simulation_manager = simulation_manager
 
         # TODO: Profile code
-        self.tick_rate = 1
+        self.tick_rate = 2
         self.number_of_steps_per_iteration = int(self.simulation_manager.simulation.model.tick_rate / self.tick_rate)
+
         # GRAPH
         # self.graph = Graph(graph_num_episodes, graph_max_step)
 
@@ -48,12 +49,12 @@ class MachineLearning:
         # Exceeding 1000 steps results in no traffic
         self.max_steps_per_episode = self.max_episode_length_in_seconds * self.simulation_manager.simulation.model.tick_rate  # Maximum number of steps allowed per episode
         self.episode_end_reward = -30  # Single episode total reward minimum threshold to end episode
-        self.solved_mean_reward = 25  # Single episode total reward minimum threshold to consider ML trained
+        self.solved_mean_reward = 5  # Single episode total reward minimum threshold to consider ML trained
         self.reward_history_limit = 15
 
         # TAKING AN ACTION
         # Random action
-        self.random_action_selection_probabilities = [0.35, 0.35, 0.3]
+        self.random_action_selection_probabilities = [0.25, 0.25, 0.25, 0.25]
 
         # Probability of selecting a random action
         self.epsilon_greedy_min = 0.0  # Minimum probability of selecting a random action - zero to avoid future collision penalties
@@ -62,13 +63,13 @@ class MachineLearning:
 
         # Exploration
         # Number of steps of just random actions before the network can make some decisions
-        self.number_of_steps_of_required_exploration = 10000
+        self.number_of_steps_of_required_exploration = 1000
         # Number of steps over which epsilon greedy decays
-        self.number_of_steps_of_exploration_reduction = 100000
+        self.number_of_steps_of_exploration_reduction = 10000
         # Train the model after 4 actions
-        self.update_after_actions = 4
+        self.update_after_actions = 12
         # How often to update the target network
-        self.update_target_network = 10000
+        self.update_target_network = 1000
 
         # REPLAY
         # Buffers
@@ -81,15 +82,15 @@ class MachineLearning:
 
         # Steps to look into the future to determine the mean reward. Should match T = 1/(1-gamma)
 
-        self.seconds_to_look_into_the_future = 1.0
+        self.seconds_to_look_into_the_future = 1
         self.steps_to_look_into_the_future = int(self.seconds_to_look_into_the_future / self.simulation_manager.simulation.model.tick_time)
 
         # Sample Size
-        self.sample_size = 64  # Size of batch taken from replay buffer
+        self.sample_size = 124  # Size of batch taken from replay buffer
         # TODO: Proportion to the most recent state
 
         # Discount factor
-        self.gamma = 0.99  # Discount factor for past rewards
+        self.gamma = 0.5  # Discount factor for past rewards
 
         # Maximum replay buffer length
         # Note: The Deepmind paper suggests 1000000 however this causes memory issues
@@ -97,7 +98,7 @@ class MachineLearning:
 
         # OPTIMISING
         # Note: In the Deepmind paper they use RMSProp however then Adam optimizer
-        self.learning_rate = 0.0001  # 0.00025
+        self.learning_rate = 0.0005  # 0.00025
         self.optimizer = keras.optimizers.legacy.Adam(learning_rate=self.learning_rate, clipnorm=1.0)
 
         # OTHER
@@ -105,7 +106,7 @@ class MachineLearning:
         self.loss_function = keras.losses.Huber()
 
         # MACHINE LEARNING MODELS
-        self.ml_model_hidden_layers = [512, 512, 512]
+        self.ml_model_hidden_layers = [512]
 
         # Change configurations to ones supplied in machine_learning_config
         if machine_learning_config is not None:
@@ -171,18 +172,23 @@ class MachineLearning:
 
                 previous_wait_time = self.simulation_manager.get_mean_wait_time()
 
+
+                # TODO: implement light timings and set red after the light turns green and simulate for infinite amount of time to look for a cloosion
+
                 # Run simulation
-                iteration_rewards = []
-                for step in range(self.number_of_steps_per_iteration):
-                    self.step_simulation(self.visualise)
-                    iteration_rewards.append(self.simulation_manager.calculate_reward())
-
-                wait_time_gradient = 0.01 * (self.simulation_manager.get_mean_wait_time() ** 2 - previous_wait_time ** 2)
-
-                # print(iteration_rewards)
                 # TODO: Reset the state if reward is low so the network can take another try
-                reward = min(iteration_rewards) - wait_time_gradient
+                collision = False
+                for step in range(self.number_of_steps_per_iteration):
+                    self.simulation_manager.simulation.run_single_iteration()
+                    if self.simulation_manager.simulation.model.detect_collisions():
+                        collision = True
+
                 # TODO: Continue if early collision is detected
+                reward = 0.01 * (previous_wait_time**2 - self.simulation_manager.get_mean_wait_time()**2)
+
+                if collision:
+                    reward -= 10
+
                 # Update reward
                 self.all_time_reward += reward
 
@@ -281,38 +287,11 @@ class MachineLearning:
     def take_action(self, action_index):
         return self.simulation_manager.take_action(action_index)
 
-    def step_simulation(self, visualiser_on=False, visualiser_sleep_time: float = 0):
-        if visualiser_on:
-            self.simulation_manager.simulation.run_single_iteration()
-            sleep(visualiser_sleep_time)
-        else:
-            self.simulation_manager.simulation.compute_single_iteration()
-
-    def calculate_reward(self, action_penalty, predict: bool = True):
-        action_penalty = 0
-        # if predict:
-        #     simulation_manager_copy = copy.deepcopy(self.simulation_manager)
-        #     future_rewards = [self.simulation_manager.calculate_reward()]
-        #
-        #     for step in range(self.steps_to_look_into_the_future):
-        #         simulation_manager_copy.simulation.compute_single_iteration()
-        #         simulation_manager_copy.compute_simulation_metrics()
-        #         future_rewards.append(simulation_manager_copy.calculate_reward())
-        #
-        #     self.future_wait_time = simulation_manager_copy.get_mean_wait_time()
-        #     wait_time_gradient = 10 * (simulation_manager_copy.get_mean_wait_time()**2 - self.simulation_manager.get_mean_wait_time()**2)
-        #
-        #     # Could be considered illegal action, however this gives the algorithm more freedom and less bias
-        #     future_rewards = -10 if min(future_rewards) < -9 else 0
-        #     return future_rewards - action_penalty - wait_time_gradient / 1000 - 1/1000
-        # else:
-        return self.simulation_manager.calculate_reward() - action_penalty
-
     def end_episode(self, episode_reward, step):
         if episode_reward < self.episode_end_reward or step > self.max_steps_per_episode:
-            # print(f"Score: {episode_reward:.2f} / Steps: {step}")
-            #print("Score at episode end:", episode_reward, "/ Steps:", step)
-            sys.stdout.write("\rEpisode: {0} / Mean Reward: {1}".format(str(episode_reward), str(step)))
+            print(f"Score: {episode_reward:.2f} / Steps: {step}")
+            # print("Score at episode end:", episode_reward, "/ Steps:", step)
+            # sys.stdout.write("\rEpisode: {0} / Mean Reward: {1}".format(str(episode_reward), str(step)))
             sys.stdout.flush()
             return True
         else:
@@ -353,7 +332,7 @@ class MachineLearning:
         # Q value = reward + discount factor * expected future reward
         updated_q_values = rewards_sample + self.gamma * tf.reduce_max(future_rewards, axis=1)
         # If final frame set the last value to -1
-        updated_q_values = updated_q_values * (1 - done_sample) - done_sample
+        # updated_q_values = updated_q_values * (1 - done_sample) - done_sample
         return updated_q_values
 
     def delete_old_replay_buffer_values(self):
@@ -558,20 +537,19 @@ if __name__ == "__main__":
     visualiser_update_function = visualiser.update
     # visualiser_update_function = None
     # Simulation
-    simulation = SimulationManager(junction_file_path, configuration_file_path, visualiser_update_function)
+    # simulation = SimulationManager(junction_file_path, configuration_file_path, visualiser_update_function)
+    simulation = SimulationManager(junction_file_path, configuration_file_path, None)
     machine_learning = MachineLearning(simulation, machine_learning_config=None)
     #
     # machine_learning.random()
-    # machine_learning.train()
+    machine_learning.train()
     # machine_learning.test()
 
-    #
-
-    # Visualiser Setup
-    visualiser.define_main(machine_learning.random())
-    visualiser.load_junction(junction_file_path)
-    visualiser.set_scale(scale)
-    #
-    # Run Simulation
-    visualiser.open()
+    # # Visualiser Setup
+    # visualiser.define_main(machine_learning.train)
+    # visualiser.load_junction(junction_file_path)
+    # visualiser.set_scale(scale)
+    # #
+    # # Run Simulation
+    # visualiser.open()
 

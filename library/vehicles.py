@@ -159,9 +159,6 @@ class Vehicle:
     def get_route_uid(self):
         return self.route_uid
 
-    def add_wait_time(self, time):
-        self.wait_time += time
-
 
 class GhostVehicle:
     def __init__(self, uid, path_uid, time_created):

@@ -27,7 +27,6 @@ class SimulationManager:
 
         # Actions
         self.number_of_possible_actions, self.action_space = self.calculate_actions()
-        self.wait_time = []
 
         # TODO: Soft code the id's
         self.light_controlled_path_uids = [1, 4]
@@ -39,7 +38,7 @@ class SimulationManager:
         self.observation_space_size = self.features_per_state_input * len(self.light_controlled_path_uids) * (self.number_of_tracked_vehicles_per_path)
 
         self.light_controlled_path_uids += self.light_path_uids
-        self.observation_space_size += self.features_per_state_input * len(self.light_path_uids)
+        self.observation_space_size += self.features_per_state_input * 2 * len(self.light_path_uids)
 
         # TODO: Initialize separate boxes by argmax for different inputs
         self.observation_space = Box(0, 50, shape=(1, self.observation_space_size), dtype=float)
@@ -50,7 +49,7 @@ class SimulationManager:
         return simulation
 
     def calculate_actions(self):
-        number_of_actions = 2 ** len(self.simulation.model.lights) - 1
+        number_of_actions = 2 ** len(self.simulation.model.lights)
         return number_of_actions, Discrete(number_of_actions)
 
     def reset(self):
@@ -60,7 +59,7 @@ class SimulationManager:
 
     def freeze_traffic(self, n: int = None):
         if n is None:
-            n = random.randint(25 * self.simulation.model.tick_rate, 30 * self.simulation.model.tick_rate)
+            n = random.randint(15 * self.simulation.model.tick_rate, 20 * self.simulation.model.tick_rate)
 
         for light in self.simulation.model.lights:
             light.set_red()
@@ -92,6 +91,9 @@ class SimulationManager:
             #     light.set_green()
             # else:
             #     penalty = 1000
+        elif action_index == 3:
+            self.simulation.model.lights[0].set_green()
+            self.simulation.model.lights[1].set_green()
         else:
             raise Exception("invalid action")
         # elif action_index == 4:
@@ -109,12 +111,6 @@ class SimulationManager:
             vehicle.wait_time
             # vehicle.get_length(),
             # vehicle.get_acceleration()
-        ]
-
-    def get_traffic_light_state(self, light: TrafficLight):
-        return [
-            light.get_state(),
-            light.get_time_remaining()
         ]
 
     def get_state(self):
@@ -141,7 +137,7 @@ class SimulationManager:
             if index < 2:
                 inputs += self.pad_state_input(path_input, self.number_of_tracked_vehicles_per_path)
             else:
-                inputs += self.pad_state_input(path_input, 1)
+                inputs += self.pad_state_input(path_input, 2)
         return inputs
 
     def pad_state_input(self, state_input: list, n: int):
@@ -162,26 +158,19 @@ class SimulationManager:
         return state_input
 
     def get_mean_wait_time(self):
-        if self.wait_time:
-            wait_time = self.wait_time
-            wait_time.sort()
+        wait_times = [vehicle.wait_time for vehicle in self.simulation.model.vehicles]
+        if wait_times:
+            wait_times.sort()
 
             dot_product = 0
             sum_coeff = 0
 
-            for index, value in enumerate(wait_time):
+            for index, value in enumerate(wait_times):
                 sum_coeff += (index + 1)**2
                 dot_product += value * (index+1)**2
             return dot_product / sum_coeff
         else:
             return 0.0
-
-    def calculate_reward(self):
-        self.wait_time = [vehicle.wait_time for vehicle in self.simulation.model.vehicles]
-        reward = 100 - self.get_mean_wait_time()**2
-        if self.simulation.model.detect_collisions():
-            reward -= 10000
-        return reward / 1000
 
     def get_lights(self):
         return self.simulation.model.get_lights()
@@ -194,12 +183,12 @@ class SimulationManager:
     def get_number_of_vehicles_waiting(self):
         number_of_cars_waiting = 0
         for vehicle in self.simulation.model.vehicles:
-            if vehicle.get_speed() < self.waiting_speed:
+            if vehicle.get_speed() < 3:
                 number_of_cars_waiting += 1
         return number_of_cars_waiting
 
     def get_total_vehicle_wait_time(self):
-        return sum(self.wait_time)
+        return sum([vehicle.wait_time for vehicle in self.simulation.model.vehicles])
 
     def get_total_vehicle_wait_time_exp(self, exponent):
         return self.get_total_vehicle_wait_time()**exponent
