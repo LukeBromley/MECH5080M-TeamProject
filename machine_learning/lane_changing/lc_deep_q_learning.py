@@ -101,16 +101,38 @@ class MachineLearning:
         # MACHINE LEARNING MODELS
         self.ml_model_hidden_layers = [6, 12, 6]
 
+        # Change configurations to ones supplied in machine_learning_config
+        if machine_learning_config is not None:
+            self.apply_ML_configurations(machine_learning_config)
+
         self.ml_model = self.create_q_learning_model(self.simulation_manager.observation_space_size, self.simulation_manager.number_of_possible_actions, self.ml_model_hidden_layers)  # Makes the predictions for Q-values which are used to make an action.
         self.ml_model_target = self.create_q_learning_model(self.simulation_manager.observation_space_size, self.simulation_manager.number_of_possible_actions, self.ml_model_hidden_layers)  # For the prediction of future rewards. The weights of a target model get updated every 10000 steps thus when the loss between the Q-values is calculated the target Q-value is stable.
 
+    def apply_ML_configurations(self, config):
+        self.check_config_given(self.max_steps_per_episode, config.max_steps_per_episode)
+        self.check_config_given(self.episode_end_reward, config.episode_end_reward)
+        self.check_config_given(self.solved_mean_reward, config.solved_mean_reward)
+        self.check_config_given(self.random_action_selection_probabilities, config.random_action_selection_probabilities)
+        self.check_config_given(self.epsilon_greedy_min, config.epsilon_greedy_min)
+        self.check_config_given(self.epsilon_greedy_max, config.epsilon_greedy_max)
+        self.check_config_given(self.update_after_actions, config.update_after_actions)
+        self.check_config_given(self.update_target_network, config.update_target_network)
+        self.check_config_given(self.sample_size, config.sample_size)
+        self.check_config_given(self.gamma, config.gamma)
+        self.check_config_given(self.max_replay_buffer_length, config.max_replay_buffer_length)
+        self.check_config_given(self.learning_rate, config.learning_rate)
+        self.check_config_given(self.ml_model_hidden_layers, config.ml_model_hidden_layers)
+
+    def check_config_given(self, parameter, config):
+        if config is not None:
+            parameter = config
     def create_q_learning_model(self, state_size, action_size, hidden_layers):
-        ml_layers = [layers.Input(shape=(state_size, ))]  # input dimension
-        for number_of_perceptrons in hidden_layers:
-            ml_layers.append(layers.Dense(number_of_perceptrons, activation="relu")(ml_layers[-1]))
-        q_values = layers.Dense(action_size, activation="linear")(ml_layers[-1])
-        q_network = tf.keras.models.Model(inputs=ml_layers[0], outputs=[q_values])
-        return q_network
+            ml_layers = [layers.Input(shape=(state_size, ))]  # input dimension
+            for number_of_perceptrons in hidden_layers:
+                ml_layers.append(layers.Dense(number_of_perceptrons, activation="relu")(ml_layers[-1]))
+            q_values = layers.Dense(action_size, activation="linear")(ml_layers[-1])
+            q_network = tf.keras.models.Model(inputs=ml_layers[0], outputs=[q_values])
+            return q_network
 
     def train(self):
         print("Training Started")

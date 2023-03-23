@@ -124,7 +124,7 @@ class MachineLearningManager:
               + sim_config_file + "\n    Machine Learning Config: " + machine_learning_config_file + "\n    Machine Learning Config ID: "
               + machine_learning_config_id + "\nStarting Training...")
         time_begin = time.perf_counter()
-        print("WARNING - machine learning random function being used, please change to correct training function for real training runs")
+        print("WARNING - machine learning random() function being used, please change to correct training function for real training runs")
         reward = self.machine_learning.random()  # TODO: Change to actual ML training and remove warning above
         time_taken = time.perf_counter() - time_begin
         print("\nTraining Complete.\n    Time Taken To Train: " + str(time_taken) + "\n    Reward: " + str(reward) + "\n================================================")
