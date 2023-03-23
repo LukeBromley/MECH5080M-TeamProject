@@ -103,6 +103,7 @@ class MachineLearningManager:
         :param machine_learning_config_id: Select the machine learning configuration from the file
         :return: A tuple of the time taken to train and the reward
         """
+        print("\n================================================")
         # Create paths to config files.
         junction_file_path = self.get_file_path(["junctions", junction_file_name])
         simulation_config_file_path = self.get_file_path(["configurations", "simulation_config", sim_config_file])
@@ -127,7 +128,7 @@ class MachineLearningManager:
         print("WARNING - machine learning random() function being used, please change to correct training function for real training runs")
         reward = self.machine_learning.random()  # TODO: Change to actual ML training and remove warning above
         time_taken = time.perf_counter() - time_begin
-        print("\nTraining Complete.\n    Time Taken To Train: " + str(time_taken) + "\n    Reward: " + str(reward) + "\n================================================")
+        print("\nTraining Complete.\n    Time Taken To Train: " + str(time_taken) + "\n    Reward: " + str(reward) )
         return time_taken, reward
 
     def get_file_path(self, path_names):
