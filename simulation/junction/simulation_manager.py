@@ -37,8 +37,8 @@ class SimulationManager:
         self.light_controlled_path_uids = [1, 2, 3, 4, 5, 6, 7, 8, 10, 11, 13, 14]
 
         # Inputs / States
-        self.features_per_state_input = 4
-        self.number_of_tracked_vehicles_per_path = 5
+        self.features_per_state_input = 6
+        self.number_of_tracked_vehicles_per_path = 6
         self.observation_space_size = self.features_per_state_input * len(self.light_controlled_path_uids) * (0 + self.number_of_tracked_vehicles_per_path)
         # TODO: Initialize separate boxes by argmax for different inputs
         self.observation_space = Box(0, 50, shape=(1, self.observation_space_size), dtype=float)
@@ -104,13 +104,16 @@ class SimulationManager:
         #     #     light.set_green()
         #     # else:
         #     #     penalty = 1000
-        return penalty
+        # return penalty
 
     def get_vehicle_state(self, vehicle: Vehicle):
+        x, y = self.simulation.model.get_vehicle_coordinates(vehicle.uid)
         return [
             vehicle.get_path_distance_travelled(),
             vehicle.get_speed(),
-            vehicle.wait_time
+            vehicle.wait_time,
+            x,
+            y
             # vehicle.get_length(),
             # vehicle.get_acceleration()
         ]
@@ -148,7 +151,7 @@ class SimulationManager:
         if len(state_input) > self.features_per_state_input * self.number_of_tracked_vehicles_per_path:
             state_input = state_input[:self.features_per_state_input * self.number_of_tracked_vehicles_per_path]
         else:
-            state_input += [0.0] * (self.features_per_state_input * self.number_of_tracked_vehicles_per_path - len(state_input))
+            state_input += [np.NAN] * (self.features_per_state_input * self.number_of_tracked_vehicles_per_path - len(state_input))
 
         # # TODO: Implement shuffling
         # tupled_state_input = []
@@ -188,6 +191,7 @@ class SimulationManager:
     def calculate_reward(self):
         reward = 100 - self.get_mean_wait_time()**2
         if self.simulation.model.detect_collisions():
+            # print("Collision")
             reward -= 10000
         return reward / 1000
 

@@ -41,30 +41,29 @@ class MachineLearning:
         self.all_time_reward = 0  # Total reward over all episodes
 
         # TRAINING LIMITS
-        self.max_steps_per_episode = 10000  # Maximum number of steps allowed per episode
-        self.episode_end_reward = -1000  # Single episode total reward minimum threshold to end episode
-        self.solved_mean_reward = 400  # Single episode total reward minimum threshold to consider ML trained
-        self.reward_history_limit = 50
+        self.max_steps_per_episode = 1000  # Maximum number of steps allowed per episode
+        self.episode_end_reward = -200  # Single episode total reward minimum threshold to end episode
+        self.solved_mean_reward = 700  # Single episode total reward minimum threshold to consider ML trained
+        self.reward_history_limit = 30
 
         # TAKING AN ACTION
         # Random action
         # self.random_action_selection_probabilities = [0.9, 0.025, 0.025, 0.025, 0.025]
-        self.random_action_selection_probabilities = [0.01, 0.4, 0.4, 0.19]
 
         # Probability of selecting a random action
-        self.epsilon_greedy_min = 0.01  # Minimum probability of selecting a random action
+        self.epsilon_greedy_min = 0.0  # Minimum probability of selecting a random action
         self.epsilon_greedy_max = 0.95  # Maximum probability of selecting a random action
         self.epsilon_greedy = self.epsilon_greedy_max  # Current probability of selecting a random action
 
         # Exploration
         # Number of steps of just random actions before the network can make some decisions
-        self.number_of_steps_of_required_exploration = 1000
+        self.number_of_steps_of_required_exploration = 5000
         # Number of steps over which epsilon greedy decays
-        self.number_of_steps_of_exploration_reduction = 10000
+        self.number_of_steps_of_exploration_reduction = 50000
         # Train the model after 4 actions
-        self.update_after_actions = 10
+        self.update_after_actions = 24
         # How often to update the target network
-        self.update_target_network = 1000
+        self.update_target_network = 5000
 
         # REPLAY
         # Buffers
@@ -80,7 +79,7 @@ class MachineLearning:
         self.seconds_to_look_into_the_future = 2.5
         self.steps_to_look_into_the_future = int(self.seconds_to_look_into_the_future / self.simulation_manager.simulation.model.tick_time)
         # Sample Size
-        self.sample_size = 124  # Size of batch taken from replay buffer
+        self.sample_size = 512  # Size of batch taken from replay buffer
 
         # Discount factor
         self.gamma = 0.99  # Discount factor for past rewards
@@ -99,7 +98,7 @@ class MachineLearning:
         self.loss_function = keras.losses.Huber()
 
         # MACHINE LEARNING MODELS
-        self.ml_model_hidden_layers = [512, 512]
+        self.ml_model_hidden_layers = [1024, 1024]
 
         # Makes the predictions for Q-values which are used to make a action.
         self.ml_model = self.create_q_learning_model(self.simulation_manager.observation_space_size, self.simulation_manager.number_of_possible_actions, self.ml_model_hidden_layers)
@@ -411,13 +410,15 @@ class MachineLearning:
                 #             previous_action = 1
                 #     light_change_log.append(self.number_of_steps_taken)
 
-                action_penalty = self.take_action(action_index)
+                # action_penalty = self.take_action(63)
 
+                for light in self.simulation_manager.simulation.model.lights:
+                    light.set_green()
                 # Run simulation 1 step
                 self.step_simulation(visualiser_on=True, visualiser_sleep_time=0.0)
 
                 # Calculate reward
-                reward = self.calculate_reward(action_penalty, predict=False)
+                reward = self.calculate_reward(0, predict=True)
                 reward_log.append(reward)
 
                 # Update reward

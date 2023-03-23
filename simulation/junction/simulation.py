@@ -27,7 +27,7 @@ class Simulation:
         # Visualiser
         self.visualiser_update_function = visualiser_update_function
 
-        self.freeze_traffic(10 * self.model.tick_rate)
+        # self.freeze_traffic(10 * self.model.tick_rate)
 
     def freeze_traffic(self, n: int):
         # TODO: Randomize freeze duration and lights during freeze
