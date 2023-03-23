@@ -303,61 +303,6 @@ class FileManagement:
                     int(uid), start_time, position_data))
 
             return vehicles
-        
-    def save_ML_configs_to_file(self, file_path, ml_configs, header):
-        with open(file_path, "w", newline='') as file:
-            writer = csv.DictWriter(file, fieldnames=header)
-            writer.writeheader()
-            for i, config in enumerate(ml_configs):
-                file_dict = self.save_ML_config(config, i)
-                writer.writerow(file_dict)
- # TODO Fix saving
-    def save_ML_config(self, config, i) -> None:
-        """
-
-        :param file_path: where the ML config file is saved
-        :param config: ML configuration to be saved
-        :return: None
-        """
-
-        # Create dictionary structure
-        file_dict = {}
-        # Config
-        file_dict[self.config_id_key] = i
-
-        # Limits
-        file_dict[self.max_steps_per_episode_key] = config.max_steps_per_episode
-        file_dict[self.episode_end_reward_key] = config.episode_end_reward
-        file_dict[self.solved_mean_reward_key] = config.solved_mean_reward
-
-        # Action Probabilities
-        file_dict[self.random_action_do_nothing_probability_key] = config.random_action_do_nothing_probability
-        file_dict[self.epsilon_greedy_min_key] = config.epsilon_greedy_min
-        file_dict[self.epsilon_greedy_max_key] = config.epsilon_greedy_max
-
-        # Exploration
-        file_dict[self.number_of_steps_of_required_exploration_key] = config.number_of_steps_of_required_exploration
-        file_dict[self.number_of_steps_of_exploration_reduction_key] = config.number_of_steps_of_exploration_reduction
-
-        # Sample Size
-        file_dict[self.sample_size_key] = config.sample_size
-
-        # Discount factor
-        file_dict[self.gamma_key] = config.gamma
-
-        # Maximum replay buffer length
-        file_dict[self.max_replay_buffer_length_key] = config.max_replay_buffer_length
-
-        # Optimisations
-        file_dict[self.learning_rate_key] = config.learning_rate
-
-        # Train the model after number of actions
-        file_dict[self.update_after_actions_key] = config.update_after_actions
-
-        # How often to update the target network
-        file_dict[self.update_target_network_key] = config.update_target_network
-
-        return file_dict
 
     def load_ML_configs_from_file(self, file_path):
         machine_learning_configs = []
@@ -375,41 +320,67 @@ class FileManagement:
         """
         config = MachineLearningConfiguration()
         # Config
-        config.config_id = int(file_dict["config_id"])
+        config.config_id = self.try_get(file_dict, "config_id")
 
         # Limits
-        config.max_steps_per_episode = int(file_dict["max_steps_per_episode"])
-        config.episode_end_reward = int(file_dict["episode_end_reward"])
-        config.solved_mean_reward = int(file_dict["solved_mean_reward"])
-        config.reward_history_limit = int(file_dict["reward_history_limit"])
+        config.max_steps_per_episode = self.try_get(file_dict, "max_steps_per_episode")
+        config.episode_end_reward = self.try_get(file_dict, "episode_end_reward")
+        config.solved_mean_reward = self.try_get(file_dict, "solved_mean_reward")
+        config.reward_history_limit = self.try_get(file_dict, "reward_history_limit")
 
         # Action Probabilities
-        config.random_action_selection_probabilities = list(map(float, file_dict["random_action_selection_probabilities"].split("|")))
-        config.epsilon_greedy_min = float(file_dict["epsilon_greedy_min"])
-        config.epsilon_greedy_max = float(file_dict["epsilon_greedy_max"])
+        config.random_action_selection_probabilities = self.try_get(file_dict, "random_action_selection_probabilities")
+        config.epsilon_greedy_min = self.try_get(file_dict, "epsilon_greedy_min")
+        config.epsilon_greedy_max = self.try_get(file_dict, "epsilon_greedy_max")
 
         # Exploration
-        config.number_of_steps_of_required_exploration = int(file_dict["number_of_steps_of_required_exploration"])
-        config.number_of_steps_of_exploration_reduction = int(file_dict["number_of_steps_of_exploration_reduction"])
+        config.number_of_steps_of_required_exploration = self.try_get(file_dict, "number_of_steps_of_required_exploration")
+        config.number_of_steps_of_exploration_reduction = self.try_get(file_dict, "number_of_steps_of_exploration_reduction")
 
         # Update
-        config.update_after_actions = int(file_dict["update_after_actions"])
-        config.update_target_network = int(file_dict["update_target_network"])
+        config.update_after_actions = self.try_get(file_dict, "update_after_actions")
+        config.update_target_network = self.try_get(file_dict, "update_target_network")
 
         # Look Into Future
-        config.seconds_to_look_into_the_future = float(file_dict["seconds_to_look_into_the_future"])
+        config.seconds_to_look_into_the_future = self.try_get(file_dict, "seconds_to_look_into_the_future")
 
         # Sample Size
-        config.sample_size = int(file_dict["sample_size"])
+        config.sample_size = self.try_get(file_dict, "sample_size")
 
         # Discount factor
-        config.gamma = float(file_dict["gamma"])
+        config.gamma = self.try_get(file_dict, "gamma")
 
         # Maximum replay buffer length
-        config.max_replay_buffer_length = int(file_dict["max_replay_buffer_length"])
+        config.max_replay_buffer_length = self.try_get(file_dict, "max_replay_buffer_length")
 
         # Optimisations
-        config.learning_rate = float(file_dict["learning_rate"])
-        config.ml_model_hidden_layers = list(map(float, file_dict["ml_model_hidden_layers"].split("|")))
+        config.learning_rate = self.try_get(file_dict, "learning_rate")
+        config.ml_model_hidden_layers = self.try_get(file_dict,"ml_model_hidden_layers")
 
         return config
+
+    def try_get(self, file_dict, string):
+        """
+        The try_get function is used to try and get a value from the file_dict.
+        If it fails, it returns None. If it succeeds, then we check if the value is an int or float
+        and convert accordingly.
+
+        :param file_dict: Store the data from the file
+        :param string: Get the value from the dictionary
+        :return: The value of the key in the dictionary
+        """
+        try:
+            value = file_dict[string]
+            try:
+                if "|" in value:
+                    value = list(map(int, value.split("|")))
+                else:
+                    value = int(value)
+            except ValueError:
+                if "|" in value:
+                    value = list(map(float, value.split("|")))
+                else:
+                    value = float(value)
+        except KeyError:
+            value = None
+        return value
