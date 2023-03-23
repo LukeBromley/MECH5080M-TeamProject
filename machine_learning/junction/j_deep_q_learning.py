@@ -12,7 +12,7 @@ if system() == 'Windows':
 
 import os
 import sys
-from simulation.junction.simulation_manager import SimulationManager
+from simulation.junction.j_simulation_manager import SimulationManager
 from analysis_tools.graph_ml_progress import Graph
 from gui.junction_visualiser import JunctionVisualiser
 from time import sleep

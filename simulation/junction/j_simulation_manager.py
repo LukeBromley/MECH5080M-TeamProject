@@ -13,7 +13,7 @@ from gym.spaces import Discrete, Box
 import numpy as np
 from numpy import mean
 
-from simulation.junction.simulation import Simulation
+from j_simulation.junction.simulation import Simulation
 
 
 class SimulationManager:

@@ -7,7 +7,7 @@ import os
 
 from time import sleep
 
-from simulation.junction.simulation import Simulation
+from simulation.junction.j_simulation import Simulation
 from gui.junction_visualiser import JunctionVisualiser
 
 

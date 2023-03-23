@@ -23,9 +23,9 @@ from tensorflow.keras import layers
 
 
 class MachineLearning:
-    def __init__(self, junction_file_path, config_file_path, visualiser_update_function=None, graph_num_episodes=20, graph_max_step=30000):
+    def __init__(self, simulation_manager, machine_learning_config = None, graph_num_episodes=20, graph_max_step=30000):
         # SIMULATION MANAGER
-        self.simulation_manager = SimulationManager(junction_file_path, config_file_path, visualiser_update_function)
+        self.simulation_manager = simulation_manager
 
         # COUNTERS
         self.episode_count = 0  # Number of episodes trained
@@ -472,7 +472,7 @@ class MachineLearning:
 if __name__ == "__main__":
     # Reference Files
     junction_file_path = os.path.join(os.path.dirname(os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))))), "junctions", "lanes.junc")
-    configuration_file_path = os.path.join(os.path.dirname(os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))))), "configurations", "cross_road.config")
+    configuration_file_path = os.path.join(os.path.dirname(os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))))), "configurations", "simulation_config", "cross_road.config")
 
     # Settings
     scale = 25
@@ -481,9 +481,11 @@ if __name__ == "__main__":
     visualiser = JunctionVisualiser()
     visualiser.load_junction(junction_file_path)
     visualiser.set_scale(scale)
+    visualiser_update_function = visualiser.update
 
     # Simulation
-    machine_learning = MachineLearning(junction_file_path, configuration_file_path, visualiser_update_function=visualiser.update)
+    simulation = SimulationManager(junction_file_path, configuration_file_path, visualiser_update_function)
+    machine_learning = MachineLearning(simulation, machine_learning_config=None)
 
     # machine_learning.random(visualiser_on=False, visualiser_sleep_time=0.0)
     # machine_learning.random(visualiser_on=True, visualiser_sleep_time=0.1)
