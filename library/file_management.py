@@ -373,12 +373,12 @@ class FileManagement:
             value = file_dict[string]
             try:
                 if "|" in value:
-                    list(map(int, value.split("|")))
+                    value = list(map(int, value.split("|")))
                 else:
                     value = int(value)
             except ValueError:
                 if "|" in value:
-                    list(map(float, value.split("|")))
+                    value = list(map(float, value.split("|")))
                 else:
                     value = float(value)
         except KeyError:

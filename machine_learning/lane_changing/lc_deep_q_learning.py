@@ -369,7 +369,8 @@ class MachineLearning:
             return False
 
     def random(self, visualiser_on=True, visualiser_sleep_time=0.1):
-        episode = 20
+        episode = 3
+        episode_reward = 0
         for episode in range(1, episode + 1):
             self.simulation_manager.reset()
 
@@ -405,7 +406,7 @@ class MachineLearning:
                 if done:
                     print("EPISODE:", episode, "Reward:", episode_reward)
                     break
-        exit()
+        return str(episode_reward)
 
     def play(self):
         global keyboard_input
@@ -473,15 +474,15 @@ class MachineLearning:
             # Get the next state
             state = self.get_state()
 
-    def save_model_weights(self, model, file_location, save_name):
+    def save_model_weights(self, file_location, save_name):
         if os.path.isdir(file_location + "/" + save_name):
             os.mkdir(file_location + "/" + save_name)
-        model.save_weights(file_location + "/" + save_name)
+        self.ml_model.save_weights(file_location + "/" + save_name)
 
-    def save_model(self, model, file_location, save_name):
+    def save_model(self, file_location, save_name):
         if os.path.isdir(file_location + "/" + save_name):
             os.mkdir(file_location + "/" + save_name)
-        model.save(file_location + "/" + save_name)
+        self.ml_model.save(file_location + "/" + save_name)
 
     def load_weights(self, model, file_location, save_name):
         model.load_weights(file_location + "/" + save_name)
