@@ -1,3 +1,4 @@
+import itertools
 import random
 from platform import system
 
@@ -18,6 +19,7 @@ from simulation.junction.simulation import Simulation
 
 class SimulationManager:
     def __init__(self, junction_file_path, config_file_path, visualiser_update_function=None):
+        self.action_table = None
         self.junction_file_path = junction_file_path
         self.config_file_path = config_file_path
         self.visualiser_update_function = visualiser_update_function
@@ -29,12 +31,12 @@ class SimulationManager:
         self.number_of_possible_actions, self.action_space = self.calculate_actions()
 
         # TODO: Soft code the id's
-        self.light_controlled_path_uids = [1, 4]
+        self.light_controlled_path_uids = [1, 4, 2, 5]
         self.light_path_uids = [2, 5]
 
         # Inputs / States
         self.features_per_state_input = 4
-        self.number_of_tracked_vehicles_per_path = 5
+        self.number_of_tracked_vehicles_per_path = 4
         self.observation_space_size = self.features_per_state_input * len(self.light_controlled_path_uids) * (self.number_of_tracked_vehicles_per_path)
 
         self.light_controlled_path_uids += self.light_path_uids
@@ -49,7 +51,11 @@ class SimulationManager:
         return simulation
 
     def calculate_actions(self):
-        number_of_actions = 2 ** len(self.simulation.model.lights)
+        self.action_table = []
+        number_of_lights = len(self.simulation.model.lights)
+        for index in range(number_of_lights + 1):
+            self.action_table += list(itertools.combinations(list(range(number_of_lights)), index))
+        number_of_actions = 2**len(self.simulation.model.lights)
         return number_of_actions, Discrete(number_of_actions)
 
     def reset(self):
@@ -68,41 +74,12 @@ class SimulationManager:
             self.simulation.compute_single_iteration()
 
     def take_action(self, action_index):
-        # TODO: soft code
-        penalty = 0
-        if action_index == 0:
-            self.simulation.model.lights[0].set_red()
-            self.simulation.model.lights[1].set_green()
-            # if light.colour == "green":
-            #     light.set_red()
-            # else:
-            #     penalty = 1000
-        elif action_index == 1:
-            self.simulation.model.lights[1].set_red()
-            self.simulation.model.lights[0].set_green()
-            # if light.colour == "green":
-            #     light.set_red()
-            # else:
-            #     penalty = 1000
-        elif action_index == 2:
-            self.simulation.model.lights[0].set_red()
-            self.simulation.model.lights[1].set_red()
-            # if light.colour == "red":
-            #     light.set_green()
-            # else:
-            #     penalty = 1000
-        elif action_index == 3:
-            self.simulation.model.lights[0].set_green()
-            self.simulation.model.lights[1].set_green()
-        else:
-            raise Exception("invalid action")
-        # elif action_index == 4:
-        #     self.simulation.model.lights[1].set_green()
-        #     # if light.colour == "red":
-        #     #     light.set_green()
-        #     # else:
-        #     #     penalty = 1000
-        return penalty
+        lights_to_turn_green = self.action_table[action_index]
+        for index, light in enumerate(self.simulation.model.lights):
+            if index in lights_to_turn_green:
+                light.set_green()
+            else:
+                light.set_red()
 
     def get_vehicle_state(self, vehicle: Vehicle):
         return [

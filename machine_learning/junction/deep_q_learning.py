@@ -82,7 +82,7 @@ class MachineLearning:
 
         # Steps to look into the future to determine the mean reward. Should match T = 1/(1-gamma)
 
-        self.seconds_to_look_into_the_future = 1
+        self.seconds_to_look_into_the_future = 5.0
         self.steps_to_look_into_the_future = int(self.seconds_to_look_into_the_future / self.simulation_manager.simulation.model.tick_time)
 
         # Sample Size
@@ -90,7 +90,7 @@ class MachineLearning:
         # TODO: Proportion to the most recent state
 
         # Discount factor
-        self.gamma = 0.5  # Discount factor for past rewards
+        self.gamma = 0.99  # Discount factor for past rewards
 
         # Maximum replay buffer length
         # Note: The Deepmind paper suggests 1000000 however this causes memory issues
@@ -98,7 +98,7 @@ class MachineLearning:
 
         # OPTIMISING
         # Note: In the Deepmind paper they use RMSProp however then Adam optimizer
-        self.learning_rate = 0.0005  # 0.00025
+        self.learning_rate = 0.0001  # 0.00025
         self.optimizer = keras.optimizers.legacy.Adam(learning_rate=self.learning_rate, clipnorm=1.0)
 
         # OTHER
@@ -106,7 +106,7 @@ class MachineLearning:
         self.loss_function = keras.losses.Huber()
 
         # MACHINE LEARNING MODELS
-        self.ml_model_hidden_layers = [512]
+        self.ml_model_hidden_layers = [512, 512]
 
         # Change configurations to ones supplied in machine_learning_config
         if machine_learning_config is not None:
@@ -168,7 +168,7 @@ class MachineLearning:
                 action_index = self.select_action(state)
 
                 # Take an action
-                action_penalty = self.take_action(action_index)
+                self.take_action(action_index)
 
                 previous_wait_time = self.simulation_manager.get_mean_wait_time()
 
@@ -285,7 +285,7 @@ class MachineLearning:
         self.epsilon_greedy = max(self.epsilon_greedy, self.epsilon_greedy_min)
 
     def take_action(self, action_index):
-        return self.simulation_manager.take_action(action_index)
+        self.simulation_manager.take_action(action_index)
 
     def end_episode(self, episode_reward, step):
         if episode_reward < self.episode_end_reward or step > self.max_steps_per_episode:
@@ -381,13 +381,13 @@ class MachineLearning:
                     action_index = keyboard_input.index(True)
 
                 # Take an action
-                action_penalty = self.take_action(action_index)
+                self.take_action(action_index)
 
                 # Run simulation 1 step
                 self.step_simulation(visualiser_on=True, visualiser_sleep_time=0.05)
 
                 # Update reward
-                reward = self.calculate_reward(action_penalty, predict=False)
+                reward = self.calculate_reward(predict=False)
                 self.all_time_reward += reward
 
                 if self.end_episode(self.all_time_reward, self.number_of_steps_taken):
@@ -428,7 +428,7 @@ class MachineLearning:
                         previous_action = 0
                     light_change_log.append(self.number_of_steps_taken)
 
-                action_penalty = self.take_action(action)
+                self.take_action(action)
 
                 # Run simulation 1 step
                 self.step_simulation(visualiser_on=True, visualiser_sleep_time=0.05)
@@ -467,14 +467,14 @@ class MachineLearning:
                 action_index = np.argmax(model(self.get_state().reshape(1, -1)))
 
                 # Take an action
-                action_penalty = self.take_action(action_index)
+                self.take_action(action_index)
 
                 # Run simulation 1 step
                 self.step_simulation(visualiser_on=True, visualiser_sleep_time=0.0)
 
                 # Calculate reward
                 # TODO: Add a probability of a collision instead of a binary collision reward
-                reward = self.calculate_reward(action_penalty, predict=False)
+                reward = self.calculate_reward(predict=False)
                 reward_log.append(reward)
                 self.all_time_reward += reward
 
