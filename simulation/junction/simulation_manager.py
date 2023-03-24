@@ -31,7 +31,7 @@ class SimulationManager:
         self.number_of_possible_actions, self.action_space = self.calculate_actions()
 
         # TODO: Soft code the id's
-        self.light_controlled_path_uids = [1, 4, 2, 5]
+        self.light_controlled_path_uids = [1, 4]
         self.light_path_uids = [2, 5]
 
         # Inputs / States
@@ -50,14 +50,6 @@ class SimulationManager:
         simulation = Simulation(self.junction_file_path, self.config_file_path, self.visualiser_update_function)
         return simulation
 
-    def calculate_actions(self):
-        self.action_table = []
-        number_of_lights = len(self.simulation.model.lights)
-        for index in range(number_of_lights + 1):
-            self.action_table += list(itertools.combinations(list(range(number_of_lights)), index))
-        number_of_actions = 2**len(self.simulation.model.lights)
-        return number_of_actions, Discrete(number_of_actions)
-
     def reset(self):
         self.simulation = self.create_simulation()
         self.freeze_traffic()
@@ -68,18 +60,71 @@ class SimulationManager:
             n = random.randint(15 * self.simulation.model.tick_rate, 20 * self.simulation.model.tick_rate)
 
         for light in self.simulation.model.lights:
-            light.set_red()
+            light.set_state("red")
 
         for step in range(n):
             self.simulation.compute_single_iteration()
 
+    def calculate_actions(self):
+        self.action_table = []
+        number_of_lights = len(self.simulation.model.lights)
+        for index in range(number_of_lights + 1):
+            self.action_table += list(itertools.combinations(list(range(number_of_lights)), index))
+        number_of_actions = 2**len(self.simulation.model.lights)
+        return number_of_actions, Discrete(number_of_actions)
+
+    def get_illegal_actions(self):
+        lights = self.simulation.model.lights
+        illegal_actions = []
+        for action_index, action in enumerate(self.action_table):
+            legal = True
+            for light_index, light in enumerate(lights):
+                if light_index in action:
+                    if light.colour == "green" or light.allows_change():
+                        continue
+                    else:
+                        legal = False
+                        break
+                else:
+                    if light.colour == "red" or light.allows_change():
+                        continue
+                    else:
+                        legal = False
+                        break
+            if not legal:
+                illegal_actions.append(action_index)
+        return illegal_actions
+
+    def get_legal_actions(self):
+        lights = self.simulation.model.lights
+        legal_actions = []
+        for action_index, action in enumerate(self.action_table):
+            legal = True
+            for light_index, light in enumerate(lights):
+                if light_index in action:
+                    if light.colour == "green" or light.allows_change():
+                        continue
+                    else:
+                        legal = False
+                        break
+                else:
+                    if light.colour == "red" or light.allows_change():
+                        continue
+                    else:
+                        legal = False
+                        break
+            if legal:
+                legal_actions.append(action_index)
+        return legal_actions
+
     def take_action(self, action_index):
-        lights_to_turn_green = self.action_table[action_index]
-        for index, light in enumerate(self.simulation.model.lights):
-            if index in lights_to_turn_green:
-                light.set_green()
-            else:
-                light.set_red()
+        if action_index is not None:
+            green_lights = self.action_table[action_index]
+            for index, light in enumerate(self.simulation.model.lights):
+                if index in green_lights:
+                    light.set_state("green")
+                else:
+                    light.set_state("red")
 
     def get_vehicle_state(self, vehicle: Vehicle):
         return [

@@ -216,8 +216,8 @@ class TrafficLight:
         assert self.colour == "green" or self.colour == "amber" or self.colour == "red" or self.colour == "red_amber"
         self.colour_state_index = {
             "green": 0,
-            "amber": 1,
-            "red": 2,
+            "red": 1,
+            "amber": 2,
             "red_amber": 3
         }
 
@@ -228,7 +228,14 @@ class TrafficLight:
     def get_state(self):
         return self.colour_state_index[self.colour]
 
+    def get_speed(self):
+        return 0.0
+
+    def get_length(self):
+        return 1.0
+
     def set_state(self, colour: str):
+        assert self.time_remaining <= 0
         if colour == "green":
             if self.colour == "red":
                 self.time_remaining = self.red_amber_time
@@ -238,7 +245,7 @@ class TrafficLight:
                 self.time_remaining = self.amber_time
                 self.colour = "amber"
 
-    def change_allowed(self):
+    def allows_change(self):
         if self.time_remaining <= 0:
             return True
         else:

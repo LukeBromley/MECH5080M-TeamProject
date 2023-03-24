@@ -27,7 +27,7 @@ from tensorflow.keras import layers
 
 
 class MachineLearning:
-    def __init__(self, simulation_manager, machine_learning_config=None, graph_num_episodes=20, graph_max_step=30000):
+    def __init__(self, simulation_manager: SimulationManager, machine_learning_config=None, graph_num_episodes=20, graph_max_step=30000):
         # SIMULATION MANAGER
         self.future_wait_time = None
         self.simulation_manager = simulation_manager
@@ -63,9 +63,9 @@ class MachineLearning:
 
         # Exploration
         # Number of steps of just random actions before the network can make some decisions
-        self.number_of_steps_of_required_exploration = 1000
+        self.number_of_steps_of_required_exploration = 0
         # Number of steps over which epsilon greedy decays
-        self.number_of_steps_of_exploration_reduction = 10000
+        self.number_of_steps_of_exploration_reduction = 0
         # Train the model after 4 actions
         self.update_after_actions = 12
         # How often to update the target network
@@ -269,13 +269,18 @@ class MachineLearning:
         return action
 
     def select_random_action(self):
-        return np.random.choice(self.simulation_manager.number_of_possible_actions, p=self.random_action_selection_probabilities)
+        legal_actions = self.simulation_manager.get_legal_actions()
+        if legal_actions:
+            return np.random.choice(legal_actions)
 
     def select_best_action(self, state):
         # Predict action Q-values
         # From simulation_manager state
         state_tensor = tf.expand_dims(tf.convert_to_tensor(state), 0)
         action_probs = self.ml_model(state_tensor, training=False)
+
+        print(action_probs[0])
+
         # Take best action
         action = tf.argmax(action_probs[0]).numpy()
         return action
@@ -417,32 +422,22 @@ class MachineLearning:
                 self.number_of_steps_taken += 1
 
                 # Select an action
-                # action_index = self.select_random_action()
-                #
-                if self.number_of_steps_taken % 40 == 0:
-                    if previous_action == 0:
-                        action = 1
-                        previous_action = 1
-                    else:
-                        action = 0
-                        previous_action = 0
-                    light_change_log.append(self.number_of_steps_taken)
+                action_index = self.select_random_action()
+                # #
+                # if self.number_of_steps_taken % 40 == 0:
+                #     if previous_action == 0:
+                #         action = 1
+                #         previous_action = 1
+                #     else:
+                #         action = 0
+                #         previous_action = 0
+                #     light_change_log.append(self.number_of_steps_taken)
 
-                self.take_action(action)
+                self.take_action(action_index)
 
                 # Run simulation 1 step
-                self.step_simulation(visualiser_on=True, visualiser_sleep_time=0.05)
-
-                reward_log.append(self.simulation_manager.calculate_reward())
-                # Calculate reward
-                if self.number_of_steps_taken % 10 == 0:
-                    self.all_time_reward += (min(reward_log) - previous_reward)
-                    previous_reward = self.simulation_manager.calculate_reward()
-                    reward_log = []
-
-                # Determine if episode is over
-                if self.end_episode(self.all_time_reward, self.number_of_steps_taken):
-                    break
+                self.simulation_manager.simulation.run_single_iteration()
+                sleep(0.05)
 
                 sys.stdout.write("\rstep: {0} / reward: {1}".format(str(self.number_of_steps_taken), str(self.all_time_reward)))
                 sys.stdout.flush()
@@ -537,19 +532,19 @@ if __name__ == "__main__":
     visualiser_update_function = visualiser.update
     # visualiser_update_function = None
     # Simulation
-    # simulation = SimulationManager(junction_file_path, configuration_file_path, visualiser_update_function)
-    simulation = SimulationManager(junction_file_path, configuration_file_path, None)
+    simulation = SimulationManager(junction_file_path, configuration_file_path, visualiser_update_function)
+    # simulation = SimulationManager(junction_file_path, configuration_file_path, None)
     machine_learning = MachineLearning(simulation, machine_learning_config=None)
     #
     # machine_learning.random()
-    machine_learning.train()
+    # machine_learning.train()
     # machine_learning.test()
 
-    # # Visualiser Setup
-    # visualiser.define_main(machine_learning.train)
-    # visualiser.load_junction(junction_file_path)
-    # visualiser.set_scale(scale)
-    # #
-    # # Run Simulation
-    # visualiser.open()
+    # Visualiser Setup
+    visualiser.define_main(machine_learning.random)
+    visualiser.load_junction(junction_file_path)
+    visualiser.set_scale(scale)
+    #
+    # Run Simulation
+    visualiser.open()
 
