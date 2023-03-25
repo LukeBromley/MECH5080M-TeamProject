@@ -235,7 +235,6 @@ class TrafficLight:
         return 1.0
 
     def set_state(self, colour: str):
-        assert self.time_remaining <= 0
         if colour == "green":
             if self.colour == "red":
                 self.time_remaining = self.red_amber_time

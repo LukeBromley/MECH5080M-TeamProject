@@ -48,13 +48,13 @@ class MachineLearning:
         self.max_episode_length_in_seconds = 60
         # Exceeding 1000 steps results in no traffic
         self.max_steps_per_episode = self.max_episode_length_in_seconds * self.simulation_manager.simulation.model.tick_rate  # Maximum number of steps allowed per episode
-        self.episode_end_reward = -30  # Single episode total reward minimum threshold to end episode
-        self.solved_mean_reward = 5  # Single episode total reward minimum threshold to consider ML trained
-        self.reward_history_limit = 15
+        self.episode_end_reward = -500  # Single episode total reward minimum threshold to end episode
+        self.solved_mean_reward = 0.8 * self.max_steps_per_episode  # Single episode total reward minimum threshold to consider ML trained
+        self.reward_history_limit = 30
 
         # TAKING AN ACTION
         # Random action
-        self.random_action_selection_probabilities = [0.25, 0.25, 0.25, 0.25]
+        self.random_action_selection_probabilities = None
 
         # Probability of selecting a random action
         self.epsilon_greedy_min = 0.0  # Minimum probability of selecting a random action - zero to avoid future collision penalties
@@ -168,7 +168,7 @@ class MachineLearning:
                 # TODO: skip if no valid action
 
                 # Take an action
-                reward = self.step(action_index)
+                reward = self.step(action_index, self.number_of_steps_per_iteration)
 
                 # Update reward
                 self.all_time_reward += reward
@@ -179,18 +179,13 @@ class MachineLearning:
                 # Determine if episode is over
                 done = self.end_episode(episode_reward, episode_step)
 
-                # Get the next state
-                simulation_manager_copy = copy.deepcopy(self.simulation_manager)
-                for step in range(self.steps_to_look_into_the_future):
-                    simulation_manager_copy.simulation.compute_single_iteration()
-
-                next_state = simulation_manager_copy.get_state()
+                next_state = self.simulation_manager.get_state()
 
                 # Save actions and states in replay buffer
                 self.save_to_replay_buffers(action_index, state, next_state, done, reward)
 
                 # Update State
-                state = self.get_state()
+                state = next_state
 
                 # Update
                 if self.number_of_steps_taken % self.update_after_actions == 0 and len(self.done_history) > self.sample_size:
@@ -236,55 +231,32 @@ class MachineLearning:
                 break
         return self.get_mean_reward()
 
-    def step(self, action_index: int):
+    def step(self, action_index: int, n: int = 1):
         self.take_action(action_index)
-        mean_wait_time = self.simulation_manager.get_mean_wait_time()
-        self.simulation_manager.simulation.run_single_iteration()
+        sum_wait_time = self.simulation_manager.get_sum_wait_time()
+
+        for _ in range(n):
+            self.simulation_manager.simulation.run_single_iteration()
+            if self.detect_collision(copy.deepcopy(self.simulation_manager)):
+                return -10.0
 
         # TODO: implement light timings and set red after the light turns green and simulate for infinite amount of time to look for a cloosion
 
-        reward = mean_wait_time ** 2 - self.simulation_manager.get_mean_wait_time() ** 2 - self.calculate_collision_reward(copy.deepcopy(self.simulation_manager))
+        # TODO: mean_wait_time is the same if one or two lanes are held red
+        return sum_wait_time ** 2 - self.simulation_manager.get_sum_wait_time() ** 2
 
-        return reward
-    def calculate_collision_reward(self, simulation_manager: SimulationManager):
+    def detect_collision(self, simulation_manager: SimulationManager):
         # TODO: Temporal credit assignment
         for light in simulation_manager.simulation.model.lights:
             light.colour = "red"
 
         min_vehicle_speed = 100
-        while min_vehicle_speed > 3:
+        while min_vehicle_speed > 1:
             simulation_manager.simulation.compute_single_iteration()
             if self.simulation_manager.simulation.model.detect_collisions():
-                return -10.0
-            min_vehicle_speed = min([vehicle.speed for vehicle in simulation_manager.simulation.model.vehicles])
-        return 0.001
-
-    def calculate_wait_time_reward(self, simulation_manager: SimulationManager, current_mean_wait_time: float):
-        # TODO: reward shaping
-        return simulation_manager.get_mean_wait_time() ** 2 - current_mean_wait_time ** 2
-
-    def calculate_reward(self):
-        simulation_manager_copy = copy.deepcopy(self.simulation_manager)
-        future_rewards = [self.simulation_manager.calculate_reward()]
-
-        for step in range(self.steps_to_look_into_the_future):
-            simulation_manager_copy.simulation.compute_single_iteration()
-            simulation_manager_copy.compute_simulation_metrics()
-            future_rewards.append(simulation_manager_copy.calculate_reward())
-        self.future_wait_time = simulation_manager_copy.get_mean_wait_time()
-
-
-        previous_wait_time = self.simulation_manager.get_mean_wait_time()
-        collision = False
-        for step in range(self.number_of_steps_per_iteration):
-            self.simulation_manager.simulation.run_single_iteration()
-            if self.simulation_manager.simulation.model.detect_collisions():
-                collision = True
-
-        reward = 0.01 * (previous_wait_time ** 2 - self.simulation_manager.get_mean_wait_time() ** 2)
-        if collision:
-            reward -= 10
-        return reward
+                return True
+            min_vehicle_speed = min([vehicle.get_speed() for vehicle in simulation_manager.simulation.model.vehicles])
+        return False
 
     def select_action(self, state):
         # Exploration vs Exploitation
@@ -325,16 +297,13 @@ class MachineLearning:
 
     def end_episode(self, episode_reward, step):
         if episode_reward < self.episode_end_reward or step > self.max_steps_per_episode:
-            print(f"Score: {episode_reward:.2f} / Steps: {step}")
+            print(f"   - Score: {episode_reward:.2f} / Steps: {step}")
             # print("Score at episode end:", episode_reward, "/ Steps:", step)
             # sys.stdout.write("\rEpisode: {0} / Mean Reward: {1}".format(str(episode_reward), str(step)))
-            sys.stdout.flush()
+            # sys.stdout.flush()
             return True
         else:
             return False
-
-    def get_state(self):
-        return np.array(self.simulation_manager.get_state())
 
     def save_to_replay_buffers(self, action, state, next_state, done, reward):
         self.action_history.append(action)
@@ -449,9 +418,16 @@ class MachineLearning:
                 # Select an action
                 action_index = self.select_random_action()
 
-                reward = self.step(action_index)
+                # if self.number_of_steps_taken % 2:
+                #     reward = self.step(1)
+                # else:
+                #     reward = self.step(2)
+                reward = self.step(0)
 
                 self.all_time_reward += reward
+
+                if self.end_episode(self.all_time_reward, self.number_of_steps_taken):
+                    break
 
                 sys.stdout.write("\rstep: {0} / reward: {1}".format(str(self.number_of_steps_taken), str(self.all_time_reward)))
                 sys.stdout.flush()

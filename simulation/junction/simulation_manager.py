@@ -71,6 +71,7 @@ class SimulationManager:
         for index in range(number_of_lights + 1):
             self.action_table += list(itertools.combinations(list(range(number_of_lights)), index))
         number_of_actions = 2**len(self.simulation.model.lights)
+        print(self.action_table)
         return number_of_actions, Discrete(number_of_actions)
 
     def get_illegal_actions(self):
@@ -193,6 +194,9 @@ class SimulationManager:
             return dot_product / sum_coeff
         else:
             return 0.0
+
+    def get_sum_wait_time(self):
+        return sum([vehicle.wait_time for vehicle in self.simulation.model.vehicles])
 
     def get_lights(self):
         return self.simulation.model.get_lights()
