@@ -63,9 +63,9 @@ class MachineLearning:
 
         # Exploration
         # Number of steps of just random actions before the network can make some decisions
-        self.number_of_steps_of_required_exploration = 0
+        self.number_of_steps_of_required_exploration = 1
         # Number of steps over which epsilon greedy decays
-        self.number_of_steps_of_exploration_reduction = 0
+        self.number_of_steps_of_exploration_reduction = 1
         # Train the model after 4 actions
         self.update_after_actions = 12
         # How often to update the target network
@@ -157,7 +157,6 @@ class MachineLearning:
 
             # Run steps in episode
             while True:
-
                 # Increment the total number of steps taken by the AI in total.
                 self.number_of_steps_taken += self.number_of_steps_per_iteration
 
@@ -166,28 +165,10 @@ class MachineLearning:
 
                 # Select an action
                 action_index = self.select_action(state)
+                # TODO: skip if no valid action
 
                 # Take an action
-                self.take_action(action_index)
-
-                previous_wait_time = self.simulation_manager.get_mean_wait_time()
-
-
-                # TODO: implement light timings and set red after the light turns green and simulate for infinite amount of time to look for a cloosion
-
-                # Run simulation
-                # TODO: Reset the state if reward is low so the network can take another try
-                collision = False
-                for step in range(self.number_of_steps_per_iteration):
-                    self.simulation_manager.simulation.run_single_iteration()
-                    if self.simulation_manager.simulation.model.detect_collisions():
-                        collision = True
-
-                # TODO: Continue if early collision is detected
-                reward = 0.01 * (previous_wait_time**2 - self.simulation_manager.get_mean_wait_time()**2)
-
-                if collision:
-                    reward -= 10
+                reward = self.step(action_index)
 
                 # Update reward
                 self.all_time_reward += reward
@@ -255,6 +236,56 @@ class MachineLearning:
                 break
         return self.get_mean_reward()
 
+    def step(self, action_index: int):
+        self.take_action(action_index)
+        mean_wait_time = self.simulation_manager.get_mean_wait_time()
+        self.simulation_manager.simulation.run_single_iteration()
+
+        # TODO: implement light timings and set red after the light turns green and simulate for infinite amount of time to look for a cloosion
+
+        reward = mean_wait_time ** 2 - self.simulation_manager.get_mean_wait_time() ** 2 - self.calculate_collision_reward(copy.deepcopy(self.simulation_manager))
+
+        return reward
+    def calculate_collision_reward(self, simulation_manager: SimulationManager):
+        # TODO: Temporal credit assignment
+        for light in simulation_manager.simulation.model.lights:
+            light.colour = "red"
+
+        min_vehicle_speed = 100
+        while min_vehicle_speed > 3:
+            simulation_manager.simulation.compute_single_iteration()
+            if self.simulation_manager.simulation.model.detect_collisions():
+                return -10.0
+            min_vehicle_speed = min([vehicle.speed for vehicle in simulation_manager.simulation.model.vehicles])
+        return 0.001
+
+    def calculate_wait_time_reward(self, simulation_manager: SimulationManager, current_mean_wait_time: float):
+        # TODO: reward shaping
+        return simulation_manager.get_mean_wait_time() ** 2 - current_mean_wait_time ** 2
+
+    def calculate_reward(self):
+        simulation_manager_copy = copy.deepcopy(self.simulation_manager)
+        future_rewards = [self.simulation_manager.calculate_reward()]
+
+        for step in range(self.steps_to_look_into_the_future):
+            simulation_manager_copy.simulation.compute_single_iteration()
+            simulation_manager_copy.compute_simulation_metrics()
+            future_rewards.append(simulation_manager_copy.calculate_reward())
+        self.future_wait_time = simulation_manager_copy.get_mean_wait_time()
+
+
+        previous_wait_time = self.simulation_manager.get_mean_wait_time()
+        collision = False
+        for step in range(self.number_of_steps_per_iteration):
+            self.simulation_manager.simulation.run_single_iteration()
+            if self.simulation_manager.simulation.model.detect_collisions():
+                collision = True
+
+        reward = 0.01 * (previous_wait_time ** 2 - self.simulation_manager.get_mean_wait_time() ** 2)
+        if collision:
+            reward -= 10
+        return reward
+
     def select_action(self, state):
         # Exploration vs Exploitation
         if self.number_of_steps_taken < self.number_of_steps_of_required_exploration or self.epsilon_greedy > np.random.rand(1)[0]:
@@ -313,7 +344,7 @@ class MachineLearning:
         self.rewards_history.append(reward)
 
     def sample_replay_buffers(self):
-        # TODO: Implement priority sampling
+        # TODO: Implement prioritised sweeping
 
         # Get indices of samples for replay buffers
         indices = self.get_sample_replay_buffer_indices()
@@ -410,12 +441,6 @@ class MachineLearning:
             self.simulation_manager.reset()
             self.reset()
 
-            action = 0
-            previous_action = 0
-            reward_log = []
-            light_change_log = []
-            previous_reward = 0
-
             # Run steps in episode
             while True:
                 # Increment the total number of steps taken by the AI in total.
@@ -423,21 +448,10 @@ class MachineLearning:
 
                 # Select an action
                 action_index = self.select_random_action()
-                # #
-                # if self.number_of_steps_taken % 40 == 0:
-                #     if previous_action == 0:
-                #         action = 1
-                #         previous_action = 1
-                #     else:
-                #         action = 0
-                #         previous_action = 0
-                #     light_change_log.append(self.number_of_steps_taken)
 
-                self.take_action(action_index)
+                reward = self.step(action_index)
 
-                # Run simulation 1 step
-                self.simulation_manager.simulation.run_single_iteration()
-                sleep(0.05)
+                self.all_time_reward += reward
 
                 sys.stdout.write("\rstep: {0} / reward: {1}".format(str(self.number_of_steps_taken), str(self.all_time_reward)))
                 sys.stdout.flush()
@@ -532,19 +546,19 @@ if __name__ == "__main__":
     visualiser_update_function = visualiser.update
     # visualiser_update_function = None
     # Simulation
-    simulation = SimulationManager(junction_file_path, configuration_file_path, visualiser_update_function)
-    # simulation = SimulationManager(junction_file_path, configuration_file_path, None)
+    # simulation = SimulationManager(junction_file_path, configuration_file_path, visualiser_update_function)
+    simulation = SimulationManager(junction_file_path, configuration_file_path, None)
     machine_learning = MachineLearning(simulation, machine_learning_config=None)
     #
-    # machine_learning.random()
+    machine_learning.random()
     # machine_learning.train()
     # machine_learning.test()
 
-    # Visualiser Setup
-    visualiser.define_main(machine_learning.random)
-    visualiser.load_junction(junction_file_path)
-    visualiser.set_scale(scale)
-    #
-    # Run Simulation
-    visualiser.open()
+    # # Visualiser Setup
+    # visualiser.define_main(machine_learning.random)
+    # visualiser.load_junction(junction_file_path)
+    # visualiser.set_scale(scale)
+    # #
+    # # Run Simulation
+    # visualiser.open()
 
