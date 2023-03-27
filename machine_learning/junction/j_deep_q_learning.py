@@ -494,11 +494,10 @@ class MachineLearning:
         return str(self.all_time_reward)
 
 
-    def test(self):
-        model = keras.models.load_model('saved_model')
-        episode = 10
+    def test(self, model_path, episodes=10):
+        model = keras.models.load_model(model_path)
         reward_log = []
-        for episode in range(1, episode + 1):
+        for episode in range(1, episodes + 1):
             # Reset the environment
             self.simulation_manager.reset()
             self.reset()
@@ -527,8 +526,7 @@ class MachineLearning:
                 if self.end_episode(self.all_time_reward, self.number_of_steps_taken):
                     rewards = [reward for reward in reward_log if reward > -9]
                     plt.plot(rewards)
-                    print(rewards)
-                    break
+                    return(rewards)
 
                 sys.stdout.write("\rstep: {0} / reward: {1}".format(str(self.number_of_steps_taken), str(self.all_time_reward)))
                 sys.stdout.flush()

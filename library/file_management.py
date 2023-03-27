@@ -312,6 +312,8 @@ class FileManagement:
                 machine_learning_configs.append(self.load_ML_config(file_dict))
         return machine_learning_configs
 
+
+    # MEGAMAIN - Add additional parameters here, copying the format
     def load_ML_config(self, file_dict):
         """
 
