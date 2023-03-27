@@ -2,12 +2,10 @@ from platform import system
 
 if system() == 'Windows':
     import sys
-
     sys.path.append('./')
 
 import os
 import csv
-from library.file_management import FileManagement
 
 from machine_learning.junction.j_deep_q_learning import MachineLearning as JunctionMachineLearning
 from simulation.junction.j_simulation_manager import SimulationManager as JunctionSimulationManager
@@ -17,7 +15,7 @@ from simulation.lane_changing.lc_simulation_manager import SimulationManager as 
 import time
 
 
-class MachineLearningManager:
+class TrainedModelTester:
     def __init__(self, file_path) -> None:
         """
         The __init__ function is called when the class is instantiated.
@@ -26,7 +24,7 @@ class MachineLearningManager:
 
         :param file_path: Create the output directory and results directory
         """
-        # MEGAMAIN - Add additional data outputs here as required
+        # MEGAMAINTEST - Add additional data outputs here as required
         self.output_fields = ["Time Taken", "Mean Reward"]
         self.training_runs = []
         self.fieldnames = []
@@ -48,7 +46,7 @@ class MachineLearningManager:
         :param file_path: Get the file path of the training runs
         """
         self.get_training_runs(file_path)
-        self.output_directory_path = (self.get_file_path(["results", (file_path[:-4] + "_RESULTS")]))
+        self.output_directory_path = (self.get_file_path(["results", (file_path[:-4] + "_TESTED")]))
         counter = 1
         temp_path = self.output_directory_path
         while os.path.exists(temp_path):
@@ -56,7 +54,7 @@ class MachineLearningManager:
             counter += 1
         self.output_directory_path = temp_path
         os.mkdir(self.output_directory_path)
-        self.summary_file_path = self.get_file_path([self.output_directory_path, (file_path[:-4] + "_summary_results" + file_path[-4:])])
+        self.summary_file_path = self.get_file_path([self.output_directory_path, (file_path[:-4] + "_tested_summary" + file_path[-4:])])
 
     def get_training_runs(self, file_path):
         """
@@ -69,7 +67,7 @@ class MachineLearningManager:
         with open(file_path, "r") as file:
             csv_reader = csv.DictReader(file)
             self.fieldnames = csv_reader.fieldnames
-            self.fieldnames += self.output_fields  # Adds the result headings to fieldnames
+            self.fieldnames += self.output_fields # Adds the result headings to fieldnames
             for file_dict in csv_reader:
                 self.training_runs.append(file_dict)
 
@@ -83,60 +81,60 @@ class MachineLearningManager:
         """
         time_begin = time.perf_counter()
         for run in self.training_runs:
-            # MEGAMAIN - run_training_runs must also be passed all parameters from the iteration file.
-            time_taken, reward = self.run_training_run(run["RunUID"], run["RunType"], run["Junction"], run["SimulationConfig"], run["MachineLearningConfig"], run["MachineLearningConfigID"])
-            # MEGAMAIN - make sure any results are returned here and 'run' is updated with them in dictionary format.
-            run.update({"Time Taken": time_taken, "Mean Reward": reward})
+            # MEGAMAINTEST - run_training_runs must also be passed all parameters from the iteration file.
+            time_taken, rewards = self.run_training_run(run["RunUID"], run["RunType"], run["Junction"], run["SimulationConfig"],
+                                                       run["ModelFilePath"], run["Episodes"])
+            # MEGAMAINTEST - make sure any results are returned here and 'run' is updated with them in dictionary format.
+            run.update({"Time Taken": time_taken, "Rewards": rewards})
             self.save_summary_results(run)
             self.make_results_directory(run)
         time_taken = time.perf_counter() - time_begin
-        # MEGAMAIN - Add any results you want printed to terminal as required.
+        # MEGAMAINTEST - Add any results you want printed to terminal as required.
         print("\n\n================================================\nALL ITERATIONS COMPLETE\n    Total Time: " +
               str(time_taken) + "\n    Total Training Runs: " + str(len(self.training_runs)) + "\n    Results Directory: " + self.output_directory_path +
               "\n================================================")
 
-    # MEGAMAIN - add the parameters to this function call and add in functionality as required.
-    def run_training_run(self, run_uid, run_type, junction_file_name, sim_config_file, machine_learning_config_file, machine_learning_config_id):
+
+    # MEGAMAINTEST - add the parameters to this function call and add in functionality as required.
+    def run_training_run(self, run_uid, run_type, junction_file_name, sim_config_file, model_file_path, episodes):
         """
         The run_training_run function is used to run a single training run of the machine learning algorithm.
-        It takes in the following parameters:
 
+        :param self: Refer to the object that is calling the function
         :param run_uid: Identify the run in the database
-        :param run_type: Determine which simulation to run, either a junction or lane changing
+        :param run_type: Determine which type of simulation to run, either a junction or lane changing
         :param junction_file_name: Load the junction file from the junctions folder
         :param sim_config_file: Load the simulation config file
-        :param machine_learning_config_file: Load the machine learning configs from a file
-        :param machine_learning_config_id: Select the machine learning configuration from the file
+        :param model_file_path: Specify the path to the model file
+        :param episodes: Determine how many episodes the machine learning algorithm should run for
         :return: A tuple of the time taken to train and the reward
         """
+
         print("\n================================================")
         # Create paths to config files.
         junction_file_path = self.get_file_path(["junctions", junction_file_name])
         simulation_config_file_path = self.get_file_path(["configurations", "simulation_config", sim_config_file])
-        machine_learning_file_path = self.get_file_path(["configurations", "machine_learning_config", machine_learning_config_file])
-        machine_learning_config_options = FileManagement().load_ml_configs_from_file(machine_learning_file_path)
-        machine_learning_config = machine_learning_config_options[int(machine_learning_config_id)]
+        machine_learning_model_file_path = self.get_file_path([model_file_path])
         # Initialise simulation with either junction or lane changing set up.
         if run_type.lower() == "junction":
             simulation = JunctionSimulationManager(junction_file_path, simulation_config_file_path, visualiser_update_function=None)
-            self.machine_learning = JunctionMachineLearning(simulation, machine_learning_config)
+            self.machine_learning = JunctionMachineLearning(simulation, machine_learning_config=None)
         elif run_type.lower() == "lane changing":
             simulation = LaneChangingSimulationManager(junction_file_path, simulation_config_file_path, visualiser_update_function=None)
-            self.machine_learning = LaneChangingMachineLearning(simulation, machine_learning_config)
+            self.machine_learning = LaneChangingMachineLearning(simulation, machine_learning_config=None)
         else:
             print("ERROR Incompatible Type in config UID:" + str(run_uid))
             exit()
         # Train ML
         print("Running Machine Learning:\n    RunUID: " + str(run_uid) + "\n    Run Type: " + run_type + "\n    Junction: " + junction_file_name + "\n    Simulation Config: "
-              + sim_config_file + "\n    Machine Learning Config: " + machine_learning_config_file + "\n    Machine Learning Config ID: "
-              + machine_learning_config_id + "\nStarting Training...")
+              + sim_config_file + "\n    Model File Path: " + model_file_path + "\n    Episodes: "
+              + episodes + "\nStarting Training...")
         time_begin = time.perf_counter()
-        print("WARNING - machine learning random() function being used, please change to correct training function for real training runs")
-        # MEGAMAIN - change to ML method required and return all results data.
-        reward = self.machine_learning.random()
+        # MEGAMAINTEST - change to ML method required and return all results data.
+        rewards = self.machine_learning.test(machine_learning_model_file_path, int(episodes))
         time_taken = time.perf_counter() - time_begin
-        print("\nTraining Complete.\n    Time Taken To Train: " + str(time_taken) + "\n    Reward: " + str(reward))
-        return time_taken, reward
+        print("\nTraining Complete.\n    Time Taken To Train: " + str(time_taken) + "\n    Reward: " + str(rewards) )
+        return time_taken, rewards
 
     def get_file_path(self, path_names):
         """
