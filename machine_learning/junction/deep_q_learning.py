@@ -1,4 +1,5 @@
 import copy
+import math
 import random
 from math import sqrt
 from platform import system
@@ -33,9 +34,6 @@ class MachineLearning:
         self.simulation_manager = simulation_manager
 
         # TODO: Profile code
-        self.tick_rate = 2
-        self.number_of_steps_per_iteration = int(self.simulation_manager.simulation.model.tick_rate / self.tick_rate)
-
         # GRAPH
         # self.graph = Graph(graph_num_episodes, graph_max_step)
 
@@ -63,11 +61,11 @@ class MachineLearning:
 
         # Exploration
         # Number of steps of just random actions before the network can make some decisions
-        self.number_of_steps_of_required_exploration = 1
+        self.number_of_steps_of_required_exploration = 10000
         # Number of steps over which epsilon greedy decays
-        self.number_of_steps_of_exploration_reduction = 1
+        self.number_of_steps_of_exploration_reduction = 1000000
         # Train the model after 4 actions
-        self.update_after_actions = 12
+        self.update_after_actions = 4
         # How often to update the target network
         self.update_target_network = 1000
 
@@ -75,22 +73,19 @@ class MachineLearning:
         # Buffers
         self.action_history = []
         self.state_history = []
-        self.state_next_history = []
         self.rewards_history = []
         self.done_history = []
         self.episode_reward_history = []
 
         # Steps to look into the future to determine the mean reward. Should match T = 1/(1-gamma)
-
-        self.seconds_to_look_into_the_future = 5.0
-        self.steps_to_look_into_the_future = int(self.seconds_to_look_into_the_future / self.simulation_manager.simulation.model.tick_time)
+        self.number_of_temporal_difference_steps = 20
 
         # Sample Size
         self.sample_size = 124  # Size of batch taken from replay buffer
         # TODO: Proportion to the most recent state
 
         # Discount factor
-        self.gamma = 0.99  # Discount factor for past rewards
+        self.gamma = 0.7  # Discount factor for past rewards
 
         # Maximum replay buffer length
         # Note: The Deepmind paper suggests 1000000 however this causes memory issues
@@ -158,17 +153,16 @@ class MachineLearning:
             # Run steps in episode
             while True:
                 # Increment the total number of steps taken by the AI in total.
-                self.number_of_steps_taken += self.number_of_steps_per_iteration
+                self.number_of_steps_taken += 1
 
                 # Increment the episode step
-                episode_step += self.number_of_steps_per_iteration
+                episode_step += 1
 
                 # Select an action
                 action_index = self.select_action(state)
-                # TODO: skip if no valid action
 
                 # Take an action
-                reward = self.step(action_index, self.number_of_steps_per_iteration)
+                reward = self.step(action_index)
 
                 # Update reward
                 self.all_time_reward += reward
@@ -231,20 +225,44 @@ class MachineLearning:
                 break
         return self.get_mean_reward()
 
-    def step(self, action_index: int, n: int = 1):
+    def step(self, action_index: int):
+        reward = 0
+        state_value = self.simulation_manager.get_sum_wait_time()
         self.take_action(action_index)
-        sum_wait_time = self.simulation_manager.get_sum_wait_time()
+        self.simulation_manager.simulation.run_single_iteration()
+        if self.simulation_manager.simulation.model.detect_collisions():
+            reward += -1000.0
 
-        for _ in range(n):
-            self.simulation_manager.simulation.run_single_iteration()
-            if self.detect_collision(copy.deepcopy(self.simulation_manager)):
-                return -10.0
+        reward += state_value - self.simulation_manager.get_sum_wait_time()
+        reward += self.calculate_temporal_difference_reward(copy.deepcopy(self.simulation_manager))
+        # TODO: Reward Shaping
+
+        # TODO: Temporal Credit Assignment
+
+        # TODO: prioritised sweeping
 
         # TODO: implement light timings and set red after the light turns green and simulate for infinite amount of time to look for a cloosion
 
         # TODO: mean_wait_time is the same if one or two lanes are held red
-        return sum_wait_time ** 2 - self.simulation_manager.get_sum_wait_time() ** 2
+        return reward
 
+    def calculate_temporal_difference_reward(self, simulation_manager: SimulationManager):
+        reward = 0
+        for index in range(1, self.number_of_temporal_difference_steps):
+            temporal_difference_reward = 0
+            gamma = math.pow(self.gamma, index)
+            state_value = simulation_manager.get_sum_wait_time()
+            simulation_manager.take_action(self.select_action(simulation_manager.get_state(), target=True))
+            simulation_manager.simulation.run_single_iteration()
+
+            if simulation_manager.simulation.model.detect_collisions():
+                temporal_difference_reward += -1000.0
+
+            temporal_difference_reward += (state_value - simulation_manager.get_sum_wait_time())
+
+            reward += gamma * temporal_difference_reward
+
+        return reward
     def detect_collision(self, simulation_manager: SimulationManager):
         # TODO: Temporal credit assignment
         for light in simulation_manager.simulation.model.lights:
@@ -258,14 +276,14 @@ class MachineLearning:
             min_vehicle_speed = min([vehicle.get_speed() for vehicle in simulation_manager.simulation.model.vehicles])
         return False
 
-    def select_action(self, state):
+    def select_action(self, state, target: bool = False):
         # Exploration vs Exploitation
         if self.number_of_steps_taken < self.number_of_steps_of_required_exploration or self.epsilon_greedy > np.random.rand(1)[0]:
             # Take random action
             action = self.select_random_action()
         else:
             # Take best action
-            action = self.select_best_action(state)
+            action = self.select_best_action(state, target)
 
         self.update_epsilon_greedy()
 
@@ -276,17 +294,17 @@ class MachineLearning:
         if legal_actions:
             return np.random.choice(legal_actions)
 
-    def select_best_action(self, state):
+    def select_best_action(self, state, target: bool = False):
         # Predict action Q-values
         # From simulation_manager state
         state_tensor = tf.expand_dims(tf.convert_to_tensor(state), 0)
-        action_probs = self.ml_model(state_tensor, training=False)
 
-        print(action_probs[0])
+        if target:
+            action_probs = self.ml_model_target.predict(state_tensor, verbose=0)
+        else:
+            action_probs = self.ml_model(state_tensor, training=False)
 
-        # Take best action
-        action = tf.argmax(action_probs[0]).numpy()
-        return action
+        return tf.argmax(action_probs[0]).numpy()
 
     def update_epsilon_greedy(self):
         self.epsilon_greedy -= (self.epsilon_greedy_max - self.epsilon_greedy_min) / self.number_of_steps_of_exploration_reduction
@@ -331,13 +349,9 @@ class MachineLearning:
         return np.random.choice(range(len(self.done_history)), size=self.sample_size)
 
     def calculate_updated_q_values(self, state_next_sample, rewards_sample, done_sample):
-        # Build the updated Q-values for the sampled future states
-        # Use the target model for stability
-        future_rewards = self.ml_model_target.predict(state_next_sample, verbose=0)
-        # Q value = reward + discount factor * expected future reward
-        updated_q_values = rewards_sample + self.gamma * tf.reduce_max(future_rewards, axis=1)
+        updated_q_values = rewards_sample
         # If final frame set the last value to -1
-        # updated_q_values = updated_q_values * (1 - done_sample) - done_sample
+        updated_q_values = updated_q_values * (1 - done_sample) - done_sample
         return updated_q_values
 
     def delete_old_replay_buffer_values(self):
