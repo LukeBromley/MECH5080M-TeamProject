@@ -14,3 +14,5 @@ A .config simulation config file should be placed in ./configurations/simulation
 A machine learning config file should be placed in ./configurations/machine_learning_config
 
 Finally, the machine learning config index must be provided to select the ML parameters for each run.
+
+Comments with the tag MEGAMAIN and MEGAMAINTEST have been included near key areas where code may need to be changed to add/remove functionality
