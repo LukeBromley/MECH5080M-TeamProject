@@ -11,20 +11,21 @@ class JunctionVisualiser:
     def __init__(self) -> None:
         """
 
-
         Junction Visualiser is a stripped down version of Junction Designer that allows the user to view the junction
-        and cars in real time.
-        GUI uses PYQT with PyGame for visualiser on the backend.
-        GUI is threadded to allow the simulation to run on another thread.
+        and cars in real time. The window is based on PYQT and uses PyGame for rendering the graphics.
+        The application creates a thread that is used to run functions that update the visualiser.
+
+        The visualiser updates at its own independent frame rate (100FPS) using the most recent information provided.
+
         """
         # Create application
         self.application = QtWidgets.QApplication(sys.argv)
         self.application.setStyle('Windows')  # REQUIRED to show tickable combo boxes!!!!
         # Main window object + display it
         self.viewer_window = ViewerMainWindow()
-        # Main Thread
+        # Threading
         self.thread = QThread()
-        self.worker = Run_Time_Function()
+        self.worker = RunTimeFunction()
         self.worker.moveToThread(self.thread)
         self.thread.started.connect(self.worker.run)
         self.worker.finished.connect(self.thread.quit)
@@ -34,60 +35,93 @@ class JunctionVisualiser:
     def load_junction(self, junction_file_path: str) -> None:
         """
 
-        Load junction
-        :param junction_file_path: file path of junction to show
+        Load the junction into the visualiser for displaying its layout.
+
+        :param junction_file_path: file path of junction (.junc) file to use
         :return: None
         """
         self.viewer_window.model.load_junction(junction_file_path, quick_load=True)
         self.viewer_window.render_pygame_widget()
 
-    def define_main(self, main_function) -> None:
+    def define_main(self, thread_function: classmethod) -> None:
         """
 
-        Defines the main function to run on the thread
-        :param function: Main function
+        Specifies the function that should be used to run on the thread
+        :param thread_function: function to be run
         :return: None
         """
-        self.worker.set_main_function(main_function)
+        self.worker.set_thread_function(thread_function)
 
     def open(self) -> None:
         """
 
-        Open the Junction Visualiser and start running the main function
+        Opens Junction Visualiser and start running the thread.
+
         :return: None
         """
         self.thread.start()
         self.viewer_window.show()
         self.application.exec_()
 
-    def update_vehicle_positions(self, vehicle_positions: list) -> None:
+    def update_vehicle_positions(self, vehicle_data: list) -> None:
         """
 
-        Updates the GUI car positions with a list of x, y coordinates
-        :param car_positions: list of x,y car positions
+        Passes current vehicle data into the visualiser to be saved.
+        The visualiser updates at an independent frame rate using most recent vehicle data provided.
+
+        :param vehicle_data: Coordinate locations, size, angle etc of vehicles
         :return: None
         """
-        self.viewer_window.model.vehicles = vehicle_positions
+        self.viewer_window.model.vehicles = vehicle_data
 
     def update_light_colours(self, lights: list) -> None:
         """
 
-        Updates the GUI car positions with a list of x, y coordinates
-        :param car_positions: list of x,y car positions
+        Passes current light objects into the visualiser to be saved.
+        The visualiser updates at an independent frame rate using most recent lights provided.
+
+        :param lights: list of light objects
         :return: None
         """
         self.viewer_window.model.lights = lights
 
-    def update_time(self, time):
+    def update_time(self, time: Time) -> None:
+        """
+
+        Updates the background colour of the visualiser depending on the time of day. White at midday, Black at midnight.
+        The visualiser updates at an independent frame rate using most recent time provided.
+
+        :param time: Time object from simulation model
+        :return: None
+        """
         seconds = time.total_seconds()
-        colour_mag = 255 - (255 * abs((seconds - (12 * 60 * 60)) / (12 * 60 * 60)))
+        colour_mag = 255 - (255 * abs((seconds - (12 * 60 * 60)) / (12 * 60 * 60)))  # Calculates the background colour
         self.viewer_window.pygame_graphics.background_colour = (colour_mag, colour_mag, colour_mag)
 
-    def update_collision_warning(self, collision):
+    def update_collision_warning(self, collision: bool) -> None:
+        """
+
+        Makes the background colour of the visualiser red if there is currently a crash.
+        The visualiser updates at an independent frame rate using most recent background colour.
+
+        :param collision: True if there is a collision.
+        :return: None
+        """
         if collision:
             self.viewer_window.pygame_graphics.background_colour = (255, 0, 0)
 
-    def update(self, vehicle_data: list = (), lights: list = (), time_of_day: Time = Time(12, 0, 0), collision: bool = False):
+    def update(self, vehicle_data: list = (), lights: list = (), time_of_day: Time = Time(12, 0, 0), collision: bool = False) -> None:
+        """
+
+        Updates the visualiser with the current information from the simulation.
+        The visualiser updates at an independent frame rate using most recent information provided.
+
+        :param vehicle_data: Current simulation vehicle position, size, direction etc
+        :param lights: Current simulation light states
+        :param time_of_day: Current simulation time
+        :param collision: Current simulation collision states
+        :return: None
+        """
         self.update_vehicle_positions(vehicle_data)
         self.update_light_colours(lights)
         self.update_time(time_of_day)
@@ -96,8 +130,8 @@ class JunctionVisualiser:
     def set_scale(self, scale: int) -> None:
         """
 
-        Sets GUI scale
-        :param scale: scale %
+        Changes the GUI scale (percentage) between 10% to 200%.
+        :param scale: scale percentage
         :return: None
         """
         scale = clamp(scale, 10, 200)
@@ -105,50 +139,56 @@ class JunctionVisualiser:
         self.viewer_window.pygame_graphics.set_scale(scale)
 
 
-class Run_Time_Function(QObject):
+class RunTimeFunction(QObject):
+    # Indicator for the function completing execution
     finished = pyqtSignal()
+
     def __init__(self):
         """
 
-        Class to run on second thread that handles simulation
+        QObject inherited class used to store and run the function that is to be run on the thread.
+
         """
         super().__init__()
-        self.main_function = None
+        self.thread_function = None
 
     def run(self) -> None:
         """
 
-        Runs the main function and closes thread when function is complete
+        Runs the thread function
+
         :return: None
         """
-        self.main_function()
+        self.thread_function()
 
-    def set_main_function(self, main_function) -> None:
+    def set_thread_function(self, thread_function: classmethod) -> None:
         """
 
-        :param main_function:
+        Sets the function to run on the second thread.
+
+        :param thread_function: Function to run on second thread.
         :return: None
         """
-        self.main_function = main_function
+        self.thread_function = thread_function
 
 
 class ViewerMainWindow(QtWidgets.QMainWindow):
     def __init__(self) -> None:
         """
 
-        Main GUI window.
-        Contains all subwidgets
+        Main GUI window used for junction visualiser. Contains all sub-widgets and visualiser model.
+
         """
         super(ViewerMainWindow, self).__init__()
 
-        # List of all nodes and paths
+        # Visualiser model
         self.model = Model()
 
-        # Set GUI window size
+        # Set Window size
         self.window_width, self.window_height = 1440, 847
         self.setMinimumSize(round(self.window_width / 2), self.window_height)
 
-        # Pygame graphics renderer
+        # Pygame graphics renderer class
         self.pygame_graphics = PygameGraphics(self.window_width, self.window_height, self.model)
 
         # Junction view widget
@@ -161,15 +201,20 @@ class ViewerMainWindow(QtWidgets.QMainWindow):
         self.render_pygame_widget()
 
         # GUI refresh timer (set at 100FPS)
+        # This timer loops and when it resets it refreshes the graphics.
         self.timer = Timer(10, self.refresh_pygame_widget, single_shot=False)
 
-    def refresh_pygame_widget(self, force_full_refresh=True) -> None:
+    def refresh_pygame_widget(self, force_full_refresh: bool = True) -> None:
         """
 
-        Regresh pygame widget with current pygame graphics render.
-        Paths are pre-rendered (improves performance).
-        Nodes are not pre-rendered and instead are rendered on the refresh.
-        Refresh handles scrolling and scaling.
+        Refreshes the pygame widget with the current graphics rendering. Junction paths are pre-rendered to improve
+        performance but simpler elements (like nodes) are rendered on the refresh.
+
+        Vehicle positions changes are rendered on a separate surface to the main surface (that holds the junction
+        layout) which means that we can improve performance by only refreshing the vehicle surface. A full refresh
+        refreshes everything which is default behavior.
+
+        :param force_full_refresh: Refreshes all surfaces
         :return: None
         """
         self.pygame_graphics.refresh(
@@ -188,13 +233,17 @@ class ViewerMainWindow(QtWidgets.QMainWindow):
     def render_pygame_widget(self) -> None:
         """
 
-        Render the pygame graphics.
+        Renders all aspects of the visualiser that cannot be rendered on every refresh. This improves performance.
         Paths are pre-rendered because it is computationally intensive and does not need to happen on every refresh.
+
         :return: None
         """
+
+        # Calculate all parameters for paths
         for path in self.model.paths:
             path.calculate_all(self.model)
 
+        # Render all paths
         if len(self.model.paths) > 0:
             self.pygame_graphics.render_hermite_paths(self.model.paths)
         self.refresh_pygame_widget()
@@ -202,20 +251,23 @@ class ViewerMainWindow(QtWidgets.QMainWindow):
     def pygame_widget_scroll(self, event) -> None:
         """
 
-        Passes scroll events onto the pygame graphics and refresh the widget
-        :param event: pyqt mouse scroll event
+        Passes PYQT scroll events onto the pygame graphics to compute graphical translation and updates widget
+
+        :param event: PYQT mouse scroll event
         :return: None
         """
         self.pygame_graphics.calculate_scroll(event)
         self.refresh_pygame_widget()
 
-    def update_nodes_paths(self, nodes, paths, refresh_widgets=True):
+    def update_nodes_paths(self, nodes: list, paths: list, refresh_widgets: bool = True) -> None:
         """
 
-        Updates the list of nodes and paths
+        Updates the list of nodes and paths stored in the model. If nodes are changed on the back-end then the
+        widgets (on the front end) need updating.
+
         :param nodes: list of nodes
         :param paths: list of paths
-        :param refresh_widgets: If nodes are changed on the back-end then the widgets (on the front end) need updating
+        :param refresh_widgets: True to refresh all widgets.
         :return:
         """
         self.model.nodes = nodes
@@ -223,10 +275,3 @@ class ViewerMainWindow(QtWidgets.QMainWindow):
         if refresh_widgets:
             self.design_tab.update_node_path_widgets(self.model.nodes, self.model.paths)
         self.control_tab.set_add_light_button_state()
-
-    def get_data(self) -> tuple:
-        """
-
-        :return: Returns the list of nodes and paths
-        """
-        return self.model.nodes, self.model.paths, self.model.vehicles

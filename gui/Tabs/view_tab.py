@@ -6,7 +6,10 @@ from PyQt5.QtWidgets import QFileDialog
 class ViewTab(QtWidgets.QWidget):
     def __init__(self, gui, set_scale_function, update_map_function) -> None:
         """
-        View tab that allows the user to show and hide layers, set scaling and reset
+
+        View tab that allows the user to show and hide different junction elements, visualiser zoom and add google maps
+        background.
+
         :param gui: parent gui class
         :param set_scale_function: function that sets the scale of the gui
 
@@ -96,7 +99,8 @@ class ViewTab(QtWidgets.QWidget):
     def connect(self) -> None:
         """
 
-        Connect widget callback functions
+        Connects the call back functions of widgets.
+
         :return: None
         """
         self.recenter_button.pressed.connect(self.gui.recenter)
@@ -118,7 +122,13 @@ class ViewTab(QtWidgets.QWidget):
         self.playback_play_pause.pressed.connect(self.play_pause)
         self.playback_scrub_bar.valueChanged.connect(self.scrub)
 
-    def update_map_coords(self):
+    def update_map_coords(self) -> None:
+        """
+
+        Updates the Google map coordinates from GUI values in GUI model.
+        :return: None
+        """
+
         self._latitude = self.map_latitude.value()
         self._longitude = self.map_longitude.value()
         self._heading = self.map_heading.value()
@@ -127,7 +137,12 @@ class ViewTab(QtWidgets.QWidget):
         self.update_map_function(self._latitude, self._longitude, self._heading, self._map_scale, maps_api_key)
         self.gui.refresh_pygame_widget()
 
-    def set_map_coords(self):
+    def set_map_coords(self) -> None:
+        """
+
+        Sets the GUI values based on Google map coordinates in GUI model.
+        :return:
+        """
         self.map_latitude.setValue(self._latitude)
         self.map_longitude.setValue(self._longitude)
         self.map_heading.setValue(self._heading)
@@ -136,7 +151,7 @@ class ViewTab(QtWidgets.QWidget):
     def update_layer_states(self) -> None:
         """
 
-        Update the layer state variables with the state of the tick box widgets
+        Updates layer states based on values in the GUI model.
         :return: None
         """
 
@@ -165,7 +180,7 @@ class ViewTab(QtWidgets.QWidget):
     def set_layer_states(self) -> None:
         """
 
-        Set tick box widgets with the state of the layer state variables
+        Set tick box widgets states based on state variables in GUI model.
         :return: None
         """
         self.layer_map.setChecked(self.show_layer_map)
@@ -179,26 +194,45 @@ class ViewTab(QtWidgets.QWidget):
     def set_scale(self) -> None:
         """
 
-        Sets the scale of the graphics.
+        Sets the scale of the graphics based on the value in the GUI.
         :return: None
         """
         scale = 0.2 * self.scale.value() / 100
         self.set_scale_function(scale)
         self.gui.refresh_pygame_widget()
 
-    def disable_playback(self):
+    def disable_playback(self) -> None:
+        """
+
+        Disable the ability to playback data by disabling widgets.
+
+        :return: None
+        """
         self.playback_scrub_bar.setDisabled(True)
         self.playback_prev_tick.setDisabled(True)
         self.playback_play_pause.setDisabled(True)
         self.playback_next_tick.setDisabled(True)
 
-    def enable_playback(self):
+    def enable_playback(self) -> None:
+        """
+
+        Enable the ability to playback data by enabling widgets.
+
+        :return: None
+        """
+
         self.playback_scrub_bar.setEnabled(True)
         self.playback_prev_tick.setEnabled(True)
         self.playback_play_pause.setEnabled(True)
         self.playback_next_tick.setEnabled(True)
 
-    def load_results_data(self):
+    def load_results_data(self) -> None:
+        """
+
+        Load result data from file and save to GUI model.
+
+        :return: None
+        """
         file_path = QFileDialog.getOpenFileName(self, 'Open Results Data', '../junctions', "Results File (*.res)")[0]
         if len(file_path) > 0:
             self.gui.model.load_results(file_path)
@@ -206,21 +240,52 @@ class ViewTab(QtWidgets.QWidget):
         self.playback_max_tick = self.get_max_tick()
         self.playback_scrub_bar.setMaximum(self.playback_max_tick)
 
-    def get_max_time(self):
+    def get_max_time(self) -> None:
+        """
+
+        Get duration of results data in simulation time (seconds).
+
+        :return: None
+        """
         time = [vehicle.total_time(self.tick_time) for vehicle in self.gui.model.vehicle_results]
         return max(time)
 
-    def get_max_tick(self):
+    def get_max_tick(self) -> None:
+        """
+
+        Get duration of results data in simulation ticks.
+
+        :return: None
+        """
         time = [vehicle.total_tick(self.tick_time) for vehicle in self.gui.model.vehicle_results]
         return max(time) - 1
 
-    def get_time(self):
+    def get_time(self) -> float:
+        """
+
+        Convert the number of ticks in results to duration in seconds.
+
+        :return: time (in seconds)
+        """
         return self.tick_time * self.tick
 
-    def get_start_tick(self, time):
+    def get_start_tick(self, time) -> float:
+        """
+
+        For a time in result data, get the tick.
+
+        :param time: time in simulation (in seconds)
+        :return: tick in simulation
+        """
         return time / self.tick_time
 
-    def next_tick(self):
+    def next_tick(self) -> None:
+        """
+
+        Increment the results playback tick and check if the playback has completed. Updates visualiser and scrub bar.
+
+        :return: None
+        """
         self.tick += 1
         if self.tick > self.playback_max_tick:
             self.tick = self.playback_max_tick
@@ -228,16 +293,29 @@ class ViewTab(QtWidgets.QWidget):
             self.playback_timer.stop()
             self.update_play_pause_button()
         self.update_playback_scroll()
-        self.update_car_positions()
+        self.update_vehicle_positions()
 
-    def prev_tick(self):
+    def prev_tick(self) -> None:
+        """
+
+        Decrement the results playback tick and check if the playback is at the beginning. Updates visualiser and scrub
+        bar.
+
+        :return:
+        """
         self.tick -= 1
         if self.tick < 0:
             self.tick = 0
         self.update_playback_scroll()
-        self.update_car_positions()
+        self.update_vehicle_positions()
 
-    def play_pause(self):
+    def play_pause(self) -> None:
+        """
+
+        Plays and pauses results playback.
+
+        :return: None
+        """
         if self.playback_play:
             self.playback_timer.stop()
             self.playback_play = False
@@ -246,29 +324,59 @@ class ViewTab(QtWidgets.QWidget):
             self.playback_play = True
         self.update_play_pause_button()
 
-    def scrub(self):
-        self.tick = self.playback_scrub_bar.value()
-        self.update_car_positions()
+    def scrub(self) -> None:
+        """
 
-    def update_play_pause_button(self):
+        Change the playback tick based on the location of the scrub bar.
+
+        :return:
+        """
+        self.tick = self.playback_scrub_bar.value()
+        self.update_vehicle_positions()
+
+    def update_play_pause_button(self) -> None:
+        """
+
+        Update play/pause button to say play or pause based on if the results are being played back.
+
+        :return: None
+        """
         if self.playback_play:
             self.playback_play_pause.setText("Pause")
         else:
             self.playback_play_pause.setText("Play")
 
-    def update_playback_scroll(self):
+    def update_playback_scroll(self) -> None:
+        """
+
+        Update the scrub bar location based on the current tick.
+
+        :return: None
+        """
         self.playback_scrub_bar.setValue(self.tick)
 
-    def calculate_current_car_positions(self):
-        car_positions = []
+    def calculate_current_vehicle_positions(self) -> list:
+        """
+
+        Get vehicle positions based on the result gathered at a specific time.
+
+        :return: list of vehicle positions
+        """
+        vehicle_positions = []
         for vehicle in self.gui.model.vehicle_results:
             if self.get_time() > vehicle.start_time:
                 tick_delta = self.tick - vehicle.start_tick(self.tick_time)
-                car_positions.append(vehicle.position_data[int(tick_delta)])
-        return car_positions
+                vehicle_positions.append(vehicle.position_data[int(tick_delta)])
+        return vehicle_positions
 
-    def update_car_positions(self):
-        self.gui.model.vehicles = self.calculate_current_car_positions()
+    def update_vehicle_positions(self) -> None:
+        """
+
+        Updates the vehicle positions in the junction viewer window.
+
+        :return: None
+        """
+        self.gui.model.vehicles = self.calculate_current_vehicle_positions()
         self.gui.refresh_pygame_widget(force_full_refresh=False)
 
 

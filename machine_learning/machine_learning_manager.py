@@ -114,7 +114,7 @@ class MachineLearningManager:
         junction_file_path = self.get_file_path(["junctions", junction_file_name])
         simulation_config_file_path = self.get_file_path(["configurations", "simulation_config", sim_config_file])
         machine_learning_file_path = self.get_file_path(["configurations", "machine_learning_config", machine_learning_config_file])
-        machine_learning_config_options = FileManagement().load_ML_configs_from_file(machine_learning_file_path)
+        machine_learning_config_options = FileManagement().load_ml_configs_from_file(machine_learning_file_path)
         machine_learning_config = machine_learning_config_options[int(machine_learning_config_id)]
         # Initialise simulation with either junction or lane changing set up.
         if run_type.lower() == "junction":

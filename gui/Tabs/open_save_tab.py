@@ -10,12 +10,15 @@ class OpenSaveTab(QtWidgets.QWidget):
     def __init__(self, gui, model):
         """
 
-        Tab that allows the user to open and save junction
+        OpenSave tab that allows the user to add open and save a junction to file. Also allows a new junction to be made
+        and to open an example junction.
+
         :param gui: parent gui class
         :param model: model
         """
         super().__init__()
 
+        # Parent GUI and parent model
         self.model = model
         self.gui = gui
 
@@ -38,7 +41,9 @@ class OpenSaveTab(QtWidgets.QWidget):
     def open_junction_with_file_dialog(self) -> None:
         """
 
-        Opens the open file dialog box and gets desired file path + file name
+        Opens the open file dialog box and gets desired file path + file name. If a file has been specified then the
+        junction will be loaded into the model. The save_file_path will be updated for easier saving in the future.
+
         :return: None
         """
         file_path = QFileDialog.getOpenFileName(self, 'Open Junction', '../junctions', "Junction Files (*.junc)")[0]
@@ -48,7 +53,9 @@ class OpenSaveTab(QtWidgets.QWidget):
     def open_junction(self, file_path: str) -> None:
         """
 
-        :param file_path: file path to save file to
+        Loads the junction into the model, renders the viewer and updates all tabs.
+
+        :param file_path: file path of the junction (.junc) file that is loaded.
         :return: None
         """
         self.save_file_path = file_path
@@ -63,7 +70,9 @@ class OpenSaveTab(QtWidgets.QWidget):
     def save_junction(self) -> None:
         """
 
-        Saves junction if a file path has already been specified
+        Saves the junction if the save location has already been specified. A save location is specified when opening
+        a .junc file or after save-as-ing a .junc file. The file saved will be a .junc file.
+
         :return: None
         """
         if self.save_file_path is not None:
@@ -72,7 +81,9 @@ class OpenSaveTab(QtWidgets.QWidget):
     def save_as_junction(self) -> None:
         """
 
-        Opens the file dialog box and gets desired file path + file name to save the file to.
+        Opens the open file dialog box and gets desired file path + file name. If a file has been specified then the
+        junction will be saved as a .junc file. The save_file_path will be updated for easier saving in the future.
+
         :return: None
         """
         path = os.path.join(os.path.dirname(__file__), ".../junctions")
@@ -87,6 +98,7 @@ class OpenSaveTab(QtWidgets.QWidget):
         """
 
         Creates a new junction with zero nodes and zero paths.
+
         :return: None
         """
         if self.save_file_path is not None:
@@ -100,7 +112,8 @@ class OpenSaveTab(QtWidgets.QWidget):
     def load_example(self) -> None:
         """
 
-        Opens the example junction
+        Opens and loads the example junction.
+
         :return: None
         """
 
@@ -110,7 +123,8 @@ class OpenSaveTab(QtWidgets.QWidget):
     def connect(self) -> None:
         """
 
-        Connects the buttons in the menu with the relevant callback functions
+        Connects the buttons in the save menu to the relevant callback functions.
+
         :return: None
         """
         self.open.pressed.connect(self.open_junction_with_file_dialog)

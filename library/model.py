@@ -56,7 +56,7 @@ class Model:
             junction_file_location, self.nodes, self.paths, self.lights)
 
     def load_config(self, config_file_location):
-        self.config = self.file_manager.load_config_file(config_file_location)
+        self.config = self.file_manager.load_sim_config_file(config_file_location)
         self.set_tick_rate(self.config.tick_rate)
         self.set_start_time_of_day(self.config.start_time_of_day)
         if self.config.random_seed is not None:
@@ -66,18 +66,19 @@ class Model:
             min_spawn_time=self.config.min_spawn_time,
             mean_spawn_time_per_hour=self.config.mean_spawn_time_per_hour,
             sdev_spawn_time_per_hour=self.config.sdev_spawn_time_per_hour,
-            max_car_length=self.config.max_car_length,
-            min_car_length=self.config.min_car_length,
-            max_car_width=self.config.max_car_width,
-            min_car_width=self.config.min_car_width,
-            mean_car_lengths=self.config.mean_car_lengths,
-            mean_car_widths=self.config.mean_car_widths,
-            sdev_car_lengths=self.config.sdev_car_lengths,
-            sdev_car_widths=self.config.sdev_car_widths,
+            min_spawn_time_per_hour=self.config.min_spawn_time_per_hour,
+            max_vehicle_length=self.config.max_vehicle_length,
+            min_vehicle_length=self.config.min_vehicle_length,
+            max_vehicle_width=self.config.max_vehicle_width,
+            min_vehicle_width=self.config.min_vehicle_width,
+            mean_vehicle_lengths=self.config.mean_vehicle_lengths,
+            mean_vehicle_widths=self.config.mean_vehicle_widths,
+            sdev_vehicle_lengths=self.config.sdev_vehicle_lengths,
+            sdev_vehicle_widths=self.config.sdev_vehicle_widths
         ))
 
     def save_config(self, config_file_location, configuration):
-        self.file_manager.save_config_file(config_file_location, configuration)
+        self.file_manager.save_sim_config_file(config_file_location, configuration)
 
     def save_results(self, results_file_location):
         self.file_manager.save_results_data_file(results_file_location, self.vehicles)

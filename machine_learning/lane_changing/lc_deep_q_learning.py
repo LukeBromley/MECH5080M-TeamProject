@@ -21,6 +21,7 @@ from tensorflow.keras import layers
 
 # https://towardsdatascience.com/a-minimal-working-example-for-deep-q-learning-in-tensorflow-2-0-e0ca8a944d5e
 
+# https://math.mit.edu/research/highschool/primes/materials/2015/Yi.pdf
 
 class MachineLearning:
     def __init__(self, simulation_manager, machine_learning_config = None, graph_num_episodes=20, graph_max_step=30000):

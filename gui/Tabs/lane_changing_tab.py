@@ -9,12 +9,14 @@ class LaneChangingTab(QtWidgets.QWidget):
     def __init__(self, gui, model):
         """
 
-        Design tab that allows the user to add paths or nodes
+        Lane Changing tab that allows the user to specify parallel paths that lane changes can occur between
+
         :param gui: parent gui class
         :param model: model
         """
         super(LaneChangingTab, self).__init__()
 
+        # Parent GUI and parent model
         self.gui = gui
         self.model = model
 
@@ -28,13 +30,14 @@ class LaneChangingTab(QtWidgets.QWidget):
 
         self.path_widgets = []
 
-
     def update_lane_widgets(self) -> None:
         """
 
-        Updates the widgets for the list of nodes and paths in the model
+        Updates the widgets for the list of lanes in the model.
+
         :return: None
         """
+
         # Remove all current path widgets
         for i in reversed(range(self.path_box_scroll.v_box.count())):
             self.path_box_scroll.v_box.itemAt(i).widget().setParent(None)
@@ -51,6 +54,15 @@ class LaneChangingTab(QtWidgets.QWidget):
             self.path_widgets[-1].connect_change(partial(self.update_path_data, path.uid, index))
 
     def update_path_data(self, uid: int, widget_index: int) -> None:
+        """
+
+        Updates a specific path to add all parallel paths. It also updates all parallel paths to have the original path
+        as a parallel path. The model is updated.
+
+        :param uid: UID of specific path of update
+        :param widget_index: Widget of path to update
+        :return: None
+        """
         parallel_paths = []
         all_items = [self.path_widgets[widget_index].other_lanes.model().item(i, 0) for i in range(self.path_widgets[widget_index].other_lanes.count())]
         for item in all_items:
@@ -71,8 +83,10 @@ class LaneChangingTab(QtWidgets.QWidget):
     def identify_path(self, uid: int) -> None:
         """
 
-        Creates a list of paths to identify when an identify button is pressed
-        :param uid: UID of light that we want to identify the paths of
+        Creates a list of paths and its parallel paths to identify when an identify button is pressed. The paths will
+        then be coloured pink for 0.25s.
+
+        :param uid: UID of path that we want to identify the parallel paths of
         :return: None
         """
         path = self.model.get_path(uid)
@@ -80,7 +94,13 @@ class LaneChangingTab(QtWidgets.QWidget):
 
         self.gui.identify_path(paths)
 
-    def clear_all_lanes(self):
+    def clear_all_lanes(self) -> None:
+        """
+
+        Removes all parallel paths from all paths in model.
+
+        :return: None
+        """
         for path in self.model.paths:
             path.parallel_paths.clear()
         self.update_lane_widgets()
@@ -88,6 +108,13 @@ class LaneChangingTab(QtWidgets.QWidget):
 
 class PathWidget(QtWidgets.QWidget):
     def __init__(self, parent_widget, layout=None) -> None:
+        """
+
+        Path widget that allows parallel paths to be specified.
+
+        :param parent_widget: parent widget
+        :param layout: layout that the widget is to be added to
+        """
         super().__init__(parent_widget)
         if layout is not None:
             layout.addWidget(self)
@@ -103,24 +130,52 @@ class PathWidget(QtWidgets.QWidget):
 
         self.identify = Button(self, "Identify", self.h_box)
 
-    def set_options(self, uid:int, paths: list) -> None:
+    def set_options(self, uid: int, paths: list) -> None:
+        """
+
+        Specifies all other lanes that can be set as parallel.
+
+        :param uid: UID of the path
+        :param paths: list of all other paths
+        :return: None
+        """
         for path in paths:
             if path.uid != uid:
                 self.other_lanes.addItem(str(path.uid))
         self.other_lanes.untick_all()
 
     def set_info(self, uid: int, paths_selected: list) -> None:
+        """
+
+        Sets the current info of the path widget including its uid and all parallel paths selected.
+
+        :param uid: UID of path
+        :param paths_selected: All parallel paths
+        :return: None
+        """
         self.uid_edit.setText(str(uid))
 
         for path_uid in paths_selected:
             self.other_lanes.set_ticked(str(path_uid))
 
     def connect_change(self, function) -> None:
+        """
+
+        Connects the callback function triggered when a widget in the GUI has changed.
+        The callback function should update the model and visualiser (if required).
+
+        :param function: Change function
+        :return: None
+        """
         self.other_lanes.model().itemChanged.connect(function)
 
     def connect_identify(self, function) -> None:
+        """
+
+        Connects the callback function triggered when a path and its parallel paths needs to be identified in the
+        viewer.
+
+        :param function: identify function
+        :return:None
+        """
         self.identify.pressed.connect(function)
-
-
-
-
