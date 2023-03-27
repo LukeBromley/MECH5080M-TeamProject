@@ -3,28 +3,17 @@ from math import sin, cos, pi
 from PyQt5 import QtCore
 from library.maths import clamp, VisualPoint
 from copy import deepcopy as copy
-#import requests
-
-
-class VisualLabel:
-    def __init__(self, text: str, x: int, y: int) -> None:
-        """
-
-        :param text: label text
-        :param x: x coordinate of text
-        :param y: y coordinate of text
-        """
-        self.text = text
-        self.x = x
-        self.y = y
 
 
 class PygameGraphics:
     def __init__(self, window_width, window_height, model) -> None:
         """
 
-        :param window_width: GUI window width for calculating surface size
-        :param window_height: GUI window heigh for calculating surface size
+        This class renders the junction to be displayed in the viewer using the pygame. Scrolling and zooming the
+        visualiser is also handled in this class.
+
+        :param window_width: Junction viewer widget width (for calculating surface size)
+        :param window_height: Junction viewer widget height (for calculating surface size)
         :param model: model
         """
 
@@ -84,17 +73,27 @@ class PygameGraphics:
         self._path_label_colour = (0, 255, 0)
 
     # Main function for drawing paths (from renders), nodes, labels, grid etc.
-    def refresh(self, force_full_refresh, draw_map=False, draw_grid=False, draw_hermite_paths=False, draw_nodes=False, draw_vehicles=False, draw_node_labels=False, draw_path_labels=False, draw_curvature=False, draw_lights=False) -> None:
+    def refresh(self, force_full_refresh: bool, draw_map: bool = False, draw_grid: bool = False, draw_hermite_paths: bool = False, draw_nodes: bool = False, draw_vehicles: bool = False, draw_node_labels: bool = False, draw_path_labels: bool = False, draw_curvature: bool = False, draw_lights: bool = False) -> None:
         """
 
-        This function manages what "layers" are displayed on the pygame surface.
-        :param draw_grid: boolean for enabling display of grid
-        :param draw_hermite_paths: boolean for enabling display of hermite paths
-        :param draw_nodes: boolean for enabling display of nodes
-        :param draw_vehicles: boolean for enabling display of cars
-        :param draw_node_labels: boolean for enabling display of node labels
-        :param draw_path_labels: boolean for enabling display of path labels
-        :param draw_curvature: boolean for enabling display of path curvature
+        This function refreshes the junction viewer widget with updated model information.
+        Most aspects of the viewer are rendered on each frame but some (more computationally intensive parts) need to be
+        rendered using the render function (namely paths).
+        Full refresh refreshes both the junction and the vehicles and lights. This is not allways required because if
+        the junction does not change then the just the vehicles and lights need to be updated. This improves
+        performance.
+
+        :param force_full_refresh: Refreshes junction layout (nodes, paths, etc) AND vehicles and light if True else
+        just refreshes vehicles and lights if False.
+        :param draw_map: Toggle to draw the google maps background
+        :param draw_grid: Toggle to draw the 1m x 1m grid
+        :param draw_hermite_paths: Toggle to draw the vehicle paths
+        :param draw_nodes: Toggle to draw nodes
+        :param draw_vehicles: Toggle to draw vehicles (for results playback)
+        :param draw_node_labels: Toggle to draw node labels
+        :param draw_path_labels: Toggle to draw path labels
+        :param draw_curvature: Toggle to draw vehicle path curvature
+        :param draw_lights: Toggle to draw traffic lights
         :return: None
         """
 
@@ -117,29 +116,10 @@ class PygameGraphics:
         if draw_vehicles: self._draw_vehicles(self.model.vehicles)
         if draw_lights: self._draw_lights(self.model.lights)
 
-    def efficient_refresh(self, draw_grid=False, draw_hermite_paths=False, draw_nodes=False, draw_vehicles=False, draw_node_labels=False, draw_path_labels=False, draw_curvature=False):
-        if self._scroll_changed:
-            nodes, paths, vehicles = self.model.nodes, self.model.paths, self.model.vehicles
-
-            self.surface.fill(self.background_colour)
-
-            if draw_grid: self._draw_grid()
-            if draw_hermite_paths: self._draw_hermite_paths(draw_curvature)
-            if draw_nodes: self._draw_nodes(nodes)
-            pygame.draw.circle(self.surface, (0, 0, 0), self._position_offsetter(0, 0), 3)
-            self._draw_labels(draw_node_labels, draw_path_labels)
-
-            self.prev_surface = self.surface
-
-            self._scroll_changed = False
-        else:
-            self.surface = self.prev_surface
-        if draw_vehicles: self._draw_vehicles(vehicles)
-
     def highlight_paths(self, paths: list) -> None:
         """
 
-        Renders and shows just the paths in the list
+        Renders and shows just the paths in the list provided. Paths are a different colour.
         :param paths: list of paths to display
         :return: None
         """
@@ -150,17 +130,17 @@ class PygameGraphics:
         self._draw_hermite_paths(False, highlight=True)
         self._draw_labels(False, True)
 
-    # Functions for rendering Hermite paths
     def render_hermite_paths(self, paths: list) -> None:
         """
 
-        Calculates and saves a list of all points that should be drawn for displaying all hermite paths
+        Calculates and saves a list of all points that should be drawn for displaying all hermite paths based on the
+        parametric equation for the path.
         :param paths: list of hermite paths
         :return: None
         """
         self._hermite_path_points.clear()
         self._path_labels.clear()
-        upper, lower = self._calculate_hermite_path_curvature(paths)
+        upper, lower = self._calculate_hermite_path_curvature_limits(paths)
         for path in paths:
             if path.get_euclidean_distance(self.model) > 0:
                 path_length = round(path.get_euclidean_distance(self.model) * 150)  # Changing iteration intervals for improved performance
@@ -176,11 +156,12 @@ class PygameGraphics:
                     if i == round(path_length / 2):
                         self._path_labels.append(VisualLabel(str(path.uid), x + 5, y + 5))
 
-    def _calculate_hermite_path_curvature(self, paths: list) -> tuple:
+    def _calculate_hermite_path_curvature_limits(self, paths: list) -> tuple:
         """
+        Calculates the maximum and minimum limits for all path curvatures.
 
         :param paths: list of all paths
-        :return: Returns the highest and curvature and lowest curvature of all paths
+        :return: Returns the highest and lowest curve radius.
         """
         curvature = []
         for path in paths:
@@ -189,15 +170,21 @@ class PygameGraphics:
         lower = sorted(curvature)[round(1 * len(curvature) / 4)]
         return upper, lower
 
-    # Functions for drawing both Hermite and Poly paths
-    def _draw_paths(self, paths_points, draw_curvature, highlight: bool = False) -> None:
+    def _draw_paths(self, paths_points: list, draw_curvature: bool, highlight: bool = False) -> None:
         """
+        The _draw_paths function is used to draw the paths onto the main surface.
+        It takes in a list of points, and draws them on the screen using their x and y coordinates.
+        The colour of each point can be changed by passing in a boolean value for highlight or draw_curvature.
+        If highlight is true, then all points will be drawn with pink colour; if false, they will be drawn with white colour.
+        If draw_curvature is true, then each point's curvature value will determine its color (redder = more curved). If false, all points are white.
 
-        :param paths_points: points to be drawn on the path
-        :param draw_curvature: boolean to enable curvature coloring of drawn paths
-        :param highlight: highlight the paths in pink colour
+        :param self: Access the attributes and methods of the class in python
+        :param paths_points: list: Draw the points on the path
+        :param draw_curvature: bool: Enable curvature coloring of drawn paths
+        :param highlight: bool: Highlight the paths in pink colour
         :return: None
         """
+
         for point in paths_points:
             point_colour = self._path_colour
             if highlight:
@@ -209,6 +196,8 @@ class PygameGraphics:
     def _draw_hermite_paths(self, draw_curvature: bool, highlight: bool = False) -> None:
         """
 
+        Draws the hermite paths onto the main surface.
+
         :param draw_curvature: boolean to enable curvature coloring of drawn hermite paths
         :return: None
         """
@@ -217,6 +206,8 @@ class PygameGraphics:
     # Path drawing math functions
     def _calculate_curvature_colour(self, path, s: float, lower: float, upper: float) -> tuple:
         """
+
+        Calculate the colour required to draw the curvature based on the maximum and minimum values.
 
         :param path: singular path object
         :param s: s term
@@ -441,9 +432,9 @@ class PygameGraphics:
                     amber_rgb = (255, 200, 0)
                     green_rgb = (0, 50, 0)
 
-                pygame.draw.circle(self.surface, red_rgb, self._position_offsetter((node.x * 100) + position_offset, (node.y * 100) + 37), 3)
-                pygame.draw.circle(self.surface, amber_rgb, self._position_offsetter((node.x * 100) + position_offset, (node.y * 100) + 60), 3)
-                pygame.draw.circle(self.surface, green_rgb, self._position_offsetter((node.x * 100) + position_offset, (node.y * 100) + 83), 3)
+                pygame.draw.circle(self.surface, red_rgb, (x + position_offset, y + 15), 3)
+                pygame.draw.circle(self.surface, amber_rgb, (x + position_offset, y + 25), 3)
+                pygame.draw.circle(self.surface, green_rgb, (x + position_offset, y + 35), 3)
 
     def draw_map(self):
         if self.map_surface is not None:
@@ -462,6 +453,19 @@ class PygameGraphics:
         self.map_surface = pygame.transform.rotate(self.map_surface, heading)
         self._map_scale = scale
         self.map_surface_scaled = pygame.transform.scale(self.map_surface, (self._surface_width * self._scale * self._map_scale, self._surface_height * self._scale * self._map_scale))
+
+
+class VisualLabel:
+    def __init__(self, text: str, x: int, y: int) -> None:
+        """
+
+        :param text: label text
+        :param x: x coordinate of text
+        :param y: y coordinate of text
+        """
+        self.text = text
+        self.x = x
+        self.y = y
 
 
 class LightColour:
