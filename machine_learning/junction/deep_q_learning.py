@@ -298,13 +298,14 @@ class MachineLearning:
         # Predict action Q-values
         # From simulation_manager state
         state_tensor = tf.expand_dims(tf.convert_to_tensor(state), 0)
-
+        illegal_actions = self.simulation_manager.get_illegal_actions()
         if target:
-            action_probs = self.ml_model_target.predict(state_tensor, verbose=0)
+            action_probs = self.ml_model_target.predict(state_tensor, verbose=0)[0]
         else:
-            action_probs = self.ml_model(state_tensor, training=False)
+            action_probs = self.ml_model(state_tensor, training=False)[0].numpy()
 
-        return tf.argmax(action_probs[0]).numpy()
+        action_probs[illegal_actions] = np.NAN
+        return np.nanargmax(action_probs)
 
     def update_epsilon_greedy(self):
         self.epsilon_greedy -= (self.epsilon_greedy_max - self.epsilon_greedy_min) / self.number_of_steps_of_exploration_reduction

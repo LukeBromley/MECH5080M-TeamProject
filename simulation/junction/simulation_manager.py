@@ -52,17 +52,17 @@ class SimulationManager:
 
     def reset(self):
         self.simulation = self.create_simulation()
-        self.freeze_traffic()
+        self.freeze_traffic(20)
         return np.zeros(self.observation_space_size)
 
     def freeze_traffic(self, n: int = None):
         if n is None:
-            n = random.randint(15 * self.simulation.model.tick_rate, 20 * self.simulation.model.tick_rate)
+            n = random.randint(15, 20)
 
         for light in self.simulation.model.lights:
             light.set_state("red")
 
-        for step in range(n):
+        for step in range(n * self.simulation.model.tick_rate):
             self.simulation.compute_single_iteration()
 
     def calculate_actions(self):
