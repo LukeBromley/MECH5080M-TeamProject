@@ -223,7 +223,7 @@ class TrafficLight:
 
         self.time_remaining = 0
         self.red_amber_time = 2
-        self.amber_time = 3
+        self.amber_time = 1
 
     def get_state(self):
         return self.colour_state_index[self.colour]
@@ -234,21 +234,15 @@ class TrafficLight:
     def get_length(self):
         return 1.0
 
-    def set_state(self, colour: str):
-        if colour == "green":
-            if self.colour == "red":
-                self.time_remaining = self.red_amber_time
-                self.colour = "red_amber"
-        elif colour == "red":
-            if self.colour == "green":
-                self.time_remaining = self.amber_time
-                self.colour = "amber"
+    def set_green(self):
+        if self.colour == "red":
+            self.colour = "red_amber"
+            self.time_remaining = self.red_amber_time
 
-    def allows_change(self):
-        if self.time_remaining <= 0:
-            return True
-        else:
-            return False
+    def set_red(self):
+        if self.colour == "green":
+            self.colour = "amber"
+            self.time_remaining = self.amber_time
 
     def update(self, time_delta: float) -> None:
         """

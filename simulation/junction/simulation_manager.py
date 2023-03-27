@@ -66,35 +66,9 @@ class SimulationManager:
             self.simulation.compute_single_iteration()
 
     def calculate_actions(self):
-        self.action_table = []
-        number_of_lights = len(self.simulation.model.lights)
-        for index in range(number_of_lights + 1):
-            self.action_table += list(itertools.combinations(list(range(number_of_lights)), index))
-        number_of_actions = 2**len(self.simulation.model.lights)
-        print(self.action_table)
+        self.action_table = list(itertools.product([-1, 0, 1], repeat=len(self.simulation.model.lights)))
+        number_of_actions = len(self.action_table)
         return number_of_actions, Discrete(number_of_actions)
-
-    def get_illegal_actions(self):
-        lights = self.simulation.model.lights
-        illegal_actions = []
-        for action_index, action in enumerate(self.action_table):
-            legal = True
-            for light_index, light in enumerate(lights):
-                if light_index in action:
-                    if light.colour == "green" or light.allows_change():
-                        continue
-                    else:
-                        legal = False
-                        break
-                else:
-                    if light.colour == "red" or light.allows_change():
-                        continue
-                    else:
-                        legal = False
-                        break
-            if not legal:
-                illegal_actions.append(action_index)
-        return illegal_actions
 
     def get_legal_actions(self):
         lights = self.simulation.model.lights
@@ -102,30 +76,31 @@ class SimulationManager:
         for action_index, action in enumerate(self.action_table):
             legal = True
             for light_index, light in enumerate(lights):
-                if light_index in action:
-                    if light.colour == "green" or light.allows_change():
-                        continue
-                    else:
-                        legal = False
-                        break
+                if (
+                        (action[light_index] == 1 and light.colour == "red") or
+                        (action[light_index] == -1 and light.colour == "green") or
+                        action[light_index] == 0
+                ):
+                    continue
                 else:
-                    if light.colour == "red" or light.allows_change():
-                        continue
-                    else:
-                        legal = False
-                        break
+                    legal = False
+                    break
             if legal:
                 legal_actions.append(action_index)
         return legal_actions
 
+    def get_illegal_actions(self):
+        return [action for action in self.action_table if action in self.get_legal_actions()]
+
     def take_action(self, action_index):
-        if action_index is not None:
-            green_lights = self.action_table[action_index]
-            for index, light in enumerate(self.simulation.model.lights):
-                if index in green_lights:
-                    light.set_state("green")
-                else:
-                    light.set_state("red")
+        action = self.action_table[action_index]
+        for light_index, light in enumerate(self.simulation.model.lights):
+            if action[light_index] == 1:
+                light.set_green()
+            elif action[light_index] == -1:
+                light.set_red()
+            else:
+                continue
 
     def get_vehicle_state(self, vehicle: Vehicle):
         return [
