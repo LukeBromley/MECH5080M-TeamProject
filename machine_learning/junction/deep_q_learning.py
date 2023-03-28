@@ -45,11 +45,10 @@ class MachineLearning:
 
         # TRAINING LIMITS
         self.max_episode_length_in_seconds = 60
-        # Exceeding 1000 steps results in no traffic
         self.max_steps_per_episode = self.max_episode_length_in_seconds * self.simulation_manager.simulation.model.tick_rate  # Maximum number of steps allowed per episode
-        self.episode_end_reward = -1000  # Single episode total reward minimum threshold to end episode
-        self.solved_mean_reward = 200  # Single episode total reward minimum threshold to consider ML trained
-        self.reward_history_limit = 30
+        self.episode_end_reward = -10000  # Single episode total reward minimum threshold to end episode
+        self.solved_mean_reward = 20000  # Single episode total reward minimum threshold to consider ML trained
+        self.reward_history_limit = 20
 
         # TAKING AN ACTION
         # Probability of selecting a random action
@@ -67,7 +66,7 @@ class MachineLearning:
         # How often to update the target network
         self.update_target_network = 100
         # Penalty for collision
-        self.collision_penalty = -1000
+        self.collision_penalty = -500
 
         # REPLAY
         # Buffers
@@ -169,8 +168,6 @@ class MachineLearning:
                 # Step the simulation
                 reward = self.step(action_index, td=True)
 
-                print(self.simulation_manager.get_legal_actions(), self.simulation_manager.action_table[action_index], "  ", reward)
-
                 # Record next state
                 next_state = self.simulation_manager.get_state()
 
@@ -227,7 +224,7 @@ class MachineLearning:
                     break
 
             # print(action_log)
-            self.episode_reward_history.append(episode_step)
+            self.episode_reward_history.append(episode_reward)
             self.episode_count += 1
 
             if self.solved(self.get_mean_reward()):
@@ -440,20 +437,22 @@ class MachineLearning:
             # Run steps in episode
             while True:
                 # Increment the total number of steps taken by the AI in total.
-                self.number_of_steps_taken += 1
-
-                # Select an action
-                action_index = self.select_random_action()
 
                 if self.number_of_steps_taken in [50, 150, 250]:
                     action = 6
                 elif self.number_of_steps_taken in [100, 200, 300]:
                     action = 2
 
+                legal_actions = self.simulation_manager.get_legal_actions()
+                if len(legal_actions) == 1:
+                    self.step(legal_actions[0], td=False)
+                    continue
+
                 reward = self.step(action, td=True)
 
-
                 self.all_time_reward += reward
+
+                self.number_of_steps_taken += 1
 
                 if self.end_episode(self.all_time_reward, self.number_of_steps_taken):
                     break
