@@ -369,9 +369,10 @@ class FileManagement:
         :param file_dict: Configuration dictionary
         :return: A MachineLearningConfiguration object
         """
+
         ml_config = MachineLearningConfiguration()
         # Config
-        ml_config.config_id = self.try_get((file_dict["config_id"]))
+        ml_config.config_id = self.try_get(file_dict, self.config_id_key)
 
         # Limits
         ml_config.max_steps_per_episode = self.try_get(file_dict, self.max_steps_per_episode_key)

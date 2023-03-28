@@ -27,7 +27,7 @@ class MachineLearningManager:
         :param file_path: Create the output directory and results directory
         """
         # MEGAMAIN - Add additional data outputs here as required
-        self.output_fields = ["Time Taken", "Mean Reward"]
+        self.output_fields = ["Time Taken", "Mean Reward", "Mean Delay"]
         self.training_runs = []
         self.fieldnames = []
         self.output_directory_path = ""
@@ -84,11 +84,11 @@ class MachineLearningManager:
         time_begin = time.perf_counter()
         for run in self.training_runs:
             # MEGAMAIN - run_training_runs must also be passed all parameters from the iteration file.
-            time_taken, reward = self.run_training_run(run["RunUID"], run["RunType"], run["Junction"], run["SimulationConfig"], run["MachineLearningConfig"], run["MachineLearningConfigID"])
+            time_taken, reward, delays = self.run_training_run(run["RunUID"], run["RunType"], run["Junction"], run["SimulationConfig"], run["MachineLearningConfig"], run["MachineLearningConfigID"])
             # MEGAMAIN - make sure any results are returned here and 'run' is updated with them in dictionary format.
-            run.update({"Time Taken": time_taken, "Mean Reward": reward})
+            run.update({"Time Taken": time_taken, "Mean Reward": reward, "Mean Delay": (sum(delays)/len(delays))})
             self.save_summary_results(run)
-            self.make_results_directory(run)
+            self.make_results_directory(run, delays)
         time_taken = time.perf_counter() - time_begin
         # MEGAMAIN - Add any results you want printed to terminal as required.
         print("\n\n================================================\nALL ITERATIONS COMPLETE\n    Total Time: " +
@@ -134,9 +134,11 @@ class MachineLearningManager:
         print("WARNING - machine learning random() function being used, please change to correct training function for real training runs")
         # MEGAMAIN - change to ML method required and return all results data.
         reward = self.machine_learning.random()
+        delays = self.machine_learning.get_delays()
         time_taken = time.perf_counter() - time_begin
-        print("\nTraining Complete.\n    Time Taken To Train: " + str(time_taken) + "\n    Reward: " + str(reward))
-        return time_taken, reward
+        print("\nTraining Complete.\n    Time Taken To Train: " + str(time_taken) + "\n    Mean Reward: " + str(reward)
+              + "\n    Mean Delay: " + str( sum(delays)/len(delays) ) )
+        return time_taken, reward, delays
 
     def get_file_path(self, path_names):
         """
@@ -175,7 +177,7 @@ class MachineLearningManager:
             writer = csv.DictWriter(file, fieldnames=self.fieldnames)
             writer.writerow(run)
 
-    def make_results_directory(self, run):
+    def make_results_directory(self, run, delays):
         """
         The make_results_directory function creates a directory in the output_directory_path for each training run.
         The function saves the model weights and architecture to this directory, as well as a text file containing all
@@ -188,7 +190,10 @@ class MachineLearningManager:
         os.mkdir((results_directory_path + "/ml_model_weights"))
         self.machine_learning.save_model_weights((results_directory_path + "/ml_model_weights"), "ml_model_weights")
         self.machine_learning.save_model(results_directory_path, "ml_model")
-        with open(results_directory_path + "/training_run_parameters.txt", "a", newline='') as file:
-            file.write("This is a summary of the parameters for this Model:")
-            for line in run:
-                file.write("\n" + line + ": " + str(run[line]))
+        with open(results_directory_path + "/training_run_parameters.csv", "w", newline='') as csvfile:
+            writer = csv.writer(csvfile, delimiter=' ', quoting=csv.QUOTE_MINIMAL)
+            writer.writerow(["This is a summary of the parameters for this Model:"])
+            for key, value in run.items():
+                writer.writerow([key + ": ", value])
+            print(delays)
+            writer.writerow(delays)
