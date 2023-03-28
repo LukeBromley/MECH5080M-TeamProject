@@ -51,19 +51,19 @@ class MachineLearning:
         # self.random_action_selection_probabilities = [0.9, 0.025, 0.025, 0.025, 0.025]
 
         # Probability of selecting a random action
-        self.epsilon_greedy_min = 0.0  # Minimum probability of selecting a random action
+        self.epsilon_greedy_min = 0.01  # Minimum probability of selecting a random action
         self.epsilon_greedy_max = 0.95  # Maximum probability of selecting a random action
         self.epsilon_greedy = self.epsilon_greedy_max  # Current probability of selecting a random action
 
         # Exploration
         # Number of steps of just random actions before the network can make some decisions
-        self.number_of_steps_of_required_exploration = 5000
+        self.number_of_steps_of_required_exploration = 1000
         # Number of steps over which epsilon greedy decays
-        self.number_of_steps_of_exploration_reduction = 50000
+        self.number_of_steps_of_exploration_reduction = 10000
         # Train the model after 4 actions
-        self.update_after_actions = 24
+        self.update_after_actions = 8
         # How often to update the target network
-        self.update_target_network = 5000
+        self.update_target_network = 1000
 
         # REPLAY
         # Buffers
@@ -79,7 +79,7 @@ class MachineLearning:
         self.seconds_to_look_into_the_future = 2.5
         self.steps_to_look_into_the_future = int(self.seconds_to_look_into_the_future / self.simulation_manager.simulation.model.tick_time)
         # Sample Size
-        self.sample_size = 512  # Size of batch taken from replay buffer
+        self.sample_size = 124  # Size of batch taken from replay buffer
 
         # Discount factor
         self.gamma = 0.99  # Discount factor for past rewards

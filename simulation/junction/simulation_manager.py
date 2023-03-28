@@ -34,7 +34,7 @@ class SimulationManager:
         self.wait_time = []
 
         # TODO: Soft code the id's
-        self.light_controlled_path_uids = [1, 2, 3, 4, 5, 6, 7, 8, 10, 11, 13, 14]
+        self.light_controlled_path_uids = [7, 8, 10, 11, 13, 14]
 
         # Inputs / States
         self.features_per_state_input = 6
@@ -111,9 +111,9 @@ class SimulationManager:
         return [
             vehicle.get_path_distance_travelled(),
             vehicle.get_speed(),
-            vehicle.wait_time,
-            x,
-            y
+            vehicle.wait_time
+            # x,
+            # y
             # vehicle.get_length(),
             # vehicle.get_acceleration()
         ]
