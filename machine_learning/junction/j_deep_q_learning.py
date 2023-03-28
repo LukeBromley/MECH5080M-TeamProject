@@ -125,6 +125,7 @@ class MachineLearning:
         :param config: Pass in the configurations from the config
 
         """
+        #MEGAMAIN - Add ML parameters here
         self.max_steps_per_episode = self.check_config_given(self.max_steps_per_episode, config.max_steps_per_episode)
         self.episode_end_reward = self.check_config_given(self.episode_end_reward, config.episode_end_reward)
         self.solved_mean_reward = self.check_config_given(self.solved_mean_reward, config.solved_mean_reward)

@@ -369,7 +369,7 @@ class FileManagement:
         :param file_dict: Configuration dictionary
         :return: A MachineLearningConfiguration object
         """
-
+        #MEGAMAIN - Add any ML parameter in the format below
         ml_config = MachineLearningConfiguration()
         # Config
         ml_config.config_id = self.try_get(file_dict, self.config_id_key)
