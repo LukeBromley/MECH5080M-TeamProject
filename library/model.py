@@ -346,8 +346,6 @@ class Model:
             preceding_paths = self.get_paths_from_end_node(shared_node)
             for path in preceding_paths:
                 paths_preceding_lights.append(path)
-        print("With Lights ", paths_with_lights)
-        print("Before Lights ", paths_preceding_lights)
         return paths_with_lights, paths_preceding_lights
 
     # VEHICLES

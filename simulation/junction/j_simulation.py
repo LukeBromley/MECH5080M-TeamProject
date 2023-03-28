@@ -23,7 +23,6 @@ class Simulation:
         self.model.load_junction(junction_file_path)
         self.model.generate_routes()
         self.model.load_config(config_file_path)
-        self.model.get_traffic_light_uids()
         self.vehicle_data = []
         self.collision = False
 
