@@ -136,7 +136,7 @@ class SimulationManager:
                 inputs += self.pad_state_input(path_input, self.number_of_tracked_vehicles_per_path)
             else:
                 inputs += self.pad_state_input(path_input, 2)
-        return inputs
+        return np.array(inputs)
 
     def pad_state_input(self, state_input: list, n: int):
         if len(state_input) > self.features_per_state_input * n:
