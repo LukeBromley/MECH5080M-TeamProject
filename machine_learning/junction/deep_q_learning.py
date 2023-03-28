@@ -44,10 +44,10 @@ class MachineLearning:
         self.all_time_reward = 0  # Total reward over all episodes
 
         # TRAINING LIMITS
-        self.max_episode_length_in_seconds = 60
+        self.max_episode_length_in_seconds = 30
         self.max_steps_per_episode = self.max_episode_length_in_seconds * self.simulation_manager.simulation.model.tick_rate  # Maximum number of steps allowed per episode
-        self.episode_end_reward = -10000  # Single episode total reward minimum threshold to end episode
-        self.solved_mean_reward = 20000  # Single episode total reward minimum threshold to consider ML trained
+        self.episode_end_reward = -float("inf")  # Single episode total reward minimum threshold to end episode
+        self.solved_mean_reward = 30000  # Single episode total reward minimum threshold to consider ML trained
         self.reward_history_limit = 20
 
         # TAKING AN ACTION
@@ -64,9 +64,9 @@ class MachineLearning:
         # Train the model after 4 actions
         self.update_after_actions = 4
         # How often to update the target network
-        self.update_target_network = 100
+        self.update_target_network = 300
         # Penalty for collision
-        self.collision_penalty = -500
+        self.collision_penalty = -1000
 
         # REPLAY
         # Buffers
@@ -298,7 +298,16 @@ class MachineLearning:
     def select_random_action(self):
         legal_actions = self.simulation_manager.get_legal_actions()
         if legal_actions:
-            return np.random.choice(legal_actions)
+            if len(legal_actions) == 1:
+                return legal_actions[0]
+
+            p = []
+            for action in legal_actions:
+                if action != 4:
+                    p.append(0.2 / (len(legal_actions) - 1))
+                else:
+                    p.append(0.8)
+            return np.random.choice(legal_actions, p=p)
 
     def select_best_action(self, state, target: bool = False):
         # Predict action Q-values
@@ -438,9 +447,9 @@ class MachineLearning:
             while True:
                 # Increment the total number of steps taken by the AI in total.
 
-                if self.number_of_steps_taken in [50, 150, 250]:
+                if self.number_of_steps_taken in [40, 120, 200, 280]:
                     action = 6
-                elif self.number_of_steps_taken in [100, 200, 300]:
+                elif self.number_of_steps_taken in [80, 160, 240, 320]:
                     action = 2
 
                 legal_actions = self.simulation_manager.get_legal_actions()
