@@ -232,6 +232,13 @@ class Model:
                 paths.append(path.uid)
         return paths
 
+    def get_paths_from_end_node(self, node_uid):
+        paths = []
+        for path in self.paths:
+            if path.end_node_uid == node_uid:
+                paths.append(path.uid)
+        return paths
+
     def distance_of_first_vehicle_from_start_node(self, node_uid):
         paths_uids = self.get_paths_from_start_node(node_uid)
         distances = []
@@ -328,6 +335,20 @@ class Model:
         index = self.get_light_index(light_uid)
         self.lights.pop(index)
         self.update_light_hash_table()
+
+    def get_traffic_light_uids(self):
+        paths_with_lights = []
+        paths_preceding_lights = []
+        for light in self.lights:
+            light_path = light.path_uids[0]
+            paths_with_lights.append(light_path)
+            shared_node = self.get_path(light_path).start_node_uid
+            preceding_paths = self.get_paths_from_end_node(shared_node)
+            for path in preceding_paths:
+                paths_preceding_lights.append(path)
+        print("With Lights ", paths_with_lights)
+        print("Before Lights ", paths_preceding_lights)
+        return paths_with_lights, paths_preceding_lights
 
     # VEHICLES
     

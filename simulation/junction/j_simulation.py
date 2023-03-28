@@ -23,6 +23,7 @@ class Simulation:
         self.model.load_junction(junction_file_path)
         self.model.generate_routes()
         self.model.load_config(config_file_path)
+        self.model.get_traffic_light_uids()
         self.vehicle_data = []
         self.collision = False
 
@@ -105,8 +106,8 @@ class Simulation:
 
 if __name__ == "__main__":
     # Reference Files
-    junction_file_path = os.path.join(os.path.dirname(os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))))), "junctions", "example_junction.junc")
-    configuration_file_path = os.path.join(os.path.dirname(os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))))), "configurations", "cross_road.config")
+    junction_file_path = os.path.join(os.path.dirname(os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))))), "junctions", "scale_library_pub_junction.junc")
+    configuration_file_path = os.path.join(os.path.dirname(os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))))), "configurations", "simulation_config", "cross_road.config")
 
     # Settings
     scale = 100
@@ -116,7 +117,7 @@ if __name__ == "__main__":
     visualiser = JunctionVisualiser()
 
     # Simulation
-    simulation = Simulation(junction_file_path, configuration_file_path, visualiser.update)
+    simulation = Simulation(junction_file_path, configuration_file_path, visualiser.update())
 
     # Visualiser Setup
     visualiser.define_main(partial(simulation.run_continuous, speed_multiplier))
