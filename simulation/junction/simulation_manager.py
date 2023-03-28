@@ -60,7 +60,7 @@ class SimulationManager:
             n = random.randint(15, 20)
 
         for light in self.simulation.model.lights:
-            light.set_state("red")
+            light.set_red()
 
         for step in range(n * self.simulation.model.tick_rate):
             self.simulation.compute_single_iteration()
@@ -90,7 +90,7 @@ class SimulationManager:
         return legal_actions
 
     def get_illegal_actions(self):
-        return [action for action in self.action_table if action in self.get_legal_actions()]
+        return [index for index in range(len(self.action_table)) if index not in self.get_legal_actions()]
 
     def take_action(self, action_index):
         action = self.action_table[action_index]

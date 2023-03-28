@@ -441,9 +441,9 @@ class PygameGraphics:
                     amber_rgb = (255, 200, 0)
                     green_rgb = (0, 50, 0)
 
-                pygame.draw.circle(self.surface, red_rgb, self._position_offsetter((node.x * 100) + position_offset, (node.y * 100) + 37), 3)
-                pygame.draw.circle(self.surface, amber_rgb, self._position_offsetter((node.x * 100) + position_offset, (node.y * 100) + 60), 3)
-                pygame.draw.circle(self.surface, green_rgb, self._position_offsetter((node.x * 100) + position_offset, (node.y * 100) + 83), 3)
+                pygame.draw.circle(self.surface, red_rgb, self._position_offsetter((node.x * 100) + position_offset, (node.y * 100) - 200), 6)
+                pygame.draw.circle(self.surface, amber_rgb, self._position_offsetter((node.x * 100) + position_offset, (node.y * 100) + 0), 6)
+                pygame.draw.circle(self.surface, green_rgb, self._position_offsetter((node.x * 100) + position_offset, (node.y * 100) + 200), 6)
 
     def draw_map(self):
         if self.map_surface is not None:
