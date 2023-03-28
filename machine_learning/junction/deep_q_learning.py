@@ -63,9 +63,9 @@ class MachineLearning:
         # Number of steps over which epsilon greedy decays
         self.number_of_steps_of_exploration_reduction = 10000
         # Train the model after 4 actions
-        self.update_after_actions = 6
+        self.update_after_actions = 4
         # How often to update the target network
-        self.update_target_network = 500
+        self.update_target_network = 100
         # Penalty for collision
         self.collision_penalty = -1000
 
@@ -155,15 +155,21 @@ class MachineLearning:
                 # Increment the episode step
                 episode_step += 1
 
+                # Determine legal actions
+                legal_actions = self.simulation_manager.get_legal_actions()
+
+                if len(legal_actions) == 1:
+                    self.step(legal_actions[0], td=False)
+                    self.end_episode(episode_reward, episode_step)
+                    continue
+
                 # Select an action
                 action_index = self.select_action(state)
 
-                if action_index == 4:
-                    # Take an action
-                    reward = self.step(action_index, td=False)
-                    continue
-                else:
-                    reward = self.step(action_index, td=True)
+                # Step the simulation
+                reward = self.step(action_index, td=True)
+
+                print(self.simulation_manager.get_legal_actions(), self.simulation_manager.action_table[action_index], "  ", reward)
 
                 # Record next state
                 next_state = self.simulation_manager.get_state()
