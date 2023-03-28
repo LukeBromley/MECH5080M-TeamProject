@@ -67,6 +67,7 @@ class Model:
             mean_spawn_time_per_hour=self.config.mean_spawn_time_per_hour,
             sdev_spawn_time_per_hour=self.config.sdev_spawn_time_per_hour,
             min_spawn_time_per_hour=self.config.min_spawn_time_per_hour,
+            distribution_method=self.config.distribution_method,
             max_vehicle_length=self.config.max_vehicle_length,
             min_vehicle_length=self.config.min_vehicle_length,
             max_vehicle_width=self.config.max_vehicle_width,

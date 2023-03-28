@@ -43,6 +43,7 @@ class FileManagement:
         self.mean_spawn_time_per_hour_key = "mean_spawn_time_per_hour"
         self.sdev_spawn_time_per_hour_key = "sdev_spawn_time_per_hour"
         self.min_spawn_time_per_hour_key = "min_spawn_time_per_hour"
+        self.distribution_method_key = "distribution_method"
         self.max_car_length_key = "max_car_length"
         self.min_car_length_key = "min_car_length"
         self.max_car_width_key = "max_car_width"
@@ -288,6 +289,7 @@ class FileManagement:
         s_config.mean_spawn_time_per_hour = file_dict[self.mean_spawn_time_per_hour_key]
         s_config.sdev_spawn_time_per_hour = file_dict[self.sdev_spawn_time_per_hour_key]
         s_config.min_spawn_time_per_hour = file_dict[self.min_spawn_time_per_hour_key]
+        s_config.distribution_method = file_dict[self.distribution_method_key]
 
         s_config.max_car_length = file_dict[self.max_car_length_key]
         s_config.min_car_length = file_dict[self.min_car_length_key]

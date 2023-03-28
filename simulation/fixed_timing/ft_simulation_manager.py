@@ -22,8 +22,8 @@ class SimulationManager:
 
         # Actions
         self.number_of_lights, self.number_of_possible_actions = self.calculate_possible_actions()
-        self.actions = [1, 2]
-        self.action_duration = 100
+        self.actions = [35, 32, 56, 16, 22, 2]
+        self.action_duration = [150, 30, 150, 30, 150, 30]
 
         # Current Action
         self.current_action_index = 0
@@ -82,10 +82,12 @@ class SimulationManager:
 
             self.simulation.run_single_iteration()
 
+            self.simulation.collision = self.simulation.model.detect_collisions()
+
             sleep(0.1)
 
             self.action_duration_counter += 1
-            if self.action_duration_counter >= self.action_duration:
+            if self.action_duration_counter >= self.action_duration[self.current_action_index]:
                 self.action_duration_counter = 0
                 self.current_action_index += 1
                 if self.current_action_index >= len(self.actions):
@@ -94,11 +96,11 @@ class SimulationManager:
 
 if __name__ == "__main__":
     # Reference Files
-    junction_file_path = os.path.join(os.path.dirname(os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))))), "junctions", "cross_road.junc")
+    junction_file_path = os.path.join(os.path.dirname(os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))))), "junctions", "scale_library_pub_junction.junc")
     configuration_file_path = os.path.join(os.path.dirname(os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))))), "configurations/simulation_config", "cross_road.config")
 
     # Settings
-    scale = 200
+    scale = 75
 
     # Visualiser Init
     visualiser = JunctionVisualiser()
