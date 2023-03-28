@@ -98,7 +98,7 @@ class MachineLearning:
         self.loss_function = keras.losses.Huber()
 
         # MACHINE LEARNING MODELS
-        self.ml_model_hidden_layers = [1024, 1024]
+        self.ml_model_hidden_layers = [512, 512]
 
         # Makes the predictions for Q-values which are used to make a action.
         self.ml_model = self.create_q_learning_model(self.simulation_manager.observation_space_size, self.simulation_manager.number_of_possible_actions, self.ml_model_hidden_layers)
@@ -418,7 +418,7 @@ class MachineLearning:
                 self.step_simulation(visualiser_on=True, visualiser_sleep_time=0.0)
 
                 # Calculate reward
-                reward = self.calculate_reward(0, predict=True)
+                reward = self.calculate_reward(0, predict=False)
                 reward_log.append(reward)
 
                 # Update reward
