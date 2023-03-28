@@ -125,6 +125,7 @@ class MachineLearning:
         :param config: Pass in the configurations from the config
 
         """
+        #MEGAMAIN - Add ML parameters here
         self.max_steps_per_episode = self.check_config_given(self.max_steps_per_episode, config.max_steps_per_episode)
         self.episode_end_reward = self.check_config_given(self.episode_end_reward, config.episode_end_reward)
         self.solved_mean_reward = self.check_config_given(self.solved_mean_reward, config.solved_mean_reward)
@@ -565,6 +566,9 @@ class MachineLearning:
 
     def load_model(self, file_location, save_name):
         return keras.models.load_model(file_location + "/" + save_name)
+
+    def get_delays(self):
+        return self.simulation_manager.get_delays()
 
 
 if __name__ == "__main__":

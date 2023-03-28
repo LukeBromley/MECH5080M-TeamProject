@@ -492,6 +492,8 @@ class MachineLearning:
     def load_model(self, file_location, save_name):
         return keras.models.load_model(file_location + "/" + save_name)
 
+    def get_delays(self):
+        return self.simulation_manager.get_delays()
 
 if __name__ == "__main__":
     # Reference Files

@@ -12,6 +12,7 @@ A .junc junction file should be placed within ./junctions
 A .config simulation config file should be placed in ./configurations/simulation_config
 
 A machine learning config file should be placed in ./configurations/machine_learning_config
+Any lists in these config files should be seperated with a pipe( | ), not a comma ( , )
 
 Finally, the machine learning config index must be provided to select the ML parameters for each run.
 

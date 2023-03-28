@@ -24,6 +24,7 @@ class Simulation:
         self.model.generate_routes()
         self.model.load_config(config_file_path)
         self.vehicle_data = []
+        self.delays = []
         self.collision = False
 
         # Visualiser
@@ -55,7 +56,7 @@ class Simulation:
             light.update(self.model.tick_time)
 
         # Remove finished vehicles
-        self.model.remove_finished_vehicles()
+        #self.model.remove_finished_vehicles()
 
         # Update vehicle position
         self.vehicle_data = []
@@ -77,7 +78,9 @@ class Simulation:
                 vehicle.wait_time = 0.0
 
         # Remove finished vehicles
-        self.model.remove_finished_vehicles()
+        delays = self.model.remove_finished_vehicles()
+
+        self.delays = self.delays + delays
 
         # Increment Time
         self.model.tock()

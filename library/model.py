@@ -367,11 +367,14 @@ class Model:
     
     def remove_finished_vehicles(self):
         vehicles_uids_to_remove = []
+        delays = []
         for vehicle in self.vehicles:
             route = self.get_route(vehicle.get_route_uid())
             path = self.get_path(route.get_path_uid(vehicle.get_path_index()))
 
             if vehicle.get_path_distance_travelled() >= path.get_length():
+                if vehicle.get_path_index() == 0:
+                    delays.append(self.get_delay(vehicle))
                 if vehicle.get_path_index() >= len(self.get_route(vehicle.route_uid).get_path_uids())-1:
                     vehicles_uids_to_remove.append(vehicle.uid)
                 else:
@@ -379,6 +382,17 @@ class Model:
 
         for vehicle_uid in vehicles_uids_to_remove:
             self.remove_vehicle(vehicle_uid)
+        return delays
+
+
+    def get_delay(self, vehicle):
+        time_to_light = self.calculate_seconds_elapsed() - vehicle.start_time
+        distance_travelled = vehicle.get_path_distance_travelled()
+        max_speed = vehicle.get_max_speed()
+        optimal_time = (distance_travelled/max_speed)
+        print(time_to_light, optimal_time)
+        delay = time_to_light - optimal_time
+        return delay
 
     def get_object_ahead(self, vehicle_uid):
         object_ahead = None
