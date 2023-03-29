@@ -138,6 +138,7 @@ class SimulationManager:
         if self.current_action_index >= len(self.actions):
             self.current_action_index = 0
 
+
 if __name__ == "__main__":
     # Reference Files
     junction_file_path = os.path.join(os.path.dirname(os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))))), "junctions", "scale_library_pub_junction.junc")

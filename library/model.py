@@ -393,13 +393,11 @@ class Model:
             self.remove_vehicle(vehicle_uid)
         return delays
 
-
     def get_delay(self, vehicle):
         time_to_light = self.calculate_seconds_elapsed() - vehicle.start_time
         distance_travelled = vehicle.get_path_distance_travelled()
         max_speed = vehicle.get_max_speed()
         optimal_time = (distance_travelled/max_speed)
-        print(time_to_light, optimal_time)
         delay = time_to_light - optimal_time
         return delay
 
