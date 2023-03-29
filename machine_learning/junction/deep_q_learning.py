@@ -47,7 +47,7 @@ class MachineLearning:
         self.max_episode_length_in_seconds = 60
         self.max_steps_per_episode = self.max_episode_length_in_seconds * self.simulation_manager.simulation.model.tick_rate  # Maximum number of steps allowed per episode
         self.episode_end_reward = -10000  # Single episode total reward minimum threshold to end episode. Should be low to allow exploration
-        self.solved_mean_reward = 20000  # Single episode total reward minimum threshold to consider ML trained
+        self.solved_mean_reward = float("inf")  # Single episode total reward minimum threshold to consider ML trained
         self.reward_history_limit = 20
         self.max_mean_reward_solved = self.episode_end_reward
 
@@ -510,7 +510,7 @@ class MachineLearning:
 
 if __name__ == "__main__":
     # Reference Files
-    junction_file_path = os.path.join(os.path.dirname(os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))))), "junctions", "cross_road.junc")
+    junction_file_path = os.path.join(os.path.dirname(os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))))), "junctions", "scale_library_pub_junction.junc")
     configuration_file_path = os.path.join(os.path.dirname(os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))))), "configurations", "simulation_config", "cross_road.config")
 
     # Settings

@@ -31,21 +31,19 @@ class SimulationManager:
         self.number_of_possible_actions, self.action_space = self.calculate_actions()
 
         # TODO: Soft code the id's
-        self.light_controlled_path_uids = [1, 4]
-        self.light_path_uids = [2, 5]
+        self.light_controlled_path_uids = [7, 8, 10, 11, 13, 14]
+        self.light_path_uids = [1, 2, 3, 4, 5, 6]
 
         # Inputs / States
-        self.features_per_vehicle_state = 6
+        self.features_per_vehicle_state = 8
         self.features_per_traffic_light_state = 3
-        self.number_of_tracked_vehicles_per_light_controlled_path = 5
-        self.number_of_tracked_vehicles_per_light_path = 2
+        self.number_of_tracked_vehicles_per_light_controlled_path = 6
+        self.number_of_tracked_vehicles_per_light_path = 4
         self.observation_space_size = self.features_per_vehicle_state * (
                 len(self.light_controlled_path_uids) * self.number_of_tracked_vehicles_per_light_controlled_path +
                 len(self.light_path_uids) * self.number_of_tracked_vehicles_per_light_path
         ) + self.features_per_traffic_light_state * len(self.simulation.model.lights)
-
         self.light_controlled_path_uids += self.light_path_uids
-        self.observation_space_size += self.features_per_vehicle_state * 2 * len(self.light_path_uids)
 
         # TODO: Initialize separate boxes by argmax for different inputs
         self.observation_space = Box(0, 50, shape=(1, self.observation_space_size), dtype=float)
