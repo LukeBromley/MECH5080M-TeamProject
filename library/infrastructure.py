@@ -212,6 +212,7 @@ class TrafficLight:
 
         self.uid = uid
         self.path_uids = path_uids
+        self.path_uid = path_uids[0]
         self.colour = "green"
         assert self.colour == "green" or self.colour == "amber" or self.colour == "red" or self.colour == "red_amber"
         self.colour_state_index = {

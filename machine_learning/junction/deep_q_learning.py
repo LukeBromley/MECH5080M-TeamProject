@@ -49,6 +49,7 @@ class MachineLearning:
         self.episode_end_reward = -10000  # Single episode total reward minimum threshold to end episode. Should be low to allow exploration
         self.solved_mean_reward = 20000  # Single episode total reward minimum threshold to consider ML trained
         self.reward_history_limit = 20
+        self.max_mean_reward_solved = self.episode_end_reward
 
         # TAKING AN ACTION
         # Probability of selecting a random action
@@ -212,7 +213,10 @@ class MachineLearning:
                     self.ml_model_target.set_weights(self.ml_model.get_weights())
                     # Log details
                     print(f'{tm.strftime("%H:%M:%S", tm.localtime())}  -  {self.get_mean_reward():.2f} / {self.solved_mean_reward:.2f} at episode {self.episode_count}; frame count: {self.number_of_steps_taken}.')
-
+                    if self.get_mean_reward() > self.max_mean_reward_solved:
+                        self.max_mean_reward_solved = self.get_mean_reward()
+                        self.ml_model_target.save("saved_model" + str(round(self.get_mean_reward())))
+                        print(f'{tm.strftime("%H:%M:%S", tm.localtime())}  -  SavedModel recorded.')
                 # Delete old buffer values
                 self.delete_old_replay_buffer_values()
 
