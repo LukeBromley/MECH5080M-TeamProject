@@ -296,6 +296,14 @@ class Model:
             return min_path_distance_travelled - 0
         return None
 
+    def get_vehicles_on_path(self, path_uid):
+        vehicle_uids = []
+        for vehicle in self.vehicles:
+            route = self.get_route(vehicle.get_route_uid())
+            if route.get_path_uid(vehicle.get_path_index()) == path_uid:
+                vehicle_uids.append(vehicle.uid)
+        return vehicle_uids
+
     # LIGHTS
     
     def get_light(self, light_uid) -> TrafficLight:

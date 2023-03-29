@@ -33,8 +33,10 @@ class FileManagement:
         self.initial_acceleration_key = "initial_acceleration"
         self.maximum_acceleration_key = "maximum_acceleration"
         self.maximum_deceleration_key = "maximum_deceleration"
+        self.maximum_lateral_acceleration_key = "maximum_lateral_acceleration"
         self.preferred_time_gap_key = "preferred_time_gap"
         self.maximum_speed_key = "maximum_speed"
+        self.minimum_speed_key = "minimum_speed"
         self.min_creep_distance_key = "min_creep_distance"
         # Spawning
         self.random_seed_key = "random_seed"
@@ -277,8 +279,10 @@ class FileManagement:
         s_config.initial_acceleration = file_dict[self.initial_acceleration_key]
         s_config.maximum_acceleration = file_dict[self.maximum_acceleration_key]
         s_config.maximum_deceleration = file_dict[self.maximum_deceleration_key]
+        s_config.maximum_lateral_acceleration = file_dict[self.maximum_lateral_acceleration_key]
         s_config.preferred_time_gap = file_dict[self.preferred_time_gap_key]
         s_config.maximum_speed = file_dict[self.maximum_speed_key]
+        s_config.minimum_speed = file_dict[self.minimum_speed_key]
         s_config.min_creep_distance = file_dict[self.min_creep_distance_key]
 
         # Spawning

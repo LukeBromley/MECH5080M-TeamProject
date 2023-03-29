@@ -22,8 +22,10 @@ class SimulationConfiguration:
         self.initial_acceleration = 0.0
         self.maximum_acceleration = 3.0
         self.maximum_deceleration = 9.0
+        self.maximum_lateral_acceleration = 2.0
         self.preferred_time_gap = 2.0
         self.maximum_speed = 30.0
+        self.minimum_speed = 0.0
         self.min_creep_distance = 1
 
         # Spawning
