@@ -67,6 +67,7 @@ class Model:
             mean_spawn_time_per_hour=self.config.mean_spawn_time_per_hour,
             sdev_spawn_time_per_hour=self.config.sdev_spawn_time_per_hour,
             min_spawn_time_per_hour=self.config.min_spawn_time_per_hour,
+            distribution_method=self.config.distribution_method,
             max_vehicle_length=self.config.max_vehicle_length,
             min_vehicle_length=self.config.min_vehicle_length,
             max_vehicle_width=self.config.max_vehicle_width,
@@ -302,6 +303,14 @@ class Model:
             return min_path_distance_travelled - 0
         return None
 
+    def get_vehicles_on_path(self, path_uid):
+        vehicle_uids = []
+        for vehicle in self.vehicles:
+            route = self.get_route(vehicle.get_route_uid())
+            if route.get_path_uid(vehicle.get_path_index()) == path_uid:
+                vehicle_uids.append(vehicle.uid)
+        return vehicle_uids
+
     # LIGHTS
     
     def get_light(self, light_uid) -> TrafficLight:
@@ -384,13 +393,11 @@ class Model:
             self.remove_vehicle(vehicle_uid)
         return delays
 
-
     def get_delay(self, vehicle):
         time_to_light = self.calculate_seconds_elapsed() - vehicle.start_time
         distance_travelled = vehicle.get_path_distance_travelled()
         max_speed = vehicle.get_max_speed()
         optimal_time = (distance_travelled/max_speed)
-        print(time_to_light, optimal_time)
         delay = time_to_light - optimal_time
         return delay
 

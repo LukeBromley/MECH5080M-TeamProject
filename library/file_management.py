@@ -33,8 +33,10 @@ class FileManagement:
         self.initial_acceleration_key = "initial_acceleration"
         self.maximum_acceleration_key = "maximum_acceleration"
         self.maximum_deceleration_key = "maximum_deceleration"
+        self.maximum_lateral_acceleration_key = "maximum_lateral_acceleration"
         self.preferred_time_gap_key = "preferred_time_gap"
         self.maximum_speed_key = "maximum_speed"
+        self.minimum_speed_key = "minimum_speed"
         self.min_creep_distance_key = "min_creep_distance"
         # Spawning
         self.random_seed_key = "random_seed"
@@ -43,6 +45,7 @@ class FileManagement:
         self.mean_spawn_time_per_hour_key = "mean_spawn_time_per_hour"
         self.sdev_spawn_time_per_hour_key = "sdev_spawn_time_per_hour"
         self.min_spawn_time_per_hour_key = "min_spawn_time_per_hour"
+        self.distribution_method_key = "distribution_method"
         self.max_car_length_key = "max_car_length"
         self.min_car_length_key = "min_car_length"
         self.max_car_width_key = "max_car_width"
@@ -276,8 +279,10 @@ class FileManagement:
         s_config.initial_acceleration = file_dict[self.initial_acceleration_key]
         s_config.maximum_acceleration = file_dict[self.maximum_acceleration_key]
         s_config.maximum_deceleration = file_dict[self.maximum_deceleration_key]
+        s_config.maximum_lateral_acceleration = file_dict[self.maximum_lateral_acceleration_key]
         s_config.preferred_time_gap = file_dict[self.preferred_time_gap_key]
         s_config.maximum_speed = file_dict[self.maximum_speed_key]
+        s_config.minimum_speed = file_dict[self.minimum_speed_key]
         s_config.min_creep_distance = file_dict[self.min_creep_distance_key]
 
         # Spawning
@@ -288,6 +293,7 @@ class FileManagement:
         s_config.mean_spawn_time_per_hour = file_dict[self.mean_spawn_time_per_hour_key]
         s_config.sdev_spawn_time_per_hour = file_dict[self.sdev_spawn_time_per_hour_key]
         s_config.min_spawn_time_per_hour = file_dict[self.min_spawn_time_per_hour_key]
+        s_config.distribution_method = file_dict[self.distribution_method_key]
 
         s_config.max_car_length = file_dict[self.max_car_length_key]
         s_config.min_car_length = file_dict[self.min_car_length_key]

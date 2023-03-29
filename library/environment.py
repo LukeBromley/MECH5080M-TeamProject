@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta, time
-from math import floor, log, gamma
-from random import random, randint, normalvariate as normal
+from math import floor, log, gamma, pow, exp
+from random import random, randint, uniform, normalvariate as normal
 from library.maths import clamp
 
 
@@ -22,8 +22,10 @@ class SimulationConfiguration:
         self.initial_acceleration = 0.0
         self.maximum_acceleration = 3.0
         self.maximum_deceleration = 9.0
+        self.maximum_lateral_acceleration = 2.0
         self.preferred_time_gap = 2.0
         self.maximum_speed = 30.0
+        self.minimum_speed = 0.0
         self.min_creep_distance = 1
 
         # Spawning
@@ -33,6 +35,7 @@ class SimulationConfiguration:
         self.mean_spawn_time_per_hour = [5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5]
         self.sdev_spawn_time_per_hour = [3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3]
         self.min_spawn_time_per_hour = [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]
+        self.distribution_method = 'gamma'
 
         self.max_vehicle_length = 3.5
         self.min_vehicle_length = 2.5
@@ -200,7 +203,7 @@ class SpawningStats:
                  mean_spawn_time_per_hour: float = 5,
                  sdev_spawn_time_per_hour: float = 3,
                  min_spawn_time_per_hour: float = 2,
-                 distribution_method: str = 'weibull',
+                 distribution_method: str = 'gamma',
 
                  max_vehicle_length: float = 10,
                  min_vehicle_length: float = 2,
@@ -328,7 +331,7 @@ class SpawningRandom:
         assert len(means) == len(sdevs)
         return normal(means[i], sdevs[i])
 
-    def calculate_next_spawn_time(self, distribution_type: str = 'weibull') -> None:
+    def calculate_next_spawn_time(self, distribution_type: str = 'gamma') -> None:
         """
         The calculate_next_spawn_time function uses the probability distribution methods to calculate the next spawn
         time. The function also constrains the spawn time between limits
@@ -339,8 +342,12 @@ class SpawningRandom:
 
         if distribution_type == 'normal':
             self.next_spawn_time_delta = self.normal(self.current_mean_spawn_time, self.current_sdev_spawn_time)
-        else:
+        elif distribution_type == 'weibull':
             self.next_spawn_time_delta = self.weibull(self.current_mean_spawn_time, self.current_sdev_spawn_time, self.current_min_spawn_time)
+        else:
+            alpha = 1.0354 * self.current_mean_spawn_time - 0.8897
+            beta = 1 / alpha
+            self.next_spawn_time_delta = self.gamma(alpha, beta)
         if self.next_spawn_time_delta < self.spawning_stats.min_spawn_time:
             self.next_spawn_time_delta = self.spawning_stats.min_spawn_time
         if self.spawning_stats.max_spawn_time is not None:
@@ -375,6 +382,34 @@ class SpawningRandom:
         scale = mean / gamma(1+(1/shape))
         u = random()
         x = scale * (-log(u)) ** (1 / shape) + min_offset
+        return x
+
+    def gamma(self, alpha: float, beta: float):
+        """
+        The weibull function is a probability distribution function that we use to determine time delta between vehicle
+        spawns. It requires three parameters: mean, sdev, and min_offset. These can be determined from measuring the
+        vehicles approaching a real junction.
+
+        Source: https://e-maxx.ru/bookz/files/numerical_recipes.pdf
+
+        :param alpha: Mean spawn time
+        :param beta: Standard deviation of spawn time
+        :return: Random time delta based off the distribution probabilities
+        """
+        assert alpha > 0 and beta > 0
+
+        # Transform u1 and u2 using the inverse transform method
+        x = (-1 / beta) * log(uniform(0, 1))
+        y = pow(x, alpha - 1)
+        z = y * exp(-x) / gamma(alpha)
+
+        # Reject samples that fall outside the distribution
+        while uniform(0, 1) > z:
+            u1 = uniform(0, 1)
+            x = (-1 / beta) * log(u1)
+            y = pow(x, alpha - 1)
+            z = y * exp(-x) / gamma(alpha)
+
         return x
 
     def calculate_spawn_probabilities(self, time: Time) -> None:

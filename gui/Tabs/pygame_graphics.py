@@ -406,7 +406,7 @@ class PygameGraphics:
             node = self.model.get_node(light.node_uid)
 
             x, y = self._position_offsetter(node.x * 100, node.y * 100)
-            pygame.draw.rect(self.surface, (0, 0, 0), (x - round((len(light.colours) * 10) / 2), y + 10, len(light.colours) * 10, 30))
+            pygame.draw.rect(self.surface, (0, 0, 0), (x - round((len(light.colours) * 10) / 2), y + 5, len(light.colours) * 10, 30))
 
             for index, colour in enumerate(light.colours):
                 position_offset = round((-((len(light.colours) - 1) * 25) / 2) + index * 25)
@@ -432,9 +432,9 @@ class PygameGraphics:
                     amber_rgb = (255, 200, 0)
                     green_rgb = (0, 50, 0)
 
-                pygame.draw.circle(self.surface, red_rgb, (x + position_offset, y + 15), 3)
-                pygame.draw.circle(self.surface, amber_rgb, (x + position_offset, y + 25), 3)
-                pygame.draw.circle(self.surface, green_rgb, (x + position_offset, y + 35), 3)
+                pygame.draw.circle(self.surface, red_rgb, (x + position_offset, y + 10), 3)
+                pygame.draw.circle(self.surface, amber_rgb, (x + position_offset, y + 20), 3)
+                pygame.draw.circle(self.surface, green_rgb, (x + position_offset, y + 30), 3)
 
     def draw_map(self):
         if self.map_surface is not None:

@@ -97,10 +97,13 @@ class Simulation:
                 acceleration=self.model.config.initial_acceleration,
                 maximum_acceleration=self.model.config.maximum_acceleration,
                 maximum_deceleration=self.model.config.maximum_deceleration,
-                preferred_time_gap=self.model.config.preferred_time_gap,
                 maximum_speed=self.model.config.maximum_speed,
+                minimum_speed=self.model.config.minimum_speed,
+                maximum_lateral_acceleration=self.model.config.maximum_lateral_acceleration,
+                preferred_time_gap=self.model.config.preferred_time_gap,
                 length=length,
                 width=width,
+                sensing_radius=self.model.config.maximum_lateral_acceleration,
                 min_creep_distance=self.model.config.min_creep_distance
             )
         )
