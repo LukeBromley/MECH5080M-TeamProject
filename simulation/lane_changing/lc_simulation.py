@@ -21,6 +21,7 @@ class Simulation:
         self.model.load_junction(junction_file_path)
         self.model.generate_routes()
         self.model.load_config(config_file_path)
+        self.delays = []
         self.vehicle_data = []
         self.collision = False
 
@@ -55,8 +56,8 @@ class Simulation:
                 self.add_vehicle(node_uid, length, width, distance_delta, lane_change)
 
         # Remove finished vehicles
-        self.model.remove_finished_vehicles()
-        self.collision = self.model.detect_collisions()
+        #self.model.remove_finished_vehicles()
+        #self.collision = self.model.detect_collisions()
 
         # Update vehicle position
         self.vehicle_data = []
@@ -81,7 +82,9 @@ class Simulation:
                     self.vehicle_data.append([coord_x, coord_y, angle, vehicle.length, vehicle.width])
 
         # Remove finished vehicles
-        self.model.remove_finished_vehicles()
+        delays = self.model.remove_finished_vehicles()
+
+        self.delays = self.delays + delays
 
         # Increment Time
         self.model.tock()

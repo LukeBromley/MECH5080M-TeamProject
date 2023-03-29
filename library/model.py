@@ -233,6 +233,13 @@ class Model:
                 paths.append(path.uid)
         return paths
 
+    def get_paths_from_end_node(self, node_uid):
+        paths = []
+        for path in self.paths:
+            if path.end_node_uid == node_uid:
+                paths.append(path.uid)
+        return paths
+
     def distance_of_first_vehicle_from_start_node(self, node_uid):
         paths_uids = self.get_paths_from_start_node(node_uid)
         distances = []
@@ -338,6 +345,18 @@ class Model:
         self.lights.pop(index)
         self.update_light_hash_table()
 
+    def get_traffic_light_uids(self):
+        paths_with_lights = []
+        paths_preceding_lights = []
+        for light in self.lights:
+            light_path = light.path_uids[0]
+            paths_with_lights.append(light_path)
+            shared_node = self.get_path(light_path).start_node_uid
+            preceding_paths = self.get_paths_from_end_node(shared_node)
+            for path in preceding_paths:
+                paths_preceding_lights.append(path)
+        return paths_with_lights, paths_preceding_lights
+
     # VEHICLES
     
     def get_vehicle(self, vehicle_uid) -> Vehicle:
@@ -357,11 +376,14 @@ class Model:
     
     def remove_finished_vehicles(self):
         vehicles_uids_to_remove = []
+        delays = []
         for vehicle in self.vehicles:
             route = self.get_route(vehicle.get_route_uid())
             path = self.get_path(route.get_path_uid(vehicle.get_path_index()))
 
             if vehicle.get_path_distance_travelled() >= path.get_length():
+                if vehicle.get_path_index() == 0:
+                    delays.append(self.get_delay(vehicle))
                 if vehicle.get_path_index() >= len(self.get_route(vehicle.route_uid).get_path_uids())-1:
                     vehicles_uids_to_remove.append(vehicle.uid)
                 else:
@@ -369,6 +391,17 @@ class Model:
 
         for vehicle_uid in vehicles_uids_to_remove:
             self.remove_vehicle(vehicle_uid)
+        return delays
+
+
+    def get_delay(self, vehicle):
+        time_to_light = self.calculate_seconds_elapsed() - vehicle.start_time
+        distance_travelled = vehicle.get_path_distance_travelled()
+        max_speed = vehicle.get_max_speed()
+        optimal_time = (distance_travelled/max_speed)
+        print(time_to_light, optimal_time)
+        delay = time_to_light - optimal_time
+        return delay
 
     def get_object_ahead(self, vehicle_uid):
         object_ahead = None

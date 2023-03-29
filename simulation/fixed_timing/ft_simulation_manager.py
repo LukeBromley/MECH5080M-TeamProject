@@ -93,6 +93,8 @@ class SimulationManager:
                 if self.current_action_index >= len(self.actions):
                     self.current_action_index = 0
 
+    def get_delays(self):
+        return self.simulation.delays
 
 if __name__ == "__main__":
     # Reference Files

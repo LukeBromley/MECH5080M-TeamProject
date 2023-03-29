@@ -215,6 +215,8 @@ class SimulationManager:
 
         return distance_behind, vehicle_behind
 
+    def get_delays(self):
+        return self.simulation.delays
 
     # REWARD FUNCTIONS
 
