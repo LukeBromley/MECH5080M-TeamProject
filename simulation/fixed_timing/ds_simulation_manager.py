@@ -117,7 +117,6 @@ class SimulationManager:
                         vehicles = self.simulation.model.get_vehicles_on_path(path_uid)
                         if len(vehicles) > 0:
                             self.demand.append(action_index)
-                            print(self.demand)
 
     def check_current_demand(self):
         demand = False
@@ -131,7 +130,6 @@ class SimulationManager:
         if len(self.demand) > 0:
             self.current_action_index = self.demand[0]
             self.demand.pop(0)
-            print(self.demand)
         else:
             self.increment_action()
 
