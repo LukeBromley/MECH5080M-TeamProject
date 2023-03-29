@@ -47,7 +47,7 @@ class MachineLearning:
         self.max_episode_length_in_seconds = 60
         self.max_steps_per_episode = self.max_episode_length_in_seconds * self.simulation_manager.simulation.model.tick_rate  # Maximum number of steps allowed per episode
         self.episode_end_reward = -10000  # Single episode total reward minimum threshold to end episode. Should be low to allow exploration
-        self.solved_mean_reward = 30000  # Single episode total reward minimum threshold to consider ML trained
+        self.solved_mean_reward = 20000  # Single episode total reward minimum threshold to consider ML trained
         self.reward_history_limit = 20
 
         # TAKING AN ACTION
@@ -58,13 +58,13 @@ class MachineLearning:
 
         # Exploration
         # Number of steps of just random actions before the network can make some decisions
-        self.number_of_steps_of_required_exploration = 5000
+        self.number_of_steps_of_required_exploration = 10000
         # Number of steps over which epsilon greedy decays
-        self.number_of_steps_of_exploration_reduction = 100000
+        self.number_of_steps_of_exploration_reduction = 200000
         # Train the model after 4 actions
-        self.update_after_actions = 4
+        self.update_after_actions = 7
         # How often to update the target network
-        self.update_target_network = 1000
+        self.update_target_network = 5000
         # Penalty for collision
         self.collision_penalty = 1000
 
@@ -310,7 +310,7 @@ class MachineLearning:
             p = []
             for action in legal_actions:
                 # TODO: Soft code
-                do_nothing_probability = 0.9
+                do_nothing_probability = 0.95
                 if action != 4:
                     p.append((1 - do_nothing_probability) / (len(legal_actions) - 1))
                 else:
