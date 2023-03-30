@@ -27,6 +27,41 @@ from tensorflow.keras import layers
 # https://towardsdatascience.com/a-minimal-working-example-for-deep-q-learning-in-tensorflow-2-0-e0ca8a944d5e
 
 
+# Infinity acceleration
+# Remove light delays
+# Reduces number of actions
+# Reduce number of neutrons
+# Reward should be based on speed rather than wait_time
+
+
+# Updates:
+
+# Idle decision-making removed
+# Traffic light timings added
+# Single-step temporal difference replaced with TD(n)
+# Requires long exploration phase
+# Issues with delayed reward - light switch delays should be introduced after training only
+# New input features
+# Legal action filtering - product based action table 679 actions
+# Everything soft-coded
+
+
+# Possible fixes:
+# Long exploration
+# Light delay introduction after training
+# Model per traffic light
+# Collision detection based on path
+# Realistic wait time implementation from Henry
+# Reward shaping
+# Prioritised sweeping
+
+# high computin required for long sims
+# sifficult to understand dependencies in long runs
+# monte carlo dicision making instead of target model
+# issue with wait timereduction, the model abuses acceleration
+#  the car leaves prh if using sum wiat tiem
+# average wait time doesnt consider number of. ars
+
 class MachineLearning:
     def __init__(self, simulation_manager: SimulationManager, machine_learning_config=None, graph_num_episodes=20, graph_max_step=30000):
         # SIMULATION MANAGER
@@ -46,7 +81,7 @@ class MachineLearning:
         # TRAINING LIMITS
         self.max_episode_length_in_seconds = 60
         self.max_steps_per_episode = self.max_episode_length_in_seconds * self.simulation_manager.simulation.model.tick_rate  # Maximum number of steps allowed per episode
-        self.episode_end_reward = -1000 / self.max_steps_per_episode # Single episode total reward minimum threshold to end episode. Should be low to allow exploration
+        self.episode_end_reward = -1000  # Single episode total reward minimum threshold to end episode. Should be low to allow exploration
         self.solved_mean_reward = float("inf")  # Single episode total reward minimum threshold to consider ML trained
         self.reward_history_limit = 20
         self.max_mean_reward_solved = self.episode_end_reward
@@ -61,7 +96,7 @@ class MachineLearning:
         # Number of steps of just random actions before the network can make some decisions
         self.number_of_steps_of_required_exploration = 1000
         # Number of steps over which epsilon greedy decays
-        self.number_of_steps_of_exploration_reduction = 25000
+        self.number_of_steps_of_exploration_reduction = 10000
         # Train the model after 4 actions
         self.update_after_actions = 6
         # How often to update the target network
@@ -142,7 +177,7 @@ class MachineLearning:
     def train(self):
         mean_reward = 0
         while True:  # Run until solved
-            state = self.simulation_manager.reset()
+            self.simulation_manager.reset()
             episode_reward = 0
             episode_step = 0
 
@@ -219,11 +254,15 @@ class MachineLearning:
                 if done:
                     break
 
+                sys.stdout.write("\rstep: {0} / reward: {1}".format(str(episode_step), str(episode_reward)))
+                sys.stdout.flush()
+
             # print(action_log)
             self.episode_reward_history.append(episode_reward)
             self.episode_count += 1
 
             if self.solved(self.get_mean_reward()):
+                print("solved")
                 self.ml_model_target.save("saved_model")
                 break
         return self.get_mean_reward()
@@ -257,10 +296,14 @@ class MachineLearning:
         # state_value = simulation_manager.get_sum_wait_time()
         rewards = []
         # TODO: Try reset after every action
+
+        # TODO: Try do_nothing_action or random_action
         for index in range(1, self.number_of_temporal_difference_steps):
             state_value = simulation_manager.get_sum_wait_time()
             temporal_difference_reward = 0
-            simulation_manager.take_action(self.select_action(simulation_manager.get_state(), target=True))
+
+            # TODO: Try model decision making
+            # simulation_manager.take_action(self.select_action(simulation_manager.get_state(), target=True))
             simulation_manager.simulation.compute_single_iteration()
 
             if simulation_manager.simulation.model.detect_collisions():
@@ -446,8 +489,6 @@ class MachineLearning:
             episode_steps = 0
 
             action_table = self.simulation_manager.action_table
-            print(action_table)
-            action = self.simulation_manager.do_nothing_action_index
             # Run steps in episode
             while True:
                 # Increment the total number of steps taken by the AI in total.
@@ -460,9 +501,13 @@ class MachineLearning:
                     action = np.nanargmax(action_probabilities)
                     print(action)
 
+                state = self.simulation_manager.get_state()
 
-                # TODO: Comment out td decision making if td=True
-                reward = self.step(action, td=False)
+                # Select an action
+                action_index = self.select_action(state)
+
+                # Step the simulation
+                reward = self.step(action_index, td=False)
 
                 episode_reward += reward
 
