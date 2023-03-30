@@ -73,8 +73,8 @@ class Simulation:
 
             if vehicle.get_acceleration() <= 0:
                 vehicle.wait_time += self.model.tick_time
-            else:
-                vehicle.wait_time -= 10 * self.model.tick_time
+            elif vehicle.get_speed() > 5:
+                vehicle.wait_time -= 5 * self.model.tick_time
 
         # Remove finished vehicles
         self.model.remove_finished_vehicles()

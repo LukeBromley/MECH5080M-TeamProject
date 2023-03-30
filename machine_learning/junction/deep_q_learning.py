@@ -59,13 +59,13 @@ class MachineLearning:
 
         # Exploration
         # Number of steps of just random actions before the network can make some decisions
-        self.number_of_steps_of_required_exploration = 10000
+        self.number_of_steps_of_required_exploration = 1000
         # Number of steps over which epsilon greedy decays
-        self.number_of_steps_of_exploration_reduction = 200000
+        self.number_of_steps_of_exploration_reduction = 20000
         # Train the model after 4 actions
         self.update_after_actions = 7
         # How often to update the target network
-        self.update_target_network = 5000
+        self.update_target_network = 500
         # Penalty for collision
         self.collision_penalty = 1000
 
@@ -222,8 +222,6 @@ class MachineLearning:
 
                 if done:
                     break
-                sys.stdout.write("\rstep: {0} / reward: {1}".format(str(episode_step), str(episode_reward)))
-                sys.stdout.flush()
 
             # print(action_log)
             self.episode_reward_history.append(episode_reward)
