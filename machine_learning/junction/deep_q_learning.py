@@ -46,7 +46,7 @@ class MachineLearning:
         # TRAINING LIMITS
         self.max_episode_length_in_seconds = 60
         self.max_steps_per_episode = self.max_episode_length_in_seconds * self.simulation_manager.simulation.model.tick_rate  # Maximum number of steps allowed per episode
-        self.episode_end_reward = -10000  # Single episode total reward minimum threshold to end episode. Should be low to allow exploration
+        self.episode_end_reward = -100000  # Single episode total reward minimum threshold to end episode. Should be low to allow exploration
         self.solved_mean_reward = float("inf")  # Single episode total reward minimum threshold to consider ML trained
         self.reward_history_limit = 20
         self.max_mean_reward_solved = self.episode_end_reward
@@ -88,7 +88,7 @@ class MachineLearning:
 
         # Maximum replay buffer length
         # Note: The Deepmind paper suggests 1000000 however this causes memory issues
-        self.max_replay_buffer_length = 1000000
+        self.max_replay_buffer_length = 500000
 
         # OPTIMISING
         # Note: In the Deepmind paper they use RMSProp however then Adam optimizer
@@ -161,6 +161,9 @@ class MachineLearning:
                     self.end_episode(episode_reward, episode_step)
                     continue
 
+                state = self.simulation_manager.get_state()
+
+
                 # Select an action
                 action_index = self.select_action(state)
 
@@ -178,9 +181,6 @@ class MachineLearning:
 
                 # Save actions and states in replay buffer
                 self.save_to_replay_buffers(action_index, state, next_state, done, reward)
-
-                # Update State
-                state = next_state
 
                 # Increment the total number of steps taken by the AI in total.
                 self.number_of_steps_taken += 1
@@ -222,6 +222,8 @@ class MachineLearning:
 
                 if done:
                     break
+                sys.stdout.write("\rstep: {0} / reward: {1}".format(str(episode_step), str(episode_reward)))
+                sys.stdout.flush()
 
             # print(action_log)
             self.episode_reward_history.append(episode_reward)
@@ -290,7 +292,6 @@ class MachineLearning:
         return False
 
     def select_action(self, state, target: bool = False):
-
         if target:
             action = self.select_best_action(state, target)
         else:
@@ -312,10 +313,9 @@ class MachineLearning:
                 return legal_actions[0]
 
             p = []
-            for action in legal_actions:
-                # TODO: Soft code
+            for action_index in legal_actions:
                 do_nothing_probability = 0.95
-                if action != 4:
+                if action_index != self.simulation_manager.do_nothing_action_index:
                     p.append((1 - do_nothing_probability) / (len(legal_actions) - 1))
                 else:
                     p.append(do_nothing_probability)
@@ -334,7 +334,6 @@ class MachineLearning:
             action_probs = self.ml_model_target(state_tensor, training=False)[0].numpy()
         else:
             action_probs = self.ml_model(state_tensor, training=False)[0].numpy()
-
         action_probs[illegal_actions] = np.NAN
         return np.nanargmax(action_probs)
 
@@ -438,9 +437,6 @@ class MachineLearning:
 
                 if self.end_episode(episode_reward, episode_steps):
                     break
-
-                sys.stdout.write("\rstep: {0} / reward: {1}".format(str(episode_steps), str(episode_reward)))
-                sys.stdout.flush()
 
             listener.join()
 
