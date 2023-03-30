@@ -41,7 +41,7 @@ class Simulation:
         # Update visualiser
         if self.visualiser_update_function is not None:
             self.visualiser_update_function(self.vehicle_data, self.model.lights, self.model.calculate_time_of_day(), self.collision)
-            sleep(0.01)
+            sleep(0.001)
 
     def compute_single_iteration(self):
         # Spawn vehicles
@@ -73,8 +73,8 @@ class Simulation:
 
             if vehicle.get_acceleration() <= 0:
                 vehicle.wait_time += self.model.tick_time
-            else:
-                vehicle.wait_time -= 10 * self.model.tick_time
+            elif vehicle.get_speed() > 3:
+                vehicle.wait_time -= 5 * self.model.tick_time
 
         # Remove finished vehicles
         self.model.remove_finished_vehicles()

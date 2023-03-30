@@ -45,7 +45,6 @@ class SimulationManager:
         ) + self.features_per_traffic_light_state * len(self.simulation.model.lights)
 
         self.light_controlled_path_uids += self.light_path_uids
-        self.observation_space_size += self.features_per_vehicle_state * 2 * len(self.light_path_uids)
 
         # TODO: Initialize separate boxes by argmax for different inputs
         self.observation_space = Box(0, 50, shape=(1, self.observation_space_size), dtype=float)
@@ -57,8 +56,8 @@ class SimulationManager:
 
     def reset(self):
         self.simulation = self.create_simulation()
-        self.freeze_traffic(20)
-        return np.zeros(self.observation_space_size)
+        self.freeze_traffic(25)
+        return self.get_state()
 
     def freeze_traffic(self, n: int = None):
         if n is None:
@@ -71,7 +70,13 @@ class SimulationManager:
             self.simulation.compute_single_iteration()
 
     def calculate_actions(self):
-        self.action_table = list(itertools.product([-1, 0, 1], repeat=len(self.simulation.model.lights)))
+        # TODO: Sapr actions
+        # self.action_table = list(itertools.product([-1, 0, 1], repeat=len(self.simulation.model.lights)))
+        self.action_table = []
+        for action in list(itertools.product([-1, 0, 1], repeat=len(self.simulation.model.lights))):
+            if action.count(0) >= len(self.simulation.model.lights) - 1:
+                self.action_table.append(action)
+        self.do_nothing_action_index = self.action_table.index(tuple([0 for _ in range(len(self.simulation.model.lights))]))
         number_of_actions = len(self.action_table)
         return number_of_actions, Discrete(number_of_actions)
 
@@ -114,7 +119,7 @@ class SimulationManager:
             vehicle.get_speed(),
             vehicle.wait_time,
             x,
-            y
+            y,
             # vehicle.get_length(),
             # vehicle.get_acceleration()
         ]
@@ -127,7 +132,6 @@ class SimulationManager:
         ]
 
     def get_state(self):
-        # TODO: Add info about vehicles past the traffic light
         inputs = []
         for light in self.simulation.model.lights:
             inputs += self.get_traffic_light_state(light)
@@ -147,7 +151,7 @@ class SimulationManager:
             path_inputs[index] = flattened_path_input
 
         for index, path_input in enumerate(path_inputs):
-            if index < len(self.light_controlled_path_uids):
+            if index < len(self.light_controlled_path_uids) - len(self.light_path_uids):
                 inputs += self.pad_state_input(path_input, self.number_of_tracked_vehicles_per_light_controlled_path)
             else:
                 inputs += self.pad_state_input(path_input, self.number_of_tracked_vehicles_per_light_path)
