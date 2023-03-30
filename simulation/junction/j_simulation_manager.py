@@ -35,10 +35,10 @@ class SimulationManager:
         self.light_path_uids = [2, 5]
 
         # Inputs / States
-        self.features_per_vehicle_state = 6
-        self.features_per_traffic_light_state = 3
+        self.features_per_vehicle_state = 3
+        self.features_per_traffic_light_state = 0
         self.number_of_tracked_vehicles_per_light_controlled_path = 5
-        self.number_of_tracked_vehicles_per_light_path = 2
+        self.number_of_tracked_vehicles_per_light_path = 1
         self.observation_space_size = self.features_per_vehicle_state * (
                 len(self.light_controlled_path_uids) * self.number_of_tracked_vehicles_per_light_controlled_path +
                 len(self.light_path_uids) * self.number_of_tracked_vehicles_per_light_path
@@ -70,34 +70,37 @@ class SimulationManager:
             self.simulation.compute_single_iteration()
 
     def calculate_actions(self):
-        # TODO: Sapr actions
-        # self.action_table = list(itertools.product([-1, 0, 1], repeat=len(self.simulation.model.lights)))
-        self.action_table = []
-        for action in list(itertools.product([-1, 0, 1], repeat=len(self.simulation.model.lights))):
-            if action.count(0) >= len(self.simulation.model.lights) - 1:
-                self.action_table.append(action)
-        self.do_nothing_action_index = self.action_table.index(tuple([0 for _ in range(len(self.simulation.model.lights))]))
+        # TODO: Sparse actions
+        # Avoid do nothing action if not using RNN
+        self.action_table = list(itertools.product([-1, 1], repeat=len(self.simulation.model.lights)))
+        # self.action_table = []
+        # for action in list(itertools.product([-1, 0, 1], repeat=len(self.simulation.model.lights))):
+        #     if action.count(0) >= len(self.simulation.model.lights) - 1:
+        #         self.action_table.append(action)
+        # self.do_nothing_action_index = self.action_table.index(tuple([0 for _ in range(len(self.simulation.model.lights))]))
         number_of_actions = len(self.action_table)
         return number_of_actions, Discrete(number_of_actions)
 
     def get_legal_actions(self):
-        lights = self.simulation.model.lights
-        legal_actions = []
-        for action_index, action in enumerate(self.action_table):
-            legal = True
-            for light_index, light in enumerate(lights):
-                if (
-                        (action[light_index] == 1 and light.colour == "red") or
-                        (action[light_index] == -1 and light.colour == "green") or
-                        action[light_index] == 0
-                ):
-                    continue
-                else:
-                    legal = False
-                    break
-            if legal:
-                legal_actions.append(action_index)
-        return legal_actions
+        return list(range(len(self.action_table)))
+
+        # lights = self.simulation.model.lights
+        # legal_actions = []
+        # for action_index, action in enumerate(self.action_table):
+        #     legal = True
+        #     for light_index, light in enumerate(lights):
+        #         if (
+        #                 (action[light_index] == 1 and light.colour == "red") or
+        #                 (action[light_index] == -1 and light.colour == "green") or
+        #                 action[light_index] == 0
+        #         ):
+        #             continue
+        #         else:
+        #             legal = False
+        #             break
+        #     if legal:
+        #         legal_actions.append(action_index)
+        # return legal_actions
 
     def get_illegal_actions(self):
         return [index for index in range(len(self.action_table)) if index not in self.get_legal_actions()]
@@ -116,25 +119,26 @@ class SimulationManager:
         x, y = self.simulation.model.get_vehicle_coordinates(vehicle.uid)
         return [
             vehicle.get_path_distance_travelled(),
-            vehicle.get_speed(),
-            vehicle.wait_time,
-            x,
-            y,
+            vehicle.get_speed()
+            # vehicle.wait_time,
+            # x,
+            # y,
             # vehicle.get_length(),
             # vehicle.get_acceleration()
         ]
 
     def get_traffic_light_state(self, light: TrafficLight):
         return [
-            light.get_state(),
-            light.time_remaining,
-            light.path_uid
+            light.get_state()
+            # light.time_remaining,
+            # light.path_uid
         ]
 
     def get_state(self):
         inputs = []
-        for light in self.simulation.model.lights:
-            inputs += self.get_traffic_light_state(light)
+
+        # for light in self.simulation.model.lights:
+        #     inputs += self.get_traffic_light_state(light)
 
         path_inputs = [[] for _ in self.light_controlled_path_uids]
         for vehicle in self.simulation.model.vehicles:
@@ -161,7 +165,7 @@ class SimulationManager:
         if len(state_input) > self.features_per_vehicle_state * n:
             state_input = state_input[:self.features_per_vehicle_state * n]
         else:
-            state_input += [np.NAN] * (self.features_per_vehicle_state * n - len(state_input))
+            state_input += [0.0] * (self.features_per_vehicle_state * n - len(state_input))
 
         # # TODO: Implement shuffling
         # tupled_state_input = []

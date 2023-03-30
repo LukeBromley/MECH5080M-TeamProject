@@ -33,6 +33,7 @@ random.seed(111)
 # Infinity acceleration
 # Remove light delays
 # Reduces number of actions
+# Reduce number of inputs
 # Reduce number of neutrons
 # Reward should be based on speed rather than wait_time
 
