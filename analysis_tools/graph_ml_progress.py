@@ -23,13 +23,19 @@ class Graph:
         self.y = [0 for i in range(self.num_episodes_displayed)]
 
         self.line1, = self.graph.plot(self.x, self.y)
+        self.data = []
 
     def update(self, step):
-        self.y.append(step)
-        self.y = self.y[-self.num_episodes_displayed:]
+        self.data.append(step)
+        plt.cla()
+        plt.plot(self.data)
+        plt.pause(0.0001)
 
-        self.line1.set_xdata(self.x)
-        self.line1.set_ydata(self.y)
+        # self.y.append(step)
+        # self.y = self.y[-self.num_episodes_displayed:]
+        #
+        # self.line1.set_xdata(self.x)
+        # self.line1.set_ydata(self.y)
 
         # drawing updated values
         # self.figure.canvas.draw()

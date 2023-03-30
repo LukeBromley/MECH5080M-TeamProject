@@ -40,7 +40,7 @@ class SimulationManager:
         self.features_per_vehicle_state = 3
         self.features_per_traffic_light_state = 0
         self.number_of_tracked_vehicles_per_light_controlled_path = 6
-        self.number_of_tracked_vehicles_per_light_path = 2
+        self.number_of_tracked_vehicles_per_light_path = 1
         self.observation_space_size = self.features_per_vehicle_state * (
                 len(self.light_controlled_path_uids) * self.number_of_tracked_vehicles_per_light_controlled_path +
                 len(self.light_path_uids) * self.number_of_tracked_vehicles_per_light_path
@@ -58,7 +58,7 @@ class SimulationManager:
 
     def reset(self):
         self.simulation = self.create_simulation()
-        self.freeze_traffic(25)
+        self.freeze_traffic(80)
         return self.get_state()
 
     def freeze_traffic(self, n: int = None):
@@ -194,6 +194,9 @@ class SimulationManager:
             return dot_product / sum_coeff
         else:
             return 0.0
+
+    def get_state_value(self):
+        return sum([self.simulation.model.get_delay(vehicle.uid) for vehicle in self.simulation.model.vehicles if vehicle.get_path_index() == 0])
 
     def get_sum_wait_time(self):
         return sum([vehicle.wait_time for vehicle in self.simulation.model.vehicles])

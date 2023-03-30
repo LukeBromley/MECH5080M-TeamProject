@@ -74,7 +74,7 @@ class MachineLearning:
 
         # TODO: Profile code
         # GRAPH
-        # self.graph = Graph(graph_num_episodes, graph_max_step)
+        self.graph = Graph(graph_num_episodes, graph_max_step)
 
         # COUNTERS
         self.episode_count = 0  # Number of episodes trained
@@ -84,7 +84,7 @@ class MachineLearning:
         # TRAINING LIMITS
         self.max_episode_length_in_seconds = 30
         self.max_steps_per_episode = self.max_episode_length_in_seconds * self.simulation_manager.simulation.model.tick_rate  # Maximum number of steps allowed per episode
-        self.episode_end_reward = -1000  # Single episode total reward minimum threshold to end episode. Should be low to allow exploration
+        self.episode_end_reward = -float("inf")  # Single episode total reward minimum threshold to end episode. Should be low to allow exploration
         self.solved_mean_reward = float("inf")  # Single episode total reward minimum threshold to consider ML trained
         self.reward_history_limit = 20
         self.max_mean_reward_solved = self.episode_end_reward
@@ -97,13 +97,13 @@ class MachineLearning:
 
         # Exploration
         # Number of steps of just random actions before the network can make some decisions
-        self.number_of_steps_of_required_exploration = 1000
+        self.number_of_steps_of_required_exploration = 5000
         # Number of steps over which epsilon greedy decays
-        self.number_of_steps_of_exploration_reduction = 10000
+        self.number_of_steps_of_exploration_reduction = 50000
         # Train the model after 4 actions
         self.update_after_actions = 6
         # How often to update the target network
-        self.update_target_network = 500
+        self.update_target_network = 1000
         # Penalty for collision
         self.collision_penalty = 1000
 
@@ -139,7 +139,7 @@ class MachineLearning:
 
         # MACHINE LEARNING MODELS
         n = self.simulation_manager.observation_space_size
-        self.ml_model_hidden_layers = [n, n, n]
+        self.ml_model_hidden_layers = [n]
 
         # Change configurations to ones supplied in machine_learning_config
         if machine_learning_config is not None:
@@ -219,20 +219,21 @@ class MachineLearning:
                 # Increment the episode step
                 episode_step += 1
 
-                # Determine legal actions
-                legal_actions = self.simulation_manager.get_legal_actions()
-
-                if len(legal_actions) == 1:
-                    # TODO: instead of skipping sum the rewards and assign to the previous action
-                    self.step(legal_actions[0], td=False)
-                    self.end_episode(episode_reward, episode_step)
-                    continue
+                # # Determine legal actions
+                # legal_actions = self.simulation_manager.get_legal_actions()
+                #
+                # if len(legal_actions) == 1:
+                #     # TODO: instead of skipping sum the rewards and assign to the previous action
+                #     self.step(legal_actions[0], td=False)
+                #     self.end_episode(episode_reward, episode_step)
+                #     continue
 
                 state = self.simulation_manager.get_state()
 
                 # Select an action
                 action_index = self.select_action(state)
 
+                # TODO: Check hypothesis - Reward increasing during random phase because of td predictions by target_model
                 # Step the simulation
                 reward = self.step(action_index, td=True)
 
@@ -250,7 +251,6 @@ class MachineLearning:
 
                 # Update
                 if self.number_of_steps_taken % self.update_after_actions == 0 and len(self.done_history) > self.sample_size:
-
                     state_sample, state_next_sample, rewards_sample, action_sample, done_sample = self.sample_replay_buffers()
                     updated_q_values = self.calculate_updated_q_values(state_next_sample, rewards_sample, done_sample)
 
@@ -275,6 +275,7 @@ class MachineLearning:
                     # update the target network with new weights
                     self.ml_model_target.set_weights(self.ml_model.get_weights())
                     # Log details
+                    self.graph.update(self.get_mean_reward())
                     print(f'{tm.strftime("%H:%M:%S", tm.localtime())}  -  {self.get_mean_reward():.2f} / {self.solved_mean_reward:.2f} at episode {self.episode_count}; frame count: {self.number_of_steps_taken}.')
                     if self.get_mean_reward() > self.max_mean_reward_solved:
                         self.max_mean_reward_solved = self.get_mean_reward()
@@ -282,14 +283,12 @@ class MachineLearning:
                         print(f'{tm.strftime("%H:%M:%S", tm.localtime())}  -  SavedModel recorded.')
                 # Delete old buffer values
                 self.delete_old_replay_buffer_values()
-
-                sys.stdout.write("\rstep: {0} / reward: {1}".format(str(episode_step), str(episode_reward)))
-                sys.stdout.flush()
+                #
+                # sys.stdout.write("\rstep: {0} / reward: {1}".format(str(episode_step), str(episode_reward)))
+                # sys.stdout.flush()
 
                 if done:
                     break
-
-
 
             # print(action_log)
             self.episode_reward_history.append(episode_reward)
@@ -304,13 +303,13 @@ class MachineLearning:
     def step(self, action_index: int, td: bool = True):
         # More than two actions available guaranteed
         reward = 0
-        state_value = self.simulation_manager.get_sum_wait_time()
+        state_value = self.simulation_manager.get_state_value()
         self.take_action(action_index)
         self.simulation_manager.simulation.run_single_iteration()
-        # if self.simulation_manager.simulation.model.detect_collisions():
-        #     reward += self.collision_penalty
+        if self.simulation_manager.simulation.model.detect_collisions():
+            reward -= self.collision_penalty
 
-        reward += (state_value - self.simulation_manager.get_sum_wait_time())
+        reward += (state_value - self.simulation_manager.get_state_value())
 
         if td:
             reward += self.calculate_temporal_difference_reward(copy.deepcopy(self.simulation_manager))
@@ -333,7 +332,7 @@ class MachineLearning:
 
         # TODO: Try do_nothing_action or random_action
         for index in range(1, self.number_of_temporal_difference_steps):
-            state_value = simulation_manager.get_sum_wait_time()
+            state_value = simulation_manager.get_state_value()
             temporal_difference_reward = 0
 
             # TODO: Try model decision making
@@ -343,7 +342,7 @@ class MachineLearning:
             if simulation_manager.simulation.model.detect_collisions():
                 temporal_difference_reward -= self.collision_penalty
 
-            temporal_difference_reward += (state_value - simulation_manager.get_sum_wait_time())
+            temporal_difference_reward += (state_value - simulation_manager.get_state_value())
             reward += math.pow(self.gamma, index) * temporal_difference_reward
             rewards.append(math.pow(self.gamma, index) * temporal_difference_reward)
         # print(rewards)
@@ -380,17 +379,17 @@ class MachineLearning:
     def select_random_action(self):
         legal_actions = self.simulation_manager.get_legal_actions()
         if legal_actions:
-            if len(legal_actions) == 1:
-                return legal_actions[0]
-
-            p = []
-            for action_index in legal_actions:
-                do_nothing_probability = 0.9
-                if action_index != self.simulation_manager.do_nothing_action_index:
-                    p.append((1 - do_nothing_probability) / (len(legal_actions) - 1))
-                else:
-                    p.append(do_nothing_probability)
-            return np.random.choice(legal_actions, p=p)
+            # if len(legal_actions) == 1:
+            #     return legal_actions[0]
+            #
+            # p = []
+            # for action_index in legal_actions:
+            #     do_nothing_probability = 0.9
+            #     if action_index != self.simulation_manager.do_nothing_action_index:
+            #         p.append((1 - do_nothing_probability) / (len(legal_actions) - 1))
+            #     else:
+            #         p.append(do_nothing_probability)
+            return np.random.choice(legal_actions) #, p=p)
 
     def select_best_action(self, state, target: bool = False):
         # Predict action Q-values
@@ -417,7 +416,7 @@ class MachineLearning:
 
     def end_episode(self, episode_reward, step):
         if episode_reward < self.episode_end_reward or step > self.max_steps_per_episode:
-            print("")
+            # print("")
             # print(f"   - Score: {episode_reward:.2f} / Steps: {step}")
             # print("Score at episode end:", episode_reward, "/ Steps:", step)
             # sys.stdout.write("\rEpisode: {0} / Mean Reward: {1}".format(str(episode_reward), str(step)))
@@ -542,7 +541,7 @@ class MachineLearning:
                 action_index = self.select_action(state)
 
                 # Step the simulation
-                reward = self.step(self.simulation_manager.do_nothing_action_index, td=False)
+                reward = self.step(action_index, td=False)
 
                 episode_reward += reward
 
@@ -577,7 +576,7 @@ class MachineLearning:
 
 if __name__ == "__main__":
     # Reference Files
-    junction_file_path = os.path.join(os.path.dirname(os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))))), "junctions", "scale_library_pub_junction.junc")
+    junction_file_path = os.path.join(os.path.dirname(os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))))), "junctions", "cross_road.junc")
     configuration_file_path = os.path.join(os.path.dirname(os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))))), "configurations", "simulation_config", "cross_road.config")
 
     # Settings
@@ -596,7 +595,7 @@ if __name__ == "__main__":
     machine_learning.train()
 
     # # Visualiser Setup
-    # visualiser.define_main(machine_learning.test)
+    # visualiser.define_main(machine_learning.train)
     # visualiser.load_junction(junction_file_path)
     # visualiser.set_scale(scale)
     # #
