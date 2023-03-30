@@ -24,6 +24,9 @@ import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers
 
+np.random.seed(111)
+random.seed(111)
+
 # https://towardsdatascience.com/a-minimal-working-example-for-deep-q-learning-in-tensorflow-2-0-e0ca8a944d5e
 
 
@@ -78,7 +81,7 @@ class MachineLearning:
         self.all_time_reward = 0  # Total reward over all episodes
 
         # TRAINING LIMITS
-        self.max_episode_length_in_seconds = 60
+        self.max_episode_length_in_seconds = 30
         self.max_steps_per_episode = self.max_episode_length_in_seconds * self.simulation_manager.simulation.model.tick_rate  # Maximum number of steps allowed per episode
         self.episode_end_reward = -1000  # Single episode total reward minimum threshold to end episode. Should be low to allow exploration
         self.solved_mean_reward = float("inf")  # Single episode total reward minimum threshold to consider ML trained
@@ -112,7 +115,7 @@ class MachineLearning:
         self.episode_reward_history = []
 
         # Steps to look into the future to determine the mean reward. Should match T = 1/(1-gamma)
-        self.number_of_temporal_difference_steps = 5 * self.simulation_manager.simulation.model.tick_rate
+        self.number_of_temporal_difference_steps = 2 * self.simulation_manager.simulation.model.tick_rate
 
         # Sample Size
         self.sample_size = 124  # Size of batch taken from replay buffer
@@ -279,11 +282,13 @@ class MachineLearning:
                 # Delete old buffer values
                 self.delete_old_replay_buffer_values()
 
+                sys.stdout.write("\rstep: {0} / reward: {1}".format(str(episode_step), str(episode_reward)))
+                sys.stdout.flush()
+
                 if done:
                     break
 
-                sys.stdout.write("\rstep: {0} / reward: {1}".format(str(episode_step), str(episode_reward)))
-                sys.stdout.flush()
+
 
             # print(action_log)
             self.episode_reward_history.append(episode_reward)
@@ -331,7 +336,7 @@ class MachineLearning:
             temporal_difference_reward = 0
 
             # TODO: Try model decision making
-            # simulation_manager.take_action(self.select_action(simulation_manager.get_state(), target=True))
+            simulation_manager.take_action(self.select_action(simulation_manager.get_state(), target=True))
             simulation_manager.simulation.compute_single_iteration()
 
             if simulation_manager.simulation.model.detect_collisions():
@@ -411,6 +416,7 @@ class MachineLearning:
 
     def end_episode(self, episode_reward, step):
         if episode_reward < self.episode_end_reward or step > self.max_steps_per_episode:
+            print("")
             # print(f"   - Score: {episode_reward:.2f} / Steps: {step}")
             # print("Score at episode end:", episode_reward, "/ Steps:", step)
             # sys.stdout.write("\rEpisode: {0} / Mean Reward: {1}".format(str(episode_reward), str(step)))

@@ -57,7 +57,7 @@ class Simulation:
             light.update(self.model.tick_time)
 
         # Remove finished vehicles
-        #self.model.remove_finished_vehicles()
+        self.model.remove_finished_vehicles()
 
         # Update vehicle position
         self.vehicle_data = []
