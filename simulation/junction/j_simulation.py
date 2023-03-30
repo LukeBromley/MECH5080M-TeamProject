@@ -24,6 +24,7 @@ class Simulation:
         self.model.generate_routes()
         self.model.load_config(config_file_path)
         self.vehicle_data = []
+        self.delays = []
         self.collision = False
 
         # Visualiser
@@ -56,7 +57,7 @@ class Simulation:
             light.update(self.model.tick_time)
 
         # Remove finished vehicles
-        self.model.remove_finished_vehicles()
+        #self.model.remove_finished_vehicles()
 
         # Update vehicle position
         self.vehicle_data = []
@@ -77,7 +78,9 @@ class Simulation:
                 vehicle.wait_time -= 5 * self.model.tick_time
 
         # Remove finished vehicles
-        self.model.remove_finished_vehicles()
+        delays = self.model.remove_finished_vehicles()
+
+        self.delays = self.delays + delays
 
         # Increment Time
         self.model.tock()
@@ -94,10 +97,13 @@ class Simulation:
                 acceleration=self.model.config.initial_acceleration,
                 maximum_acceleration=self.model.config.maximum_acceleration,
                 maximum_deceleration=self.model.config.maximum_deceleration,
-                preferred_time_gap=self.model.config.preferred_time_gap,
                 maximum_speed=self.model.config.maximum_speed,
+                minimum_speed=self.model.config.minimum_speed,
+                maximum_lateral_acceleration=self.model.config.maximum_lateral_acceleration,
+                preferred_time_gap=self.model.config.preferred_time_gap,
                 length=length,
                 width=width,
+                sensing_radius=self.model.config.maximum_lateral_acceleration,
                 min_creep_distance=self.model.config.min_creep_distance
             )
         )
@@ -105,8 +111,8 @@ class Simulation:
 
 if __name__ == "__main__":
     # Reference Files
-    junction_file_path = os.path.join(os.path.dirname(os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))))), "junctions", "example_junction.junc")
-    configuration_file_path = os.path.join(os.path.dirname(os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))))), "configurations", "cross_road.config")
+    junction_file_path = os.path.join(os.path.dirname(os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))))), "junctions", "scale_library_pub_junction.junc")
+    configuration_file_path = os.path.join(os.path.dirname(os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))))), "configurations", "simulation_config", "cross_road.config")
 
     # Settings
     scale = 100
@@ -116,7 +122,7 @@ if __name__ == "__main__":
     visualiser = JunctionVisualiser()
 
     # Simulation
-    simulation = Simulation(junction_file_path, configuration_file_path, visualiser.update)
+    simulation = Simulation(junction_file_path, configuration_file_path, visualiser.update())
 
     # Visualiser Setup
     visualiser.define_main(partial(simulation.run_continuous, speed_multiplier))

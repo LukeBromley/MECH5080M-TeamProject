@@ -13,7 +13,7 @@ if system() == 'Windows':
 
 import os
 import sys
-from simulation.junction.simulation_manager import SimulationManager
+from simulation.junction.j_simulation_manager import SimulationManager
 from analysis_tools.graph_ml_progress import Graph
 from gui.junction_visualiser import JunctionVisualiser
 from time import sleep
@@ -71,7 +71,6 @@ class MachineLearning:
         # TODO: Profile code
         # GRAPH
         # self.graph = Graph(graph_num_episodes, graph_max_step)
-        self.data = []
 
         # COUNTERS
         self.episode_count = 0  # Number of episodes trained
@@ -148,23 +147,52 @@ class MachineLearning:
         self.ml_model_target = self.create_q_learning_model(self.simulation_manager.observation_space_size, self.simulation_manager.number_of_possible_actions, self.ml_model_hidden_layers)
 
     def apply_ML_configurations(self, config):
-        self.max_steps_per_episode = config.max_steps_per_episode
-        self.episode_end_reward = config.episode_end_reward
-        self.solved_mean_reward = config.solved_mean_reward
-        self.reward_history_limit = config.reward_history_limit
-        self.random_action_selection_probabilities = config.random_action_selection_probabilities
-        self.epsilon_greedy_min = config.epsilon_greedy_min
-        self.epsilon_greedy_max = config.epsilon_greedy_max
-        self.number_of_steps_of_required_exploration = config.number_of_steps_of_required_exploration
-        self.number_of_steps_of_exploration_reduction = config.number_of_steps_of_exploration_reduction
-        self.update_after_actions = config.update_after_actions
-        self.update_target_network = config.update_target_network
-        self.seconds_to_look_into_the_future = config.seconds_to_look_into_the_future
-        self.sample_size = config.sample_size
-        self.gamma = config.gamma
-        self.max_replay_buffer_length = config.max_replay_buffer_length
-        self.learning_rate = config.learning_rate
-        self.ml_model_hidden_layers = config.ml_model_hidden_layers
+        """
+        The apply_ML_configurations function is used to apply the configurations given in a config file.
+        The function takes in a config object and then checks if each of the parameters has been set by the user.
+        If it has, then that parameter is updated with its new value, otherwise it remains unchanged.
+
+        :param config: Pass in the configurations from the config
+
+        """
+        #MEGAMAIN - Add ML parameters here
+        self.max_steps_per_episode = self.check_config_given(self.max_steps_per_episode, config.max_steps_per_episode)
+        self.episode_end_reward = self.check_config_given(self.episode_end_reward, config.episode_end_reward)
+        self.solved_mean_reward = self.check_config_given(self.solved_mean_reward, config.solved_mean_reward)
+        self.reward_history_limit = self.check_config_given(self.reward_history_limit, config.reward_history_limit)
+        self.random_action_selection_probabilities = self.check_config_given(self.random_action_selection_probabilities, config.random_action_selection_probabilities)
+        self.epsilon_greedy_min = self.check_config_given(self.epsilon_greedy_min, config.epsilon_greedy_min)
+        self.epsilon_greedy_max = self.check_config_given(self.epsilon_greedy_max, config.epsilon_greedy_max)
+        self.number_of_steps_of_required_exploration = self.check_config_given(self.number_of_steps_of_required_exploration, config.number_of_steps_of_required_exploration)
+        self.number_of_steps_of_exploration_reduction = self.check_config_given(self.number_of_steps_of_exploration_reduction, config.number_of_steps_of_exploration_reduction)
+        self.update_after_actions = self.check_config_given(self.update_after_actions, config.update_after_actions)
+        self.update_target_network = self.check_config_given(self.update_target_network, config.update_target_network)
+        self.seconds_to_look_into_the_future = self.check_config_given(self.seconds_to_look_into_the_future, config.seconds_to_look_into_the_future)
+        self.sample_size = self.check_config_given(self.sample_size, config.sample_size)
+        self.gamma = self.check_config_given(self.gamma, config.gamma)
+        self.max_replay_buffer_length = self.check_config_given(self.max_replay_buffer_length, config.max_replay_buffer_length)
+        self.learning_rate = self.check_config_given(self.learning_rate, config.learning_rate)
+        self.ml_model_hidden_layers = self.check_config_given(self.ml_model_hidden_layers, config.ml_model_hidden_layers)
+
+    def check_config_given(self, parameter, config):
+        """
+        The check_config_given function is a helper function that checks if the user has provided
+        a configuration for a given parameter. If so, it returns the configuration. Otherwise, it returns
+        the default value of that parameter.
+
+        :param parameter: Set the default value of a parameter if no config is given
+        :param config: Check if the config is given
+        :return: The parameter if the config is none, else return the config
+        """
+        if config is not None:
+            return config
+        else:
+            return parameter
+
+    def reset(self):
+        self.episode_count = 0  # Number of episodes trained
+        self.number_of_steps_taken = 0  # Total number of steps taken over all episodes
+        self.all_time_reward = 0  # Total reward over all episodes
 
     def create_q_learning_model(self, state_size, action_size, hidden_layers):
         ml_layers = [layers.Input(shape=(state_size, ))]  # input dimension
@@ -458,7 +486,7 @@ class MachineLearning:
 
         with keyboard.Listener(on_press=on_press, on_release=on_release) as listener:
             self.simulation_manager.reset()
-            action_index = 4
+            action_index = self.simulation_manager.do_nothing_action_index
             episode_reward = 0
             episode_steps = 0
 
@@ -507,7 +535,7 @@ class MachineLearning:
                 action_index = self.select_action(state)
 
                 # Step the simulation
-                reward = self.step(action_index, td=False)
+                reward = self.step(self.simulation_manager.do_nothing_action_index, td=False)
 
                 episode_reward += reward
 
@@ -535,6 +563,9 @@ class MachineLearning:
 
     def load_model(self, file_location, save_name):
         return keras.models.load_model(file_location + "/" + save_name)
+
+    def get_delays(self):
+        return self.simulation_manager.get_delays()
 
 
 if __name__ == "__main__":

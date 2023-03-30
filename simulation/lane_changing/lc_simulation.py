@@ -21,6 +21,7 @@ class Simulation:
         self.model.load_junction(junction_file_path)
         self.model.generate_routes()
         self.model.load_config(config_file_path)
+        self.delays = []
         self.vehicle_data = []
         self.collision = False
 
@@ -55,8 +56,8 @@ class Simulation:
                 self.add_vehicle(node_uid, length, width, distance_delta, lane_change)
 
         # Remove finished vehicles
-        self.model.remove_finished_vehicles()
-        self.collision = self.model.detect_collisions()
+        #self.model.remove_finished_vehicles()
+        #self.collision = self.model.detect_collisions()
 
         # Update vehicle position
         self.vehicle_data = []
@@ -81,7 +82,9 @@ class Simulation:
                     self.vehicle_data.append([coord_x, coord_y, angle, vehicle.length, vehicle.width])
 
         # Remove finished vehicles
-        self.model.remove_finished_vehicles()
+        delays = self.model.remove_finished_vehicles()
+
+        self.delays = self.delays + delays
 
         # Increment Time
         self.model.tock()
@@ -98,10 +101,13 @@ class Simulation:
                 acceleration=self.model.config.initial_acceleration,
                 maximum_acceleration=self.model.config.maximum_acceleration,
                 maximum_deceleration=self.model.config.maximum_deceleration,
-                preferred_time_gap=self.model.config.preferred_time_gap,
                 maximum_speed=self.model.config.maximum_speed,
+                minimum_speed=self.model.config.minimum_speed,
+                maximum_lateral_acceleration=self.model.config.maximum_lateral_acceleration,
+                preferred_time_gap=self.model.config.preferred_time_gap,
                 length=length,
                 width=width,
+                sensing_radius=self.model.config.maximum_lateral_acceleration,
                 min_creep_distance=self.model.config.min_creep_distance
             )
         )

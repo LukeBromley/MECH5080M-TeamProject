@@ -9,12 +9,14 @@ class DesignTab(QtWidgets.QWidget):
     def __init__(self, gui, model):
         """
 
-        Design tab that allows the user to add paths or nodes
+        Design tab that allows the user to add paths or nodes to the junction.
+
         :param gui: parent gui class
         :param model: model
         """
         super(DesignTab, self).__init__()
 
+        # Parent GUI and parent model
         self.gui = gui
         self.model = model
 
@@ -43,7 +45,8 @@ class DesignTab(QtWidgets.QWidget):
     def _connect(self) -> None:
         """
 
-        Connects the call back functions of buttons
+        Connects the call back functions of buttons.
+
         :return: None
         """
         self.refresh_button.pressed.connect(self.gui.render_pygame_widget)
@@ -53,7 +56,8 @@ class DesignTab(QtWidgets.QWidget):
     def update_node_path_widgets(self) -> None:
         """
 
-        Updates the widgets for the list of nodes and paths in the model
+        Updates the widgets for the list of nodes and paths in the model.
+
         :return: None
         """
         # Remove all current node and path widgets
@@ -91,7 +95,8 @@ class DesignTab(QtWidgets.QWidget):
     def update_node_data(self, uid: int, widget_index: int) -> None:
         """
 
-        Updates the coordinates of the specified node and recalculates the path coefficients of affected paths
+        Updates the coordinates of the specified node and recalculates the path coefficients of affected paths.
+
         :param uid: uid of node to update
         :param widget_index: index of widget in node widget list which represents the node
         :return: None
@@ -126,9 +131,10 @@ class DesignTab(QtWidgets.QWidget):
     def update_path_data(self, uid: int, widget_index: int) -> None:
         """
 
-        Updates the nodes of the specified path and recalculates the path coefficients
+        Updates the nodes of the specified path and recalculates the path coefficients.
+
         :param widget_index: index of widget in path widget list which represents the path
-        :return:
+        :return: None
         """
 
         start_node_uid = int(self.path_widgets[widget_index].start_node.currentText())
@@ -144,7 +150,8 @@ class DesignTab(QtWidgets.QWidget):
     def add_path(self) -> None:
         """
 
-        Adds a new path to the list of paths and updates widgets
+        Adds a new path to the list of paths and updates widgets.
+
         :return: None
         """
         self.model.add_path(self.model.nodes[-1].uid, self.model.nodes[-2].uid)
@@ -153,7 +160,8 @@ class DesignTab(QtWidgets.QWidget):
     def remove_path(self, uid: int) -> None:
         """
 
-        Removes the specified path from the list of paths and updates widgets
+        Removes the specified path from the list of paths and updates widgets.
+
         :param uid: uid of path to be removed
         :return: None
         """
@@ -164,6 +172,8 @@ class DesignTab(QtWidgets.QWidget):
 class NodeWidget(QtWidgets.QWidget):
     def __init__(self, parent_widget, layout=None) -> None:
         """
+
+        Widget for representing a Node in the design tab.
 
         :param parent_widget: parent widget
         :param layout: layout for the widgets to be added to
@@ -190,6 +200,8 @@ class NodeWidget(QtWidgets.QWidget):
     def set_info(self, uid: int, x: int, y: int, ang: int) -> None:
         """
 
+        Sets the info to be displayed by the node widget. This will be updated using information from the model.
+
         :param uid: set uid info display
         :param x: set x position to display
         :param y: set y position to display
@@ -202,20 +214,26 @@ class NodeWidget(QtWidgets.QWidget):
         self.y_pos.setValue(int(-y))
         self.angle.setValue(int(ang))
 
-    def connect_change(self, function) -> None:
+    def connect_change(self, function: classmethod) -> None:
         """
 
-        :param function: function to trigger when a parameter has been changed by the GUI
+        Connects the callback function triggered when a widget in the GUI has changed.
+        The callback function should update the model and visualiser (if required).
+
+        :param function: function that updates the model + visualiser
         :return: None
         """
         self.x_pos.valueChanged.connect(function)
         self.y_pos.valueChanged.connect(function)
         self.angle.valueChanged.connect(function)
 
-    def connect_delete(self, function) -> None:
+    def connect_delete(self, function: classmethod) -> None:
         """
 
-        :param function: function to trigger when the node is deleted by the GUI
+        Connects the callback function to trigger when the node is deleted by the GUI.
+        The callback function should update the model and visualiser (if required).
+
+        :param function: function that deletes the node.
         :return: None
         """
         self.delete.pressed.connect(function)
@@ -224,6 +242,8 @@ class NodeWidget(QtWidgets.QWidget):
 class PathWidget(QtWidgets.QWidget):
     def __init__(self, parent_widget, layout=None) -> None:
         """
+
+        Widget for representing a Path in the design tab.
 
         :param parent_widget: parent widget
         :param layout: layout for the widgets to be added to
@@ -243,18 +263,22 @@ class PathWidget(QtWidgets.QWidget):
         self.end_node_label = Text(self, "To: ", self.h_box)
         self.end_node = ComboBox(self, self.h_box)
         self.delete = Button(self, "Delete", self.h_box)
-        # self.car_spawner = TickBox(self, "Car")
 
     def highlight_error(self) -> None:
         """
-        Highlight the uid label to indicate that the path from and to node are the same
+
+        Highlights the uid label to indicate that the path from and to node are the same nodes. This is an invalid state
+        and will cause errors (and potentially crashes) when rendering.
+
         :return: None
         """
         self.uid_label.setStyleSheet("background-color: red;")
 
     def unhighlight_error(self) -> None:
         """
-        Undo the actions of the highlight_error() method
+
+        Undo the actions of the highlight_error() method.
+
         :return: None
         """
         self.uid_label.setStyleSheet("background: transparent;")
@@ -262,31 +286,44 @@ class PathWidget(QtWidgets.QWidget):
     def set_info(self, uid: int, start_uid: object, end_uid: object, nodes: list) -> None:
         """
 
+        Sets the info to be displayed by the path widget. This will be updated using information from the model.
+
         :param uid: set uid info to display
         :param start_uid: set start node uid to display
         :param end_uid: set end node uid to display
         :param nodes: list of all nodes
         :return: None
         """
+
+        # Update UID Label
         self.uid_edit.setText(str(uid))
+
+        # Adds options to the start node combo box and end node combo box.
         for node in nodes:
             self.start_node.addItem(str(node.uid))
             self.end_node.addItem(str(node.uid))
         self.start_node.setCurrentText(str(start_uid))
         self.end_node.setCurrentText(str(end_uid))
 
-    def connect_change(self, function) -> None:
+    def connect_change(self, function: classmethod) -> None:
         """
-        :param function: function to trigger when a parameter has been changed by the GUI
+
+        Connects the callback function triggered when a widget in the GUI has changed.
+        The callback function should update the model and visualiser (if required).
+
+        :param function: function that updates the model + visualiser
         :return: None
         """
         self.start_node.currentIndexChanged.connect(function)
         self.end_node.currentIndexChanged.connect(function)
 
-    def connect_delete(self, function) -> None:
+    def connect_delete(self, function: classmethod) -> None:
         """
 
-        :param function: function to trigger when the path is deleted by the GUI
+        Connects the callback function to trigger when the path is deleted by the GUI.
+        The callback function should update the model and visualiser (if required).
+
+        :param function: function that deletes the path.
         :return: None
         """
         self.delete.pressed.connect(function)

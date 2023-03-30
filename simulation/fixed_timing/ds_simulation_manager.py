@@ -22,12 +22,15 @@ class SimulationManager:
 
         # Actions
         self.number_of_lights, self.number_of_possible_actions = self.calculate_possible_actions()
-        self.actions = [35, 32, 56, 16, 22, 2]
-        self.action_duration = [150, 30, 150, 30, 150, 30]
+        self.actions = [35, 56, 22]
+        self.action_paths = [[7, 8, 13], [7, 10, 11], [10, 13, 14]]
+        self.action_duration = [150, 150, 150]
+        self.demand = []
 
         # Current Action
         self.current_action_index = 0
         self.action_duration_counter = 0
+        self.empty_action_duration_counter = 0
 
         self.reset()
 
@@ -86,15 +89,55 @@ class SimulationManager:
 
             sleep(0.1)
 
+            self.check_demand()
+
             self.action_duration_counter += 1
             if self.action_duration_counter >= self.action_duration[self.current_action_index]:
-                self.action_duration_counter = 0
-                self.current_action_index += 1
-                if self.current_action_index >= len(self.actions):
-                    self.current_action_index = 0
+                demand = self.check_current_demand()
+                if demand and self.action_duration_counter >= 200:
+                    pass
+                else:
+                    self.action_duration_counter = 0
+                    self.empty_action_duration_counter = 0
+                    self.demand_increment_action()
+            elif self.action_duration_counter >= 30:
+                demand = self.check_current_demand()
+                if not demand and len(self.demand) > 0:
+                    self.empty_action_duration_counter += 1
+                    if self.empty_action_duration_counter >= 20:
+                        self.empty_action_duration_counter = 0
+                        self.action_duration_counter = 0
+                        self.demand_increment_action()
 
-    def get_delays(self):
-        return self.simulation.delays
+    def check_demand(self):
+        for action_index, path_uids in enumerate(self.action_paths):
+            if action_index not in self.demand:
+                for path_uid in path_uids:
+                    if path_uid not in self.action_paths[self.current_action_index]:
+                        vehicles = self.simulation.model.get_vehicles_on_path(path_uid)
+                        if len(vehicles) > 0:
+                            self.demand.append(action_index)
+
+    def check_current_demand(self):
+        demand = False
+        for path_uid in self.action_paths[self.current_action_index]:
+            vehicles = self.simulation.model.get_vehicles_on_path(path_uid)
+            if len(vehicles) > 0:
+                demand = True
+        return demand
+
+    def demand_increment_action(self):
+        if len(self.demand) > 0:
+            self.current_action_index = self.demand[0]
+            self.demand.pop(0)
+        else:
+            self.increment_action()
+
+    def increment_action(self):
+        self.current_action_index += 1
+        if self.current_action_index >= len(self.actions):
+            self.current_action_index = 0
+
 
 if __name__ == "__main__":
     # Reference Files
@@ -102,7 +145,7 @@ if __name__ == "__main__":
     configuration_file_path = os.path.join(os.path.dirname(os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))))), "configurations/simulation_config", "cross_road.config")
 
     # Settings
-    scale = 75
+    scale = 50
 
     # Visualiser Init
     visualiser = JunctionVisualiser()

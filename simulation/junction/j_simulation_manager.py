@@ -14,7 +14,7 @@ from gym.spaces import Discrete, Box
 import numpy as np
 from numpy import mean
 
-from simulation.junction.simulation import Simulation
+from simulation.junction.j_simulation import Simulation
 
 
 class SimulationManager:
@@ -218,3 +218,6 @@ class SimulationManager:
         for vehicle in self.simulation.model.vehicles:
             sum_car_speed += vehicle.get_speed()
         return sum_car_speed
+
+    def get_delays(self):
+        return self.simulation.delays

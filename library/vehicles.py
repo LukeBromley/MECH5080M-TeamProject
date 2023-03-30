@@ -5,20 +5,29 @@ from typing import List
 
 
 class Vehicle:
-    def __init__(self, route_uid: int, start_time: float = 0.0, uid: int = 0,
-                 speed: float = 0.0, acceleration: float = 0.0,
-                 direction: float = 0.0, sensing_radius: float = 0.0,
-                 maximum_acceleration: float = 1.5, maximum_deceleration: float = 2.0,
-                 maximum_speed: float = 30.0, minimum_speed: float = 0.0,
-                 distance_travelled: float = 0.0, preferred_time_gap: float = 2.0,
-                 length: float = 4.4, width: float = 1.82,
-                 min_creep_distance: float = 0, maximum_lateral_acceleration: float = 1.1
+    def __init__(self,
+                 uid: int = 0,
+                 start_time: float = 0.0,
+                 route_uid: int = 0,
+                 speed: float = 0.0,
+                 acceleration: float = 0.0,
+                 direction: float = 0.0,
+                 maximum_acceleration: float = 1.5,
+                 maximum_deceleration: float = 2.0,
+                 maximum_speed: float = 30.0,
+                 minimum_speed: float = 0.0,
+                 maximum_lateral_acceleration: float = 1.1,
+                 preferred_time_gap: float = 2.0,
+                 length: float = 4.4,
+                 width: float = 1.82,
+                 sensing_radius: float = 0.0,
+                 min_creep_distance: float = 0,
                  ) -> None:
         """
 
         :param uid: unique identifier for vehicle
         :param start_time: Simulation time when vehicle is spawned
-        :param route: route instance that vehicle is on
+        :param route_uid: route_uid that vehicle is on
         :param speed: initial speed the vehicle [m/s]
         :param acceleration: initial acceleration of the vehicle [m/s**2]
         :param direction: initial direction of the vehicle [radians]
@@ -29,8 +38,8 @@ class Vehicle:
         :param minimum_speed: minimum speed the vehicle [m/s**2]
         :param distance_travelled: distance travelled along a Path [m]
         :param preferred_time_gap: time gap between vehicles [s]
-        :param vehicle_length: length of the vehicle [m]
-        :param vehicle_width: width of the vehicle [m]
+        :param length: length of the vehicle [m]
+        :param width: width of the vehicle [m]
         """
         self.uid = uid
         self.route_uid = route_uid
@@ -158,6 +167,13 @@ class Vehicle:
 
     def get_route_uid(self):
         return self.route_uid
+
+    def add_wait_time(self, time):
+        self.wait_time += time
+
+    def get_max_speed(self):
+        return self._maximum_speed
+
 
 
 class GhostVehicle:

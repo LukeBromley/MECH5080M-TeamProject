@@ -9,7 +9,8 @@ class ControlTab(QtWidgets.QWidget):
     def __init__(self, gui, model):
         """
 
-        Control tab that allows the user to add traffic lights
+        Design tab that allows the user to add traffic lights to the junction.
+
         :param gui: parent gui class
         :param model: model
         """
@@ -35,10 +36,11 @@ class ControlTab(QtWidgets.QWidget):
     def set_add_light_button_state(self) -> None:
         """
 
-        Checks if the add traffic light button should be enabled or not based on if there are any paths
+        Checks if the add traffic light button should be enabled or not based on if there are any paths in the model.
+
         :return: None
         """
-        nodes, paths = self.model.nodes, self.model.paths
+        paths = self.model.paths
         if len(paths) > 0:
             self.add_light_button.setEnabled(True)
         else:
@@ -47,7 +49,8 @@ class ControlTab(QtWidgets.QWidget):
     def _connect(self) -> None:
         """
 
-        Connects callback functions
+        Connects the call back functions of buttons.
+
         :return: None
         """
         self.add_light_button.pressed.connect(self.add_light)
@@ -55,8 +58,8 @@ class ControlTab(QtWidgets.QWidget):
     def update_light_widgets(self) -> None:
         """
 
-        Updates the view with all light data in the model
-        :param lights: list of all lights
+        Updates the widgets for the list of lights in the model.
+
         :return: None
         """
         # Remove all current node and path widgets
@@ -78,20 +81,23 @@ class ControlTab(QtWidgets.QWidget):
     def update_traffic_light_data(self, uid: int, widget_index: int) -> None:
         """
 
-        Updates the model with the current selection that the user has made in the view
-        :param uid: UID of traffic light info to update
-        :param widget_index: Index of traffic light widget with updated info
+        Updates the model with the current selection in the GUI.
+
+        :param uid: uid of traffic light to update
+        :param widget_index: index of widget in light widget list which represents the light
         :return: None
         """
         lights = self.model.lights
         for light in lights:
             if light.uid == uid:
+                # Update model
                 light.path_uids.clear()
                 all_items = [self.light_widgets[widget_index].selected_paths.model().item(i, 0) for i in range(self.light_widgets[widget_index].selected_paths.count())]
                 for item in all_items:
                     if item.checkState() == QtCore.Qt.Checked:
                         light.path_uids.append(int(item.text()))
 
+                # Set identify light state
                 if len(light.path_uids) > 0:
                     self.light_widgets[widget_index].identify.setEnabled(True)
                 else:
@@ -102,7 +108,7 @@ class ControlTab(QtWidgets.QWidget):
     def add_light(self) -> None:
         """
 
-        Adds a light to the model and updates the view
+        Adds a new light to the list of lights and updates widgets
         :return: None
         """
         self.model.add_light([])
@@ -113,8 +119,8 @@ class ControlTab(QtWidgets.QWidget):
     def remove_light(self, uid: int) -> None:
         """
 
-        Deletes a light
-        :param uid: UID of light to delete
+        Removes the specified light from the list of lights and updates widgets
+        :param uid: uid of light to delete
         :return: None
         """
         self.model.remove_light(uid)
@@ -124,8 +130,8 @@ class ControlTab(QtWidgets.QWidget):
     def identify_light(self, uid: int) -> None:
         """
 
-        Creates a list of paths to identify when an identify button is pressed
-        :param uid: UID of light that we want to identify the paths of
+        Creates a list of paths to identify when an light identify button is pressed.
+        :param uid: uid of light that we want to identify the paths of
         :return: None
         """
         lights = self.model.lights
@@ -139,9 +145,10 @@ class TrafficLightWidget(QtWidgets.QWidget):
     def __init__(self, parent_widget, layout=None) -> None:
         """
 
-        PYQT widget for each traffic light
-        :param parent_widget: widget that this widget belongs to
-        :param layout: Layout where this widget is added
+        Widget for representing a Light in the control tab.
+
+        :param parent_widget: parent widget
+        :param layout: layout for the widgets to be added to
         """
         super().__init__(parent_widget)
         if layout is not None:
@@ -165,7 +172,7 @@ class TrafficLightWidget(QtWidgets.QWidget):
     def set_options(self, paths: list) -> None:
         """
 
-        Adds all the options for the selected paths combo box
+        Adds all the options for the selected paths to combo box.
         :param paths: list of paths
         :return: None
         """
@@ -175,8 +182,9 @@ class TrafficLightWidget(QtWidgets.QWidget):
     def set_info(self, uid: int, selected_paths: list) -> None:
         """
 
-        Sets the current model data for the paths
-        :param uid: path uid
+        Sets the info to be displayed by the light widget. This will be updated using information from the model.
+
+        :param uid: light uid
         :param selected_paths: list of all selected paths
         :return:
         """
@@ -194,7 +202,8 @@ class TrafficLightWidget(QtWidgets.QWidget):
     def connect_change(self, function) -> None:
         """
 
-        Connects the callback functions for each light info changes
+        Connects the callback function triggered when a widget in the GUI has changed.
+        The callback function should update the model and visualiser (if required).
         :param function: callback function
         :return: None
         """
@@ -203,7 +212,8 @@ class TrafficLightWidget(QtWidgets.QWidget):
     def connect_identify(self, function) -> None:
         """
 
-        Connects the callback function for light phase identification button
+        Connects the callback function to trigger when the light identification button is selected in the GUI
+        The callback function should update the model and visualiser (if required).
         :param function: callback function
         :return: None
         """
@@ -212,7 +222,8 @@ class TrafficLightWidget(QtWidgets.QWidget):
     def connect_delete(self, function) -> None:
         """
 
-        Connects the callback function for deleting a light phase
+        Connects the callback function to trigger when the light is deleted by the GUI.
+        The callback function should update the model and visualiser (if required).
         :param function: callback function
         :return: None
         """

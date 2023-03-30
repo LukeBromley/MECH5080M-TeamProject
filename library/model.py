@@ -56,7 +56,7 @@ class Model:
             junction_file_location, self.nodes, self.paths, self.lights)
 
     def load_config(self, config_file_location):
-        self.config = self.file_manager.load_config_file(config_file_location)
+        self.config = self.file_manager.load_sim_config_file(config_file_location)
         self.set_tick_rate(self.config.tick_rate)
         self.set_start_time_of_day(self.config.start_time_of_day)
         if self.config.random_seed is not None:
@@ -66,18 +66,20 @@ class Model:
             min_spawn_time=self.config.min_spawn_time,
             mean_spawn_time_per_hour=self.config.mean_spawn_time_per_hour,
             sdev_spawn_time_per_hour=self.config.sdev_spawn_time_per_hour,
-            max_car_length=self.config.max_car_length,
-            min_car_length=self.config.min_car_length,
-            max_car_width=self.config.max_car_width,
-            min_car_width=self.config.min_car_width,
-            mean_car_lengths=self.config.mean_car_lengths,
-            mean_car_widths=self.config.mean_car_widths,
-            sdev_car_lengths=self.config.sdev_car_lengths,
-            sdev_car_widths=self.config.sdev_car_widths,
+            min_spawn_time_per_hour=self.config.min_spawn_time_per_hour,
+            distribution_method=self.config.distribution_method,
+            max_vehicle_length=self.config.max_vehicle_length,
+            min_vehicle_length=self.config.min_vehicle_length,
+            max_vehicle_width=self.config.max_vehicle_width,
+            min_vehicle_width=self.config.min_vehicle_width,
+            mean_vehicle_lengths=self.config.mean_vehicle_lengths,
+            mean_vehicle_widths=self.config.mean_vehicle_widths,
+            sdev_vehicle_lengths=self.config.sdev_vehicle_lengths,
+            sdev_vehicle_widths=self.config.sdev_vehicle_widths
         ))
 
     def save_config(self, config_file_location, configuration):
-        self.file_manager.save_config_file(config_file_location, configuration)
+        self.file_manager.save_sim_config_file(config_file_location, configuration)
 
     def save_results(self, results_file_location):
         self.file_manager.save_results_data_file(results_file_location, self.vehicles)
@@ -231,6 +233,13 @@ class Model:
                 paths.append(path.uid)
         return paths
 
+    def get_paths_from_end_node(self, node_uid):
+        paths = []
+        for path in self.paths:
+            if path.end_node_uid == node_uid:
+                paths.append(path.uid)
+        return paths
+
     def distance_of_first_vehicle_from_start_node(self, node_uid):
         paths_uids = self.get_paths_from_start_node(node_uid)
         distances = []
@@ -294,6 +303,14 @@ class Model:
             return min_path_distance_travelled - 0
         return None
 
+    def get_vehicles_on_path(self, path_uid):
+        vehicle_uids = []
+        for vehicle in self.vehicles:
+            route = self.get_route(vehicle.get_route_uid())
+            if route.get_path_uid(vehicle.get_path_index()) == path_uid:
+                vehicle_uids.append(vehicle.uid)
+        return vehicle_uids
+
     # LIGHTS
     
     def get_light(self, light_uid) -> TrafficLight:
@@ -327,6 +344,18 @@ class Model:
         index = self.get_light_index(light_uid)
         self.lights.pop(index)
         self.update_light_hash_table()
+
+    def get_traffic_light_uids(self):
+        paths_with_lights = []
+        paths_preceding_lights = []
+        for light in self.lights:
+            light_path = light.path_uids[0]
+            paths_with_lights.append(light_path)
+            shared_node = self.get_path(light_path).start_node_uid
+            preceding_paths = self.get_paths_from_end_node(shared_node)
+            for path in preceding_paths:
+                paths_preceding_lights.append(path)
+        return paths_with_lights, paths_preceding_lights
 
     # VEHICLES
     
