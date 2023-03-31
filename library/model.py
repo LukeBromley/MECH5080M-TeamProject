@@ -375,7 +375,7 @@ class Model:
         return velocity_x, velocity_y
     
     def remove_finished_vehicles(self):
-        vehicles_uids_to_remove = []
+        vehicle_uids_to_remove = []
         delays = []
         for vehicle in self.vehicles:
             route = self.get_route(vehicle.get_route_uid())
@@ -383,17 +383,20 @@ class Model:
 
             if vehicle.get_path_distance_travelled() >= path.get_length():
                 if vehicle.get_path_index() == 0:
-                    delays.append(self.get_delay(vehicle))
+                    delays.append(self.get_delay(vehicle.uid))
+
+                # TODO: elif?
                 if vehicle.get_path_index() >= len(self.get_route(vehicle.route_uid).get_path_uids())-1:
-                    vehicles_uids_to_remove.append(vehicle.uid)
+                    vehicle_uids_to_remove.append(vehicle.uid)
                 else:
                     vehicle.increment_path(vehicle.get_path_distance_travelled() - path.get_length())
 
-        for vehicle_uid in vehicles_uids_to_remove:
+        for vehicle_uid in vehicle_uids_to_remove:
             self.remove_vehicle(vehicle_uid)
         return delays
 
-    def get_delay(self, vehicle):
+    def get_delay(self, vehicle_uid):
+        vehicle = self.get_vehicle(vehicle_uid)
         time_to_light = self.calculate_seconds_elapsed() - vehicle.start_time
         distance_travelled = vehicle.get_path_distance_travelled()
         max_speed = vehicle.get_max_speed()

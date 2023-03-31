@@ -212,12 +212,13 @@ class TrafficLight:
 
         self.uid = uid
         self.path_uids = path_uids
+        self.path_uid = path_uids[0]
         self.colour = "green"
         assert self.colour == "green" or self.colour == "amber" or self.colour == "red" or self.colour == "red_amber"
         self.colour_state_index = {
             "green": 0,
-            "amber": 1,
-            "red": 2,
+            "red": 1,
+            "amber": 2,
             "red_amber": 3
         }
 
@@ -231,14 +232,6 @@ class TrafficLight:
 
     def get_state(self):
         return self.colour_state_index[self.colour]
-
-    def set_state(self, colour: str):
-        if colour == "green":
-            if self.colour == "red":
-                self.set_green()
-        elif colour == "red":
-            if self.colour == "green":
-                self.set_red()
 
     def set_green(self):
         if self.include_amber:
@@ -256,7 +249,13 @@ class TrafficLight:
         else:
             self.colour = "red"
 
-    def update(self, time_delta: float = 0.1) -> None:
+    def get_speed(self):
+        return 0.0
+
+    def get_length(self):
+        return 1.0
+
+    def update(self, time_delta: float) -> None:
         """
 
         :rtype: None
@@ -280,10 +279,10 @@ class TrafficLight:
         return 0.0
 
     def allows_traffic(self) -> bool:
-        if self.colour == "red" or self.colour == "amber":
-            return False
-        elif self.colour == "green":
+        if self.colour == "green":
             return True
+        else:
+            return False
 
     def get_time_remaining(self):
         return self.time_remaining

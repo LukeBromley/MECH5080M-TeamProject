@@ -55,6 +55,7 @@ class Vehicle:
         self._maximum_speed = maximum_speed
         self._minimum_speed = minimum_speed
         self._path_distance_travelled = 0.0
+        self._route_distance_travelled = 0.0
         self._preferred_time_gap = preferred_time_gap
         self.length = length
         self.width = width
@@ -84,6 +85,7 @@ class Vehicle:
         self._speed = clamp((self._speed + (self._acceleration * time_delta)), self._minimum_speed, maximum_speed)
 
         self._path_distance_travelled += self._speed * time_delta
+        self._route_distance_travelled += self._speed * time_delta
 
     def _calculate_maximum_speed_due_lateral_acceleration(self, curvature):
         return sqrt(self._maximum_lateral_acceleration / (curvature + 1e-6))
@@ -126,6 +128,9 @@ class Vehicle:
 
     def get_path_distance_travelled(self) -> float:
         return self._path_distance_travelled
+
+    def get_route_distance_travelled(self) -> float:
+        return self._route_distance_travelled
 
     def increment_path(self, path_distance_travelled: float):
         self._path_distance_travelled = path_distance_travelled
