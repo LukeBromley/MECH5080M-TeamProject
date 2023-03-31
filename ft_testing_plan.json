@@ -1,0 +1,111 @@
+{
+  "0": {
+    "RunUID": 0,
+    "RunType": "fixed timings",
+    "Junction": "simple_T_junction.junc",
+    "SimulationConfig": "demand_mean_48.config",
+    "Steps": 10000,
+    "Actions": [4, 2, 1],
+    "ActionDurations": [150, 150, 150],
+    "ActionPaths": []
+  },
+
+  "1": {
+    "RunUID": 1,
+    "RunType": "fixed timings",
+    "Junction": "simple_T_junction.junc",
+    "SimulationConfig": "demand_mean_24.config",
+    "Steps": 10000,
+    "Actions": [4, 2, 1],
+    "ActionDurations": [150, 150, 150],
+    "ActionPaths": []
+  },
+
+  "2": {
+    "RunUID": 2,
+    "RunType": "fixed timings",
+    "Junction": "simple_T_junction.junc",
+    "SimulationConfig": "demand_mean_12.config",
+    "Steps": 10000,
+    "Actions": [4, 2, 1],
+    "ActionDurations": [150, 150, 150],
+    "ActionPaths": []
+  },
+
+  "3": {
+    "RunUID": 3,
+    "RunType": "fixed timings",
+    "Junction": "simple_T_junction.junc",
+    "SimulationConfig": "demand_mean_6.config",
+    "Steps": 10000,
+    "Actions": [4, 2, 1],
+    "ActionDurations": [150, 150, 150],
+    "ActionPaths": []
+  },
+
+  "4": {
+    "RunUID": 4,
+    "RunType": "fixed timings",
+    "Junction": "simple_T_junction.junc",
+    "SimulationConfig": "demand_mean_3.config",
+    "Steps": 10000,
+    "Actions": [4, 2, 1],
+    "ActionDurations": [150, 150, 150],
+    "ActionPaths": []
+  },
+
+  "5": {
+    "RunUID": 5,
+    "RunType": "demand scheduling",
+    "Junction": "simple_T_junction.junc",
+    "SimulationConfig": "demand_mean_48.config",
+    "Steps": 10000,
+    "Actions": [4, 2, 1],
+    "ActionDurations": [150, 150, 150],
+    "ActionPaths": [[10], [3], [5]]
+  },
+
+  "6": {
+    "RunUID": 6,
+    "RunType": "demand scheduling",
+    "Junction": "simple_T_junction.junc",
+    "SimulationConfig": "demand_mean_24.config",
+    "Steps": 10000,
+    "Actions": [4, 2, 1],
+    "ActionDurations": [150, 150, 150],
+    "ActionPaths": [[10], [3], [5]]
+  },
+
+  "7": {
+    "RunUID": 7,
+    "RunType": "demand scheduling",
+    "Junction": "simple_T_junction.junc",
+    "SimulationConfig": "demand_mean_12.config",
+    "Steps": 10000,
+    "Actions": [4, 2, 1],
+    "ActionDurations": [150, 150, 150],
+    "ActionPaths": [[10], [3], [5]]
+  },
+
+  "8": {
+    "RunUID": 8,
+    "RunType": "demand scheduling",
+    "Junction": "simple_T_junction.junc",
+    "SimulationConfig": "demand_mean_6.config",
+    "Steps": 10000,
+    "Actions": [4, 2, 1],
+    "ActionDurations": [150, 150, 150],
+    "ActionPaths": [[10], [3], [5]]
+  },
+
+  "9": {
+    "RunUID": 9,
+    "RunType": "demand scheduling",
+    "Junction": "simple_T_junction.junc",
+    "SimulationConfig": "demand_mean_3.config",
+    "Steps": 10000,
+    "Actions": [4, 2, 1],
+    "ActionDurations": [150, 150, 150],
+    "ActionPaths": [[10], [3], [5]]
+  }
+}
