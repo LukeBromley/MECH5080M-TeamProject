@@ -1,3 +1,4 @@
+import itertools
 import random
 from platform import system
 
@@ -18,6 +19,7 @@ from simulation.junction.j_simulation import Simulation
 
 class SimulationManager:
     def __init__(self, junction_file_path, config_file_path, visualiser_update_function=None):
+        self.action_table = None
         self.junction_file_path = junction_file_path
         self.config_file_path = config_file_path
         self.visualiser_update_function = visualiser_update_function
@@ -27,19 +29,24 @@ class SimulationManager:
 
         # Actions
         self.number_of_possible_actions, self.action_space = self.calculate_actions()
-        self.wait_time = []
 
         # TODO: Soft code the id's
         self.light_controlled_path_uids = [1, 4]
         self.light_path_uids = [2, 5]
 
+        # TODO: Try combining both and using route_distance_travelled for input oir distance to the traffic light?
+
         # Inputs / States
-        self.features_per_state_input = 4
-        self.number_of_tracked_vehicles_per_path = 5
-        self.observation_space_size = self.features_per_state_input * len(self.light_controlled_path_uids) * (self.number_of_tracked_vehicles_per_path)
+        self.features_per_vehicle_state = 3
+        self.features_per_traffic_light_state = 0
+        self.number_of_tracked_vehicles_per_light_controlled_path = 6
+        self.number_of_tracked_vehicles_per_light_path = 1
+        self.observation_space_size = self.features_per_vehicle_state * (
+                len(self.light_controlled_path_uids) * self.number_of_tracked_vehicles_per_light_controlled_path +
+                len(self.light_path_uids) * self.number_of_tracked_vehicles_per_light_path
+        ) + self.features_per_traffic_light_state * len(self.simulation.model.lights)
 
         self.light_controlled_path_uids += self.light_path_uids
-        self.observation_space_size += self.features_per_state_input * len(self.light_path_uids)
 
         # TODO: Initialize separate boxes by argmax for different inputs
         self.observation_space = Box(0, 50, shape=(1, self.observation_space_size), dtype=float)
@@ -49,77 +56,89 @@ class SimulationManager:
         simulation = Simulation(self.junction_file_path, self.config_file_path, self.visualiser_update_function)
         return simulation
 
-    def calculate_actions(self):
-        number_of_actions = 2 ** len(self.simulation.model.lights) - 1
-        return number_of_actions, Discrete(number_of_actions)
-
     def reset(self):
         self.simulation = self.create_simulation()
-        self.freeze_traffic()
-        return np.zeros(self.observation_space_size)
+        self.freeze_traffic(80)
+        return self.get_state()
 
     def freeze_traffic(self, n: int = None):
         if n is None:
-            n = random.randint(25 * self.simulation.model.tick_rate, 30 * self.simulation.model.tick_rate)
+            n = random.randint(15, 20)
 
         for light in self.simulation.model.lights:
             light.set_red()
 
-        for step in range(n):
+        for step in range(n * self.simulation.model.tick_rate):
             self.simulation.compute_single_iteration()
 
+    def calculate_actions(self):
+        # TODO: Sparse actions
+        # Avoid do nothing action if not using RNN
+        self.action_table = list(itertools.product([-1, 1], repeat=len(self.simulation.model.lights)))
+        # self.action_table = []
+        # for action in list(itertools.product([-1, 0, 1], repeat=len(self.simulation.model.lights))):
+        #     if action.count(0) >= len(self.simulation.model.lights) - 1:
+        #         self.action_table.append(action)
+        # self.do_nothing_action_index = self.action_table.index(tuple([0 for _ in range(len(self.simulation.model.lights))]))
+        number_of_actions = len(self.action_table)
+        return number_of_actions, Discrete(number_of_actions)
+
+    def get_legal_actions(self):
+        return list(range(len(self.action_table)))
+
+        # lights = self.simulation.model.lights
+        # legal_actions = []
+        # for action_index, action in enumerate(self.action_table):
+        #     legal = True
+        #     for light_index, light in enumerate(lights):
+        #         if (
+        #                 (action[light_index] == 1 and light.colour == "red") or
+        #                 (action[light_index] == -1 and light.colour == "green") or
+        #                 action[light_index] == 0
+        #         ):
+        #             continue
+        #         else:
+        #             legal = False
+        #             break
+        #     if legal:
+        #         legal_actions.append(action_index)
+        # return legal_actions
+
+    def get_illegal_actions(self):
+        return [index for index in range(len(self.action_table)) if index not in self.get_legal_actions()]
+
     def take_action(self, action_index):
-        # TODO: soft code
-        penalty = 0
-        if action_index == 0:
-            self.simulation.model.lights[0].set_red()
-            self.simulation.model.lights[1].set_green()
-            # if light.colour == "green":
-            #     light.set_red()
-            # else:
-            #     penalty = 1000
-        elif action_index == 1:
-            self.simulation.model.lights[1].set_red()
-            self.simulation.model.lights[0].set_green()
-            # if light.colour == "green":
-            #     light.set_red()
-            # else:
-            #     penalty = 1000
-        elif action_index == 2:
-            self.simulation.model.lights[0].set_red()
-            self.simulation.model.lights[1].set_red()
-            # if light.colour == "red":
-            #     light.set_green()
-            # else:
-            #     penalty = 1000
-        else:
-            raise Exception("invalid action")
-        # elif action_index == 4:
-        #     self.simulation.model.lights[1].set_green()
-        #     # if light.colour == "red":
-        #     #     light.set_green()
-        #     # else:
-        #     #     penalty = 1000
-        return penalty
+        action = self.action_table[action_index]
+        for light_index, light in enumerate(self.simulation.model.lights):
+            if action[light_index] == 1:
+                light.set_green()
+            elif action[light_index] == -1:
+                light.set_red()
+            else:
+                continue
 
     def get_vehicle_state(self, vehicle: Vehicle):
+        x, y = self.simulation.model.get_vehicle_coordinates(vehicle.uid)
         return [
-            vehicle.get_path_distance_travelled(),
-            vehicle.get_speed(),
-            vehicle.wait_time
+            vehicle.get_route_distance_travelled(),
+            vehicle.get_speed()
+            # vehicle.wait_time,
+            # x,
+            # y,
             # vehicle.get_length(),
             # vehicle.get_acceleration()
         ]
 
     def get_traffic_light_state(self, light: TrafficLight):
         return [
-            light.get_state(),
-            light.get_time_remaining()
+            light.get_state()
+            # light.time_remaining,
+            # light.path_uid
         ]
 
     def get_state(self):
-        # TODO: Add info about vehicles past the traffic light
         inputs = []
+
         # for light in self.simulation.model.lights:
         #     inputs += self.get_traffic_light_state(light)
 
@@ -138,17 +157,17 @@ class SimulationManager:
             path_inputs[index] = flattened_path_input
 
         for index, path_input in enumerate(path_inputs):
-            if index < 2:
-                inputs += self.pad_state_input(path_input, self.number_of_tracked_vehicles_per_path)
+            if index < len(self.light_controlled_path_uids) - len(self.light_path_uids):
+                inputs += self.pad_state_input(path_input, self.number_of_tracked_vehicles_per_light_controlled_path)
             else:
-                inputs += self.pad_state_input(path_input, 1)
-        return inputs
+                inputs += self.pad_state_input(path_input, self.number_of_tracked_vehicles_per_light_path)
+        return np.array(inputs)
 
     def pad_state_input(self, state_input: list, n: int):
-        if len(state_input) > self.features_per_state_input * n:
-            state_input = state_input[:self.features_per_state_input * n]
+        if len(state_input) > self.features_per_vehicle_state * n:
+            state_input = state_input[:self.features_per_vehicle_state * n]
         else:
-            state_input += [np.NAN] * (self.features_per_state_input * n - len(state_input))
+            state_input += [0.0] * (self.features_per_vehicle_state * n - len(state_input))
 
         # # TODO: Implement shuffling
         # tupled_state_input = []
@@ -162,26 +181,25 @@ class SimulationManager:
         return state_input
 
     def get_mean_wait_time(self):
-        if self.wait_time:
-            wait_time = self.wait_time
-            wait_time.sort()
+        wait_times = [vehicle.wait_time for vehicle in self.simulation.model.vehicles]
+        if wait_times:
+            wait_times.sort()
 
             dot_product = 0
             sum_coeff = 0
 
-            for index, value in enumerate(wait_time):
+            for index, value in enumerate(wait_times):
                 sum_coeff += (index + 1)**2
                 dot_product += value * (index+1)**2
             return dot_product / sum_coeff
         else:
             return 0.0
 
-    def calculate_reward(self):
-        self.wait_time = [vehicle.wait_time for vehicle in self.simulation.model.vehicles]
-        reward = 100 - self.get_mean_wait_time()**2
-        if self.simulation.model.detect_collisions():
-            reward -= 10000
-        return reward / 1000
+    def get_state_value(self):
+        return sum([self.simulation.model.get_delay(vehicle.uid) for vehicle in self.simulation.model.vehicles if vehicle.get_path_index() == 0])
+
+    def get_sum_wait_time(self):
+        return sum([vehicle.wait_time for vehicle in self.simulation.model.vehicles])
 
     def get_lights(self):
         return self.simulation.model.get_lights()
@@ -194,12 +212,12 @@ class SimulationManager:
     def get_number_of_vehicles_waiting(self):
         number_of_cars_waiting = 0
         for vehicle in self.simulation.model.vehicles:
-            if vehicle.get_speed() < self.waiting_speed:
+            if vehicle.get_speed() < 3:
                 number_of_cars_waiting += 1
         return number_of_cars_waiting
 
     def get_total_vehicle_wait_time(self):
-        return sum(self.wait_time)
+        return sum([vehicle.wait_time for vehicle in self.simulation.model.vehicles])
 
     def get_total_vehicle_wait_time_exp(self, exponent):
         return self.get_total_vehicle_wait_time()**exponent

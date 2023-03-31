@@ -133,8 +133,7 @@ class FileManagement:
         # Load light data
         lights = []
         for uid in file_dict[self.lights_key]:
-            lights.append(TrafficLight(
-                int(uid), file_dict[self.lights_key][uid][0]))
+            lights.append(TrafficLight(int(uid), file_dict[self.lights_key][uid][0], include_amber=False))
 
         # Return the data
         return nodes, paths, lights
