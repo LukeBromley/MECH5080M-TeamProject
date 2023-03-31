@@ -396,7 +396,7 @@ class Model:
             path = self.get_path(route.get_path_uid(vehicle.get_path_index()))
             if vehicle.get_path_distance_travelled() >= path.get_length():
                 if vehicle.get_path_index() == 0:
-                    delays.append(self.get_delay(vehicle))
+                    delays.append(self.get_delay(vehicle.uid))
         return delays
 
     def get_delay(self, vehicle_uid):
