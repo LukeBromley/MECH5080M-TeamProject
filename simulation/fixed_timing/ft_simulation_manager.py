@@ -4,7 +4,7 @@ if system() == 'Windows':
     sys.path.append('../')
 
 import os
-
+from functools import partial
 from time import sleep
 
 from simulation.junction.j_simulation import Simulation
@@ -22,8 +22,8 @@ class SimulationManager:
 
         # Actions
         self.number_of_lights, self.number_of_possible_actions = self.calculate_possible_actions()
-        self.actions = [35, 32, 56, 16, 22, 2]
-        self.action_duration = [150, 30, 150, 30, 150, 30]
+        self.actions = [2, 0, 1, 0]
+        self.action_duration = [150, 30, 150, 30]
 
         # Current Action
         self.current_action_index = 0
@@ -34,7 +34,9 @@ class SimulationManager:
     def calculate_possible_actions(self):
         number_of_lights = len(self.simulation.model.lights)
         number_of_possible_actions = 2**(number_of_lights)
+        return number_of_lights, number_of_possible_actions
 
+    def print_possible_actions(self):
         print("--- Possible actions ---")
 
         uid_strings = ""
@@ -45,8 +47,8 @@ class SimulationManager:
             uid_strings += uid_string
         print("Index  ", uid_strings)
 
-        for index in range(number_of_possible_actions):
-            bin = format(index, '0' + str(number_of_lights) + 'b')
+        for index in range(self.number_of_possible_actions):
+            bin = format(index, '0' + str(self.number_of_lights) + 'b')
             bin_string = ""
             for bit in bin:
                 bin_string += bit + "      "
@@ -55,8 +57,6 @@ class SimulationManager:
                 index_string += " "
 
             print(index_string, bin_string)
-
-        return number_of_lights, number_of_possible_actions
 
     def create_simulation(self):
         simulation = Simulation(self.junction_file_path, self.config_file_path, self.visualiser_update_function)
@@ -76,15 +76,19 @@ class SimulationManager:
     def get_lights(self):
         return self.simulation.model.get_lights()
 
-    def run(self):
-        for i in range(10000):
+    def run(self, number_of_iterations, actions, action_duration, visualiser_delay=False):
+        self.actions = actions
+        self.action_duration = action_duration
+
+        for i in range(number_of_iterations):
             self.take_action(self.actions[self.current_action_index])
 
             self.simulation.run_single_iteration()
 
-            self.simulation.collision = self.simulation.model.detect_collisions()
+            if visualiser_delay:
+                sleep(0.1)
 
-            sleep(0.1)
+            self.simulation.collision = self.simulation.model.detect_collisions()
 
             self.action_duration_counter += 1
             if self.action_duration_counter >= self.action_duration[self.current_action_index]:
@@ -93,13 +97,11 @@ class SimulationManager:
                 if self.current_action_index >= len(self.actions):
                     self.current_action_index = 0
 
-    def get_delays(self):
-        return self.simulation.delays
 
 if __name__ == "__main__":
     # Reference Files
-    junction_file_path = os.path.join(os.path.dirname(os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))))), "junctions", "scale_library_pub_junction.junc")
-    configuration_file_path = os.path.join(os.path.dirname(os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))))), "configurations/simulation_config", "cross_road.config")
+    junction_file_path = os.path.join(os.path.dirname(os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))))), "junctions", "simple_T_junction.junc")
+    configuration_file_path = os.path.join(os.path.dirname(os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))))), "configurations/simulation_config", "demand_mean_12.config")
 
     # Settings
     scale = 75
@@ -108,11 +110,12 @@ if __name__ == "__main__":
     visualiser = JunctionVisualiser()
 
     simulation_manager = SimulationManager(junction_file_path, configuration_file_path, visualiser_update_function=visualiser.update)
+    simulation_manager.print_possible_actions()
 
     # Visualiser Setup
-    visualiser.define_main(simulation_manager.run)
+    visualiser.define_main(partial(simulation_manager.run, 10000, [4, 2, 1], [150, 150, 150], visualiser_delay=True))
     visualiser.load_junction(junction_file_path)
     visualiser.set_scale(scale)
-    #
+
     # Run Simulation
     visualiser.open()

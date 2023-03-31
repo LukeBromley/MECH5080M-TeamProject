@@ -349,12 +349,12 @@ class Model:
         paths_with_lights = []
         paths_preceding_lights = []
         for light in self.lights:
-            light_path = light.path_uids[0]
-            paths_with_lights.append(light_path)
-            shared_node = self.get_path(light_path).start_node_uid
-            preceding_paths = self.get_paths_from_end_node(shared_node)
-            for path in preceding_paths:
-                paths_preceding_lights.append(path)
+            for path_uid in light.path_uids:
+                paths_with_lights.append(path_uid)
+                shared_node = self.get_path(path_uid).start_node_uid
+                preceding_paths = self.get_paths_from_end_node(shared_node)
+                for path in preceding_paths:
+                    paths_preceding_lights.append(path)
         return paths_with_lights, paths_preceding_lights
 
     # VEHICLES
@@ -428,8 +428,9 @@ class Model:
         distance_travelled_offset = this_path.get_length() - this_vehicle_path_distance_travelled
         for path_uid in path_uids_ahead:
             for light in self.lights:
-                if light.path_uids[0] == path_uid and not light.allows_traffic():
-                    return light, distance_travelled_offset
+                for light_path_uid in light.path_uids:
+                    if light_path_uid == path_uid and not light.allows_traffic():
+                        return light, distance_travelled_offset
             for that_vehicle in self.vehicles:
                 that_path = self.get_path(self.get_route(that_vehicle.get_route_uid()).get_path_uid(that_vehicle.get_path_index()))
                 that_vehicle_path_distance_travelled = that_vehicle.get_path_distance_travelled()
