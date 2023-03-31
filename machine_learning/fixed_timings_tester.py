@@ -50,9 +50,22 @@ class FixedTimingsTester:
         time_begin = time.perf_counter()
         for run in self.training_runs:
             # MEGAMAINTEST - run_training_runs must also be passed all parameters from the iteration file.
-            time_taken, mean_average, standard_deviation, maximum, minimum, num_vehicles, delays = self.run_testing_run(run["RunUID"], run["RunType"], run["Junction"], run["SimulationConfig"], run["Steps"], run["Actions"], run["ActionDurations"], run["ActionPaths"])
+            time_taken, delay_mean_average, delay_standard_deviation, delay_maximum, delay_minimum, delay_num_vehicles, delays, \
+            backup_mean_average, backup_standard_deviation, backup_maximum, backup_time, backup = self.run_testing_run(run["RunUID"], run["RunType"], run["Junction"], run["SimulationConfig"], run["Steps"], run["Actions"], run["ActionDurations"], run["ActionPaths"])
             # MEGAMAINTEST - make sure any results are returned here and 'run' is updated with them in dictionary format.
-            run.update({"Time Taken": time_taken, "Mean Average": mean_average, "Standard Deviation": standard_deviation, "Maximum": maximum, "Minimum": minimum, "Number Of Cars": num_vehicles, "Delays": delays})
+            run.update({"Time Taken": time_taken,
+                        "Delay Mean Average": delay_mean_average,
+                        "Delay Standard Deviation": delay_standard_deviation,
+                        "Delay Maximum": delay_maximum,
+                        "Delay Minimum": delay_minimum,
+                        "Delay Number Of Cars": delay_num_vehicles,
+                        "Delay": delays,
+                        "Backup Mean Average": backup_mean_average,
+                        "Backup Standard Deviation": backup_standard_deviation,
+                        "Backup Maximum": backup_maximum,
+                        "Backup Time": backup_time,
+                        "Backup": backup
+                        })
             self.make_results_directory(run)
         time_taken = time.perf_counter() - time_begin
         # MEGAMAINTEST - Add any results you want printed to terminal as required.
@@ -82,15 +95,45 @@ class FixedTimingsTester:
 
         time_taken = time.perf_counter() - time_begin
 
-        mean_average = mean(simulation_manager.simulation.delays)
-        standard_deviation = stdev(simulation_manager.simulation.delays)
-        maximum = max(simulation_manager.simulation.delays)
-        minimum = min(simulation_manager.simulation.delays)
-        num_vehicles = len(simulation_manager.simulation.delays)
+        delay_mean_average = mean(simulation_manager.simulation.delays)
+        delay_standard_deviation = stdev(simulation_manager.simulation.delays)
+        delay_maximum = max(simulation_manager.simulation.delays)
+        delay_minimum = min(simulation_manager.simulation.delays)
+        delay_num_vehicles = len(simulation_manager.simulation.delays)
 
-        print("\nTraining Complete.\n    Time Taken To Train: " + str(time_taken) + "\n    Mean Average:" + str(mean_average) + "\n    Standard Deviation:" + str(standard_deviation) + "\n    Maximum Delay:" + str(maximum) + "\n    Minimum Delay: " + str(minimum))
+        print("\nTraining Complete."
+              + "\n    Time Taken To Train: " + str(time_taken))
 
-        return time_taken, mean_average, standard_deviation, maximum, minimum, num_vehicles, simulation_manager.simulation.delays
+        print("\n Delay Data:"
+              + "\n    Delay Mean Average:" + str(delay_mean_average)
+              + "\n    Delay Standard Deviation:" + str(delay_standard_deviation)
+              + "\n    Delay Maximum Delay:" + str(delay_maximum)
+              + "\n    Delay Minimum Delay: " + str(delay_minimum)
+              + "\n    Delay Number Of Vehicles: " + str(delay_num_vehicles))
+
+        print("\n Path Backup Data:")
+
+        backup_mean_average = {}
+        backup_standard_deviation = {}
+        backup_maximum = {}
+        backup_time = {}
+
+        for path in simulation_manager.simulation.path_backup:
+
+            backup_mean_average[path] = mean(simulation_manager.simulation.path_backup[path])
+            backup_standard_deviation[path] = stdev(simulation_manager.simulation.path_backup[path])
+            backup_maximum[path] = max(simulation_manager.simulation.path_backup[path])
+            backup_time[path] = 0
+            if path in simulation_manager.simulation.path_backup_total:
+                backup_time[path] = simulation_manager.simulation.path_backup_total[path]
+
+            print("\n    Path " + str(path) + ": "
+                  + "\n        Backup Mean Average:" + str(backup_mean_average[path])
+                  + "\n        Backup Standard Deviation:" + str(backup_standard_deviation[path])
+                  + "\n        Backup Maximum Delay:" + str(backup_maximum[path])
+                  + "\n        Backup Time:" + str(backup_time[path]))
+
+        return time_taken, delay_mean_average, delay_standard_deviation, delay_maximum, delay_minimum, delay_num_vehicles, simulation_manager.simulation.delays, backup_mean_average, backup_standard_deviation, backup_maximum, backup_time, simulation_manager.simulation.path_backup
 
     def get_file_path(self, path_names):
         file_path = os.path.dirname(os.path.join(os.path.dirname(__file__)))
@@ -108,5 +151,13 @@ class FixedTimingsTester:
 
         with open(results_directory_path + "/training_run_delay_results.csv", 'w') as file:
             write = csv.writer(file)
-            for value in run["Delays"]:
+            for value in run["Delay"]:
                 write.writerow([value])
+
+        with open(results_directory_path + "/training_run_backup_results.csv", 'w') as file:
+            write = csv.writer(file)
+            for i in range(len(run["Backup"][list(run["Backup"].keys())[0]])):
+                values = []
+                for path in run["Backup"]:
+                    values.append(run["Backup"][path][i])
+                write.writerow(values)

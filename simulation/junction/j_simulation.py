@@ -26,6 +26,8 @@ class Simulation:
         self.model.load_config(config_file_path)
         self.vehicle_data = []
         self.delays = []
+        self.path_backup_total = {}
+        self.path_backup = {}
         self.collision = False
 
         # Visualiser
@@ -78,10 +80,25 @@ class Simulation:
             elif vehicle.get_speed() > 3:
                 vehicle.wait_time = 0.0
 
-        # Remove finished vehicles
-        delays = self.model.remove_finished_vehicles()
+        # Calculate Performance Statistics
+        self.delays = self.delays + self.model.get_vehicle_delays()
 
-        self.delays = self.delays + delays
+        path_backup_total, path_backup = self.model.get_backed_up_paths(4, 5)
+
+        for path_uid in path_backup_total:
+            if str(path_uid) in self.path_backup_total:
+                self.path_backup_total[str(path_uid)] += self.model.tick_time
+            else:
+                self.path_backup_total[str(path_uid)] = self.model.tick_time
+
+        for path_uid in path_backup:
+            if path_uid in self.path_backup:
+                self.path_backup[path_uid].append(path_backup[path_uid])
+            else:
+                self.path_backup[path_uid] = [path_backup[path_uid]]
+
+        # Remove finished vehicles
+        self.model.remove_finished_vehicles()
 
         # Increment Time
         self.model.tock()
