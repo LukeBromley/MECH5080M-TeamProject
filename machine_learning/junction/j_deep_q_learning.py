@@ -36,7 +36,7 @@ random.seed(111)
 # Reduce number of inputs
 # Reduce number of neutrons
 # Reward should be based on speed rather than wait_time
-
+# Seems like the model converges to different strategies every time (1 car at a time vs 5 cars at a time)
 
 # Updates:
 
@@ -99,7 +99,7 @@ class MachineLearning:
         # Number of steps of just random actions before the network can make some decisions
         self.number_of_steps_of_required_exploration = 5000
         # Number of steps over which epsilon greedy decays
-        self.number_of_steps_of_exploration_reduction = 50000
+        self.number_of_steps_of_exploration_reduction = 10000
         # Train the model after 4 actions
         self.update_after_actions = 6
         # How often to update the target network
@@ -513,10 +513,12 @@ class MachineLearning:
 
             listener.join()
 
-    def test(self, model=None):
+    def test(self):
         episode = 1
 
+        model = keras.models.load_model("saved_model")
         for episode in range(1, episode + 1):
+
             # Reset the environment
             self.simulation_manager.reset()
             episode_reward = 0
@@ -530,15 +532,14 @@ class MachineLearning:
 
                 if model:
                     # Remove illegal actions
-                    action_probabilities = np.array(model.predict(self.simulation_manager.get_state().reshape(1, -1), verbose=0)[0])
+                    action_probabilities = model(self.simulation_manager.get_state().reshape(1, -1))[0].numpy()
                     action_probabilities[self.simulation_manager.get_illegal_actions()] = np.NAN
-                    action = np.nanargmax(action_probabilities)
-                    print(action)
+                    action_index = np.nanargmax(action_probabilities)
+                else:
+                    state = self.simulation_manager.get_state()
 
-                state = self.simulation_manager.get_state()
-
-                # Select an action
-                action_index = self.select_action(state)
+                    # Select an action
+                    action_index = self.select_action(state)
 
                 # Step the simulation
                 reward = self.step(action_index, td=False)
@@ -587,18 +588,18 @@ if __name__ == "__main__":
     visualiser_update_function = visualiser.update
     # visualiser_update_function = None
     # Simulation
-    # simulation = SimulationManager(junction_file_path, configuration_file_path, visualiser_update_function)
-    simulation = SimulationManager(junction_file_path, configuration_file_path, None)
+    simulation = SimulationManager(junction_file_path, configuration_file_path, visualiser_update_function)
+    # simulation = SimulationManager(junction_file_path, configuration_file_path, None)
     machine_learning = MachineLearning(simulation, machine_learning_config=None)
     #
     # machine_learning.test()
-    machine_learning.train()
+    # machine_learning.train()
 
     # # Visualiser Setup
-    # visualiser.define_main(machine_learning.train)
-    # visualiser.load_junction(junction_file_path)
-    # visualiser.set_scale(scale)
-    # #
-    # # Run Simulation
-    # visualiser.open()
+    visualiser.define_main(machine_learning.test)
+    visualiser.load_junction(junction_file_path)
+    visualiser.set_scale(scale)
+    #
+    # Run Simulation
+    visualiser.open()
 
