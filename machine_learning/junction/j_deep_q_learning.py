@@ -103,9 +103,9 @@ class MachineLearning:
         # Train the model after 4 actions
         self.update_after_actions = 8
         # How often to update the target network
-        self.update_target_network = 2500
+        self.update_target_network = 5000
         # Penalty for collision
-        self.collision_penalty = 1000
+        self.collision_penalty = 500
 
         # REPLAY
         # Buffers
@@ -522,7 +522,7 @@ class MachineLearning:
     def test(self):
         episode = 1
 
-        model = keras.models.load_model("saved_model")
+        model = keras.models.load_model("saved_model-52729")
         for episode in range(1, episode + 1):
 
             # Reset the environment
@@ -530,7 +530,6 @@ class MachineLearning:
             episode_reward = 0
             episode_steps = 0
 
-            action_table = self.simulation_manager.action_table
             # Run steps in episode
             while True:
                 # Increment the total number of steps taken by the AI in total.
@@ -539,11 +538,10 @@ class MachineLearning:
                 if model:
                     # Remove illegal actions
                     action_probabilities = model(self.simulation_manager.get_state().reshape(1, -1))[0].numpy()
-                    action_probabilities[self.simulation_manager.get_illegal_actions()] = np.NAN
+                    # action_probabilities[self.simulation_manager.get_illegal_actions()] = np.NAN
                     action_index = np.nanargmax(action_probabilities)
                 else:
                     state = self.simulation_manager.get_state()
-
                     # Select an action
                     action_index = self.select_action(state)
 
@@ -601,7 +599,7 @@ if __name__ == "__main__":
     # machine_learning.test()
     machine_learning.train()
 
-    # # # Visualiser Setup
+    # # Visualiser Setup
     # visualiser.define_main(machine_learning.test)
     # visualiser.load_junction(junction_file_path)
     # visualiser.set_scale(scale)
