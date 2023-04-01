@@ -82,7 +82,7 @@ class MachineLearning:
         self.all_time_reward = 0  # Total reward over all episodes
 
         # TRAINING LIMITS
-        self.max_episode_length_in_seconds = 30
+        self.max_episode_length_in_seconds = 60
         self.max_steps_per_episode = self.max_episode_length_in_seconds * self.simulation_manager.simulation.model.tick_rate  # Maximum number of steps allowed per episode
         self.episode_end_reward = -float("inf")  # Single episode total reward minimum threshold to end episode. Should be low to allow exploration
         self.solved_mean_reward = float("inf")  # Single episode total reward minimum threshold to consider ML trained
@@ -119,7 +119,7 @@ class MachineLearning:
         self.number_of_temporal_difference_steps = 5 * self.simulation_manager.simulation.model.tick_rate
 
         # Sample Size
-        self.sample_size = 512  # Size of batch taken from replay buffer
+        self.sample_size = 1024  # Size of batch taken from replay buffer
 
         # Discount factor
         self.gamma = 0.95  # Discount factor for past rewards
@@ -139,7 +139,7 @@ class MachineLearning:
 
         # MACHINE LEARNING MODELS
         n = len(self.simulation_manager.action_table)
-        self.ml_model_hidden_layers = [n, n, n]
+        self.ml_model_hidden_layers = [n]
 
         # Change configurations to ones supplied in machine_learning_config
         if machine_learning_config is not None:

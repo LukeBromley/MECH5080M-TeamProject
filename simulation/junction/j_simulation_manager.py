@@ -194,7 +194,7 @@ class SimulationManager:
             return 0.0
 
     def get_state_value(self):
-        return sum([self.simulation.model.get_delay(vehicle.uid) for vehicle in self.simulation.model.vehicles if vehicle.get_path_index() == 0])
+        return sum([self.simulation.model.get_delay(vehicle.uid)**2 for vehicle in self.simulation.model.vehicles if vehicle.get_path_index() == 0])
 
     def get_sum_wait_time(self):
         return sum([vehicle.wait_time for vehicle in self.simulation.model.vehicles])
