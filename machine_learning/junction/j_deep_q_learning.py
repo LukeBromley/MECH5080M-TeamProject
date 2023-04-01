@@ -86,7 +86,7 @@ class MachineLearning:
         self.max_steps_per_episode = self.max_episode_length_in_seconds * self.simulation_manager.simulation.model.tick_rate  # Maximum number of steps allowed per episode
         self.episode_end_reward = -float("inf")  # Single episode total reward minimum threshold to end episode. Should be low to allow exploration
         self.solved_mean_reward = float("inf")  # Single episode total reward minimum threshold to consider ML trained
-        self.reward_history_limit = 20
+        self.reward_history_limit = 10
         self.max_mean_reward_solved = self.episode_end_reward
 
         # TAKING AN ACTION
@@ -99,11 +99,11 @@ class MachineLearning:
         # Number of steps of just random actions before the network can make some decisions
         self.number_of_steps_of_required_exploration = 5000
         # Number of steps over which epsilon greedy decays
-        self.number_of_steps_of_exploration_reduction = 10000
+        self.number_of_steps_of_exploration_reduction = 100000
         # Train the model after 4 actions
-        self.update_after_actions = 6
+        self.update_after_actions = 8
         # How often to update the target network
-        self.update_target_network = 1000
+        self.update_target_network = 2500
         # Penalty for collision
         self.collision_penalty = 1000
 
@@ -116,13 +116,13 @@ class MachineLearning:
         self.episode_reward_history = []
 
         # Steps to look into the future to determine the mean reward. Should match T = 1/(1-gamma)
-        self.number_of_temporal_difference_steps = 2 * self.simulation_manager.simulation.model.tick_rate
+        self.number_of_temporal_difference_steps = 5 * self.simulation_manager.simulation.model.tick_rate
 
         # Sample Size
-        self.sample_size = 124  # Size of batch taken from replay buffer
+        self.sample_size = 512  # Size of batch taken from replay buffer
 
         # Discount factor
-        self.gamma = 0.98  # Discount factor for past rewards
+        self.gamma = 0.95  # Discount factor for past rewards
 
         # Maximum replay buffer length
         # Note: The Deepmind paper suggests 1000000 however this causes memory issues
@@ -130,7 +130,7 @@ class MachineLearning:
 
         # OPTIMISING
         # Note: In the Deepmind paper they use RMSProp however then Adam optimizer
-        self.learning_rate = 0.0001  # 0.00025
+        self.learning_rate = 0.00001  # 0.00025
         self.optimizer = keras.optimizers.legacy.Adam(learning_rate=self.learning_rate, clipnorm=1.0)
 
         # OTHER
@@ -138,8 +138,8 @@ class MachineLearning:
         self.loss_function = keras.losses.Huber()
 
         # MACHINE LEARNING MODELS
-        n = self.simulation_manager.observation_space_size
-        self.ml_model_hidden_layers = [n]
+        n = len(self.simulation_manager.action_table)
+        self.ml_model_hidden_layers = [n, n, n]
 
         # Change configurations to ones supplied in machine_learning_config
         if machine_learning_config is not None:
@@ -363,6 +363,12 @@ class MachineLearning:
 
     def select_action(self, state, target: bool = False):
         if target:
+            # if self.number_of_steps_taken < self.number_of_steps_of_required_exploration or self.epsilon_greedy > np.random.rand(1)[0]:
+            #     # Take random action
+            #     action = self.select_random_action()
+            # else:
+
+            # Adds stability in early predictions compared to random choice
             action = self.select_best_action(state, target)
         else:
             # Exploration vs Exploitation
@@ -492,7 +498,7 @@ class MachineLearning:
 
         with keyboard.Listener(on_press=on_press, on_release=on_release) as listener:
             self.simulation_manager.reset()
-            action_index = self.simulation_manager.do_nothing_action_index
+            action_index = self.simulation_manager.action_table.index(tuple([-1 for _ in range(len(self.simulation_manager.simulation.model.lights))]))
             episode_reward = 0
             episode_steps = 0
 
@@ -577,7 +583,7 @@ class MachineLearning:
 
 if __name__ == "__main__":
     # Reference Files
-    junction_file_path = os.path.join(os.path.dirname(os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))))), "junctions", "cross_road.junc")
+    junction_file_path = os.path.join(os.path.dirname(os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))))), "junctions", "scale_library_pub_junction.junc")
     configuration_file_path = os.path.join(os.path.dirname(os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))))), "configurations", "simulation_config", "cross_road.config")
 
     # Settings
@@ -588,18 +594,18 @@ if __name__ == "__main__":
     visualiser_update_function = visualiser.update
     # visualiser_update_function = None
     # Simulation
-    simulation = SimulationManager(junction_file_path, configuration_file_path, visualiser_update_function)
-    # simulation = SimulationManager(junction_file_path, configuration_file_path, None)
+    # simulation = SimulationManager(junction_file_path, configuration_file_path, visualiser_update_function)
+    simulation = SimulationManager(junction_file_path, configuration_file_path, None)
     machine_learning = MachineLearning(simulation, machine_learning_config=None)
     #
     # machine_learning.test()
-    # machine_learning.train()
+    machine_learning.train()
 
-    # # Visualiser Setup
-    visualiser.define_main(machine_learning.test)
-    visualiser.load_junction(junction_file_path)
-    visualiser.set_scale(scale)
-    #
-    # Run Simulation
-    visualiser.open()
+    # # # Visualiser Setup
+    # visualiser.define_main(machine_learning.test)
+    # visualiser.load_junction(junction_file_path)
+    # visualiser.set_scale(scale)
+    # #
+    # # Run Simulation
+    # visualiser.open()
 

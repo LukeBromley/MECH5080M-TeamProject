@@ -345,7 +345,7 @@ class Model:
         self.lights.pop(index)
         self.update_light_hash_table()
 
-    def get_traffic_light_uids(self):
+    def get_traffic_light_controlled_path_uids(self):
         paths_with_lights = []
         paths_preceding_lights = []
         for light in self.lights:
@@ -355,7 +355,7 @@ class Model:
             preceding_paths = self.get_paths_from_end_node(shared_node)
             for path in preceding_paths:
                 paths_preceding_lights.append(path)
-        return paths_with_lights, paths_preceding_lights
+        return paths_preceding_lights, paths_with_lights
 
     # VEHICLES
     

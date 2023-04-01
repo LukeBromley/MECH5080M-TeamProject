@@ -29,10 +29,8 @@ class SimulationManager:
 
         # Actions
         self.number_of_possible_actions, self.action_space = self.calculate_actions()
+        self.light_controlled_path_uids, self.light_path_uids = self.simulation.model.get_traffic_light_controlled_path_uids()
 
-        # TODO: Soft code the id's
-        self.light_controlled_path_uids = [1, 4]
-        self.light_path_uids = [2, 5]
 
         # TODO: Try combining both and using route_distance_travelled for input oir distance to the traffic light?
 
@@ -40,7 +38,7 @@ class SimulationManager:
         self.features_per_vehicle_state = 3
         self.features_per_traffic_light_state = 0
         self.number_of_tracked_vehicles_per_light_controlled_path = 6
-        self.number_of_tracked_vehicles_per_light_path = 1
+        self.number_of_tracked_vehicles_per_light_path = 3
         self.observation_space_size = self.features_per_vehicle_state * (
                 len(self.light_controlled_path_uids) * self.number_of_tracked_vehicles_per_light_controlled_path +
                 len(self.light_path_uids) * self.number_of_tracked_vehicles_per_light_path
@@ -49,7 +47,7 @@ class SimulationManager:
         self.light_controlled_path_uids += self.light_path_uids
 
         # TODO: Initialize separate boxes by argmax for different inputs
-        self.observation_space = Box(0, 50, shape=(1, self.observation_space_size), dtype=float)
+        self.observation_space = Box(0, 100, shape=(1, self.observation_space_size), dtype=float)
         self.reset()
 
     def create_simulation(self):
@@ -58,7 +56,7 @@ class SimulationManager:
 
     def reset(self):
         self.simulation = self.create_simulation()
-        self.freeze_traffic(80)
+        self.freeze_traffic(35)
         return self.get_state()
 
     def freeze_traffic(self, n: int = None):
@@ -118,7 +116,7 @@ class SimulationManager:
                 continue
 
     def get_vehicle_state(self, vehicle: Vehicle):
-        x, y = self.simulation.model.get_vehicle_coordinates(vehicle.uid)
+        # x, y = self.simulation.model.get_vehicle_coordinates(vehicle.uid)
         return [
             vehicle.get_route_distance_travelled(),
             vehicle.get_speed()
