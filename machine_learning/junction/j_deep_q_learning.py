@@ -82,30 +82,36 @@ class MachineLearning:
         self.all_time_reward = 0  # Total reward over all episodes
 
         # TRAINING LIMITS
-        self.max_episode_length_in_seconds = 60
+        self.max_episode_length_in_seconds = 30
         self.max_steps_per_episode = self.max_episode_length_in_seconds * self.simulation_manager.simulation.model.tick_rate  # Maximum number of steps allowed per episode
         self.episode_end_reward = -float("inf")  # Single episode total reward minimum threshold to end episode. Should be low to allow exploration
         self.solved_mean_reward = float("inf")  # Single episode total reward minimum threshold to consider ML trained
-        self.reward_history_limit = 10
+
         self.max_mean_reward_solved = self.episode_end_reward
 
         # TAKING AN ACTION
         # Probability of selecting a random action
-        self.epsilon_greedy_min = 0.1  # Minimum probability of selecting a random action - zero to avoid future collision penalties
+        self.epsilon_greedy_min = 0.2  # Minimum probability of selecting a random action - zero to avoid future collision penalties
         self.epsilon_greedy_max = 1.0  # Maximum probability of selecting a random action
         self.epsilon_greedy = self.epsilon_greedy_max  # Current probability of selecting a random action
 
         # Exploration
+
+        # TODO: The algorithm should explore as many different scenarios as possible. It is quite clear that the learning
+        #  curve is much steering during exploration as compared to exploitation.
+
         # Number of steps of just random actions before the network can make some decisions
         self.number_of_steps_of_required_exploration = 1000
         # Number of steps over which epsilon greedy decays
-        self.number_of_steps_of_exploration_reduction = 40000
+        self.number_of_steps_of_exploration_reduction = 10000
         # Train the model after 4 actions
-        self.update_after_actions = 5
+        self.update_after_actions = 6
         # How often to update the target network
-        self.update_target_network = 2000
+        self.update_target_network = 1000
         # Penalty for collision
-        self.collision_penalty = 500
+        self.collision_penalty = 1000
+
+        self.reward_history_limit = int(self.update_target_network / self.max_steps_per_episode)
 
         # REPLAY
         # Buffers
@@ -116,13 +122,13 @@ class MachineLearning:
         self.episode_reward_history = []
 
         # Steps to look into the future to determine the mean reward. Should match T = 1/(1-gamma)
-        self.number_of_temporal_difference_steps = 3 * self.simulation_manager.simulation.model.tick_rate
+        self.number_of_temporal_difference_steps = 2 * self.simulation_manager.simulation.model.tick_rate
 
         # Sample Size
-        self.sample_size = 254  # Size of batch taken from replay buffer
+        self.sample_size = 124  # Size of batch taken from replay buffer
 
         # Discount factor
-        self.gamma = 0.96  # Discount factor for past rewards
+        self.gamma = 0.95  # Discount factor for past rewards
 
         # Maximum replay buffer length
         # Note: The Deepmind paper suggests 1000000 however this causes memory issues
@@ -139,7 +145,7 @@ class MachineLearning:
 
         # MACHINE LEARNING MODELS
         n = len(self.simulation_manager.action_table)
-        self.ml_model_hidden_layers = [n, n]
+        self.ml_model_hidden_layers = [12, 12, 12]
 
         # Change configurations to ones supplied in machine_learning_config
         if machine_learning_config is not None:
@@ -522,8 +528,8 @@ class MachineLearning:
     def test(self):
         episode = 1
 
-        # model = keras.models.load_model("saved_model-52729")
-        model = None
+        model = keras.models.load_model("saved_model")
+        # model = None
         for episode in range(1, episode + 1):
 
             # Reset the environment
@@ -582,7 +588,7 @@ class MachineLearning:
 
 if __name__ == "__main__":
     # Reference Files
-    junction_file_path = os.path.join(os.path.dirname(os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))))), "junctions", "simple_T_junction.junc")
+    junction_file_path = os.path.join(os.path.dirname(os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))))), "junctions", "simple_Y_junction.junc")
     configuration_file_path = os.path.join(os.path.dirname(os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))))), "configurations", "simulation_config", "cross_road.config")
 
     # Settings
