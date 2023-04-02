@@ -91,7 +91,7 @@ class MachineLearning:
 
         # TAKING AN ACTION
         # Probability of selecting a random action
-        self.epsilon_greedy_min = 0.2  # Minimum probability of selecting a random action - zero to avoid future collision penalties
+        self.epsilon_greedy_min = 0.1  # Minimum probability of selecting a random action - zero to avoid future collision penalties
         self.epsilon_greedy_max = 1.0  # Maximum probability of selecting a random action
         self.epsilon_greedy = self.epsilon_greedy_max  # Current probability of selecting a random action
 
@@ -101,13 +101,13 @@ class MachineLearning:
         #  curve is much steering during exploration as compared to exploitation.
 
         # Number of steps of just random actions before the network can make some decisions
-        self.number_of_steps_of_required_exploration = 1000
+        self.number_of_steps_of_required_exploration = 5000
         # Number of steps over which epsilon greedy decays
-        self.number_of_steps_of_exploration_reduction = 10000
+        self.number_of_steps_of_exploration_reduction = 100000
         # Train the model after 4 actions
-        self.update_after_actions = 8
+        self.update_after_actions = 4
         # How often to update the target network
-        self.update_target_network = 500
+        self.update_target_network = 1000
         # Penalty for collision
         self.collision_penalty = 1000
 
@@ -125,7 +125,8 @@ class MachineLearning:
         self.number_of_temporal_difference_steps = 2 * self.simulation_manager.simulation.model.tick_rate
 
         # Sample Size
-        self.sample_size = 64  # Size of batch taken from replay buffer
+        # TODO: Implement soft update
+        self.sample_size = 512  # Size of batch taken from replay buffer
 
         # Discount factor
         self.gamma = 0.97  # Discount factor for past rewards
@@ -598,7 +599,7 @@ if __name__ == "__main__":
     visualiser = JunctionVisualiser()
     visualiser_update_function = visualiser.update
 
-    disable_visualiser = True
+    disable_visualiser = False
 
     if disable_visualiser:
         simulation = SimulationManager(junction_file_path, configuration_file_path, None)
