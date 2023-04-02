@@ -97,15 +97,15 @@ class MachineLearning:
 
         # Exploration
         # Number of steps of just random actions before the network can make some decisions
-        self.number_of_steps_of_required_exploration = 5000
+        self.number_of_steps_of_required_exploration = 1000
         # Number of steps over which epsilon greedy decays
-        self.number_of_steps_of_exploration_reduction = 100000
+        self.number_of_steps_of_exploration_reduction = 10000
         # Train the model after 4 actions
-        self.update_after_actions = 8
+        self.update_after_actions = 4
         # How often to update the target network
-        self.update_target_network = 5000
+        self.update_target_network = 2000
         # Penalty for collision
-        self.collision_penalty = 500
+        self.collision_penalty = 1000
 
         # REPLAY
         # Buffers
@@ -119,10 +119,10 @@ class MachineLearning:
         self.number_of_temporal_difference_steps = 5 * self.simulation_manager.simulation.model.tick_rate
 
         # Sample Size
-        self.sample_size = 1024  # Size of batch taken from replay buffer
+        self.sample_size = 124  # Size of batch taken from replay buffer
 
         # Discount factor
-        self.gamma = 0.95  # Discount factor for past rewards
+        self.gamma = 0.97  # Discount factor for past rewards
 
         # Maximum replay buffer length
         # Note: The Deepmind paper suggests 1000000 however this causes memory issues
@@ -139,7 +139,7 @@ class MachineLearning:
 
         # MACHINE LEARNING MODELS
         n = len(self.simulation_manager.action_table)
-        self.ml_model_hidden_layers = [n]
+        self.ml_model_hidden_layers = [n, n, n]
 
         # Change configurations to ones supplied in machine_learning_config
         if machine_learning_config is not None:
@@ -522,7 +522,8 @@ class MachineLearning:
     def test(self):
         episode = 1
 
-        model = keras.models.load_model("saved_model-52729")
+        # model = keras.models.load_model("saved_model-52729")
+        model = None
         for episode in range(1, episode + 1):
 
             # Reset the environment
@@ -581,7 +582,7 @@ class MachineLearning:
 
 if __name__ == "__main__":
     # Reference Files
-    junction_file_path = os.path.join(os.path.dirname(os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))))), "junctions", "scale_library_pub_junction.junc")
+    junction_file_path = os.path.join(os.path.dirname(os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))))), "junctions", "simple_T_junction.junc")
     configuration_file_path = os.path.join(os.path.dirname(os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))))), "configurations", "simulation_config", "cross_road.config")
 
     # Settings
@@ -592,18 +593,18 @@ if __name__ == "__main__":
     visualiser_update_function = visualiser.update
     # visualiser_update_function = None
     # Simulation
-    # simulation = SimulationManager(junction_file_path, configuration_file_path, visualiser_update_function)
-    simulation = SimulationManager(junction_file_path, configuration_file_path, None)
+    simulation = SimulationManager(junction_file_path, configuration_file_path, visualiser_update_function)
+    # simulation = SimulationManager(junction_file_path, configuration_file_path, None)
     machine_learning = MachineLearning(simulation, machine_learning_config=None)
     #
     # machine_learning.test()
-    machine_learning.train()
+    # machine_learning.train()
 
-    # # Visualiser Setup
-    # visualiser.define_main(machine_learning.test)
-    # visualiser.load_junction(junction_file_path)
-    # visualiser.set_scale(scale)
-    # #
-    # # Run Simulation
-    # visualiser.open()
+    # Visualiser Setup
+    visualiser.define_main(machine_learning.test)
+    visualiser.load_junction(junction_file_path)
+    visualiser.set_scale(scale)
+    #
+    # Run Simulation
+    visualiser.open()
 

@@ -31,14 +31,13 @@ class SimulationManager:
         self.number_of_possible_actions, self.action_space = self.calculate_actions()
         self.light_controlled_path_uids, self.light_path_uids = self.simulation.model.get_traffic_light_controlled_path_uids()
 
-
         # TODO: Try combining both and using route_distance_travelled for input oir distance to the traffic light?
 
         # Inputs / States
-        self.features_per_vehicle_state = 5
+        self.features_per_vehicle_state = 6
         self.features_per_traffic_light_state = 0
         self.number_of_tracked_vehicles_per_light_controlled_path = 6
-        self.number_of_tracked_vehicles_per_light_path = 6
+        self.number_of_tracked_vehicles_per_light_path = 2
         self.observation_space_size = self.features_per_vehicle_state * (
                 len(self.light_controlled_path_uids) * self.number_of_tracked_vehicles_per_light_controlled_path +
                 len(self.light_path_uids) * self.number_of_tracked_vehicles_per_light_path
@@ -73,6 +72,9 @@ class SimulationManager:
         # TODO: Sparse actions
         # Avoid do nothing action if not using RNN
         self.action_table = list(itertools.product([-1, 1], repeat=len(self.simulation.model.lights)))
+        # self.action_table.pop(self.action_table.index(tuple([-1 for _ in self.simulation.model.lights])))
+        # self.action_table.pop(self.action_table.index(tuple([1 for _ in self.simulation.model.lights])))
+        print(self.action_table)
         # self.action_table = []
         # for action in list(itertools.product([-1, 0, 1], repeat=len(self.simulation.model.lights))):
         #     if action.count(0) >= len(self.simulation.model.lights) - 1:
@@ -118,11 +120,12 @@ class SimulationManager:
     def get_vehicle_state(self, vehicle: Vehicle):
         x, y = self.simulation.model.get_vehicle_coordinates(vehicle.uid)
         return [
+            vehicle.get_route_uid(),
             vehicle.get_route_distance_travelled(),
             vehicle.get_speed(),
-            # vehicle.wait_time,
             x,
             y
+            # vehicle.wait_time,
             # vehicle.get_length(),
             # vehicle.get_acceleration()
         ]
