@@ -99,13 +99,13 @@ class MachineLearning:
         # Number of steps of just random actions before the network can make some decisions
         self.number_of_steps_of_required_exploration = 1000
         # Number of steps over which epsilon greedy decays
-        self.number_of_steps_of_exploration_reduction = 10000
+        self.number_of_steps_of_exploration_reduction = 40000
         # Train the model after 4 actions
-        self.update_after_actions = 4
+        self.update_after_actions = 5
         # How often to update the target network
         self.update_target_network = 2000
         # Penalty for collision
-        self.collision_penalty = 1000
+        self.collision_penalty = 500
 
         # REPLAY
         # Buffers
@@ -116,13 +116,13 @@ class MachineLearning:
         self.episode_reward_history = []
 
         # Steps to look into the future to determine the mean reward. Should match T = 1/(1-gamma)
-        self.number_of_temporal_difference_steps = 5 * self.simulation_manager.simulation.model.tick_rate
+        self.number_of_temporal_difference_steps = 3 * self.simulation_manager.simulation.model.tick_rate
 
         # Sample Size
-        self.sample_size = 124  # Size of batch taken from replay buffer
+        self.sample_size = 254  # Size of batch taken from replay buffer
 
         # Discount factor
-        self.gamma = 0.97  # Discount factor for past rewards
+        self.gamma = 0.96  # Discount factor for past rewards
 
         # Maximum replay buffer length
         # Note: The Deepmind paper suggests 1000000 however this causes memory issues
@@ -130,7 +130,7 @@ class MachineLearning:
 
         # OPTIMISING
         # Note: In the Deepmind paper they use RMSProp however then Adam optimizer
-        self.learning_rate = 0.00001  # 0.00025
+        self.learning_rate = 0.0001  # 0.00025
         self.optimizer = keras.optimizers.legacy.Adam(learning_rate=self.learning_rate, clipnorm=1.0)
 
         # OTHER
@@ -139,7 +139,7 @@ class MachineLearning:
 
         # MACHINE LEARNING MODELS
         n = len(self.simulation_manager.action_table)
-        self.ml_model_hidden_layers = [n, n, n]
+        self.ml_model_hidden_layers = [n, n]
 
         # Change configurations to ones supplied in machine_learning_config
         if machine_learning_config is not None:
@@ -591,20 +591,27 @@ if __name__ == "__main__":
     # Visualiser Init
     visualiser = JunctionVisualiser()
     visualiser_update_function = visualiser.update
-    # visualiser_update_function = None
-    # Simulation
-    simulation = SimulationManager(junction_file_path, configuration_file_path, visualiser_update_function)
-    # simulation = SimulationManager(junction_file_path, configuration_file_path, None)
-    machine_learning = MachineLearning(simulation, machine_learning_config=None)
-    #
-    # machine_learning.test()
-    # machine_learning.train()
 
-    # Visualiser Setup
-    visualiser.define_main(machine_learning.test)
-    visualiser.load_junction(junction_file_path)
-    visualiser.set_scale(scale)
-    #
-    # Run Simulation
-    visualiser.open()
+    disable_visualiser = True
+
+    if disable_visualiser:
+        simulation = SimulationManager(junction_file_path, configuration_file_path, None)
+        machine_learning = MachineLearning(simulation, machine_learning_config=None)
+        machine_learning.train()
+        # machine_learning.test()
+    else:
+        simulation = SimulationManager(junction_file_path, configuration_file_path, visualiser_update_function)
+        machine_learning = MachineLearning(simulation, machine_learning_config=None)
+
+        # Visualiser Setup
+        visualiser.define_main(machine_learning.test)
+        visualiser.load_junction(junction_file_path)
+        visualiser.set_scale(scale)
+        #
+        # Run Simulation
+        visualiser.open()
+
+
+
+
 
