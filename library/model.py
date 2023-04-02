@@ -349,12 +349,12 @@ class Model:
         paths_with_lights = []
         paths_preceding_lights = []
         for light in self.lights:
-            light_path = light.path_uids[0]
-            paths_with_lights.append(light_path)
-            shared_node = self.get_path(light_path).start_node_uid
-            preceding_paths = self.get_paths_from_end_node(shared_node)
-            for path in preceding_paths:
-                paths_preceding_lights.append(path)
+            for path_uid in light.path_uids:
+                paths_with_lights.append(path_uid)
+                shared_node = self.get_path(path_uid).start_node_uid
+                preceding_paths = self.get_paths_from_end_node(shared_node)
+                for path in preceding_paths:
+                    paths_preceding_lights.append(path)
         return paths_preceding_lights, paths_with_lights
 
     # VEHICLES
@@ -376,16 +376,11 @@ class Model:
     
     def remove_finished_vehicles(self):
         vehicle_uids_to_remove = []
-        delays = []
         for vehicle in self.vehicles:
             route = self.get_route(vehicle.get_route_uid())
             path = self.get_path(route.get_path_uid(vehicle.get_path_index()))
 
             if vehicle.get_path_distance_travelled() >= path.get_length():
-                if vehicle.get_path_index() == 0:
-                    delays.append(self.get_delay(vehicle.uid))
-
-                # TODO: elif?
                 if vehicle.get_path_index() >= len(self.get_route(vehicle.route_uid).get_path_uids())-1:
                     vehicle_uids_to_remove.append(vehicle.uid)
                 else:
@@ -393,6 +388,15 @@ class Model:
 
         for vehicle_uid in vehicle_uids_to_remove:
             self.remove_vehicle(vehicle_uid)
+
+    def get_vehicle_delays(self):
+        delays = []
+        for vehicle in self.vehicles:
+            route = self.get_route(vehicle.get_route_uid())
+            path = self.get_path(route.get_path_uid(vehicle.get_path_index()))
+            if vehicle.get_path_distance_travelled() >= path.get_length():
+                if vehicle.get_path_index() == 0:
+                    delays.append(self.get_delay(vehicle.uid))
         return delays
 
     def get_delay(self, vehicle_uid):
@@ -431,8 +435,9 @@ class Model:
         distance_travelled_offset = this_path.get_length() - this_vehicle_path_distance_travelled
         for path_uid in path_uids_ahead:
             for light in self.lights:
-                if light.path_uids[0] == path_uid and not light.allows_traffic():
-                    return light, distance_travelled_offset
+                for light_path_uid in light.path_uids:
+                    if light_path_uid == path_uid and not light.allows_traffic():
+                        return light, distance_travelled_offset
             for that_vehicle in self.vehicles:
                 that_path = self.get_path(self.get_route(that_vehicle.get_route_uid()).get_path_uid(that_vehicle.get_path_index()))
                 that_vehicle_path_distance_travelled = that_vehicle.get_path_distance_travelled()
@@ -608,6 +613,25 @@ class Model:
         r2x = half_length * c_theta - half_width * s_theta
         r2y = half_length * s_theta + half_width * c_theta
         return [(x + r1x, y + r1y), (x + r2x, y + r2y), (x - r1x, y - r1y), (x - r2x, y - r2y)]
+
+    def get_backed_up_paths(self, backup_threshold, speed_threshold):
+        path_uids = []
+        path_backup = {}
+        for route in self.routes:
+            path_uid = route.get_path_uid(0)
+            number_vehicles_backed_up = self.get_path_backup_length(path_uid, speed_threshold)
+            path_backup[path_uid] = number_vehicles_backed_up
+            if number_vehicles_backed_up > backup_threshold:
+                path_uids.append(path_uid)
+        return path_uids, path_backup
+
+    def get_path_backup_length(self, path_uid, speed_threshold):
+        number_vehicles_backed_up = 0
+        for vehicle_uid in self.get_vehicles_on_path(path_uid):
+            vehicle = self.get_vehicle(vehicle_uid)
+            if vehicle.get_speed() < speed_threshold:
+                number_vehicles_backed_up += 1
+        return number_vehicles_backed_up
 
     # GENERAL
     

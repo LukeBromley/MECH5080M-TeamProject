@@ -409,7 +409,7 @@ class PygameGraphics:
             pygame.draw.rect(self.surface, (0, 0, 0), (x - round((len(light.colours) * 10) / 2), y + 5, len(light.colours) * 10, 30))
 
             for index, colour in enumerate(light.colours):
-                position_offset = round((-((len(light.colours) - 1) * 25) / 2) + index * 25)
+                position_offset = round((-((len(light.colours) - 1) * 10) / 2) + index * 10)
 
                 red_rgb = (100, 0, 0)
                 amber_rgb = (50, 50, 0)
