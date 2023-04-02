@@ -105,9 +105,9 @@ class MachineLearning:
         # Number of steps over which epsilon greedy decays
         self.number_of_steps_of_exploration_reduction = 10000
         # Train the model after 4 actions
-        self.update_after_actions = 6
+        self.update_after_actions = 8
         # How often to update the target network
-        self.update_target_network = 1000
+        self.update_target_network = 500
         # Penalty for collision
         self.collision_penalty = 1000
 
@@ -125,10 +125,10 @@ class MachineLearning:
         self.number_of_temporal_difference_steps = 2 * self.simulation_manager.simulation.model.tick_rate
 
         # Sample Size
-        self.sample_size = 124  # Size of batch taken from replay buffer
+        self.sample_size = 64  # Size of batch taken from replay buffer
 
         # Discount factor
-        self.gamma = 0.95  # Discount factor for past rewards
+        self.gamma = 0.97  # Discount factor for past rewards
 
         # Maximum replay buffer length
         # Note: The Deepmind paper suggests 1000000 however this causes memory issues
@@ -136,7 +136,7 @@ class MachineLearning:
 
         # OPTIMISING
         # Note: In the Deepmind paper they use RMSProp however then Adam optimizer
-        self.learning_rate = 0.0001  # 0.00025
+        self.learning_rate = 0.0005  # 0.00025
         self.optimizer = keras.optimizers.legacy.Adam(learning_rate=self.learning_rate, clipnorm=1.0)
 
         # OTHER
@@ -145,7 +145,7 @@ class MachineLearning:
 
         # MACHINE LEARNING MODELS
         n = len(self.simulation_manager.action_table)
-        self.ml_model_hidden_layers = [12, 12, 12]
+        self.ml_model_hidden_layers = [42, 42, 42]
 
         # Change configurations to ones supplied in machine_learning_config
         if machine_learning_config is not None:
