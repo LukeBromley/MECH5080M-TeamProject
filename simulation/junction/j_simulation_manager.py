@@ -34,9 +34,9 @@ class SimulationManager:
         # TODO: Try combining both and using route_distance_travelled for input oir distance to the traffic light?
 
         # Inputs / States
-        self.features_per_vehicle_state = 3
+        self.features_per_vehicle_state = 4
         self.features_per_traffic_light_state = 0
-        self.number_of_tracked_vehicles_per_light_controlled_path = 3
+        self.number_of_tracked_vehicles_per_light_controlled_path = 4
         self.number_of_tracked_vehicles_per_light_path = 1
         self.observation_space_size = self.features_per_vehicle_state * (
                 len(self.light_controlled_path_uids) * self.number_of_tracked_vehicles_per_light_controlled_path +
@@ -123,7 +123,8 @@ class SimulationManager:
         return [
             vehicle.get_route_uid(),
             vehicle.get_route_distance_travelled(),
-            vehicle.get_speed()
+            vehicle.get_speed(),
+            self.simulation.model.get_delay(vehicle.uid)
             # x,
             # y
             # vehicle.wait_time,

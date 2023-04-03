@@ -82,7 +82,7 @@ class MachineLearning:
         self.all_time_reward = 0  # Total reward over all episodes
 
         # TRAINING LIMITS
-        self.max_episode_length_in_seconds = 30
+        self.max_episode_length_in_seconds = 15
         self.max_steps_per_episode = self.max_episode_length_in_seconds * self.simulation_manager.simulation.model.tick_rate  # Maximum number of steps allowed per episode
         self.episode_end_reward = -float("inf")  # Single episode total reward minimum threshold to end episode. Should be low to allow exploration
         self.solved_mean_reward = float("inf")  # Single episode total reward minimum threshold to consider ML trained
@@ -101,9 +101,9 @@ class MachineLearning:
         #  curve is much steering during exploration as compared to exploitation.
 
         # Number of steps of just random actions before the network can make some decisions
-        self.number_of_steps_of_required_exploration = 5000
+        self.number_of_steps_of_required_exploration = 1000
         # Number of steps over which epsilon greedy decays
-        self.number_of_steps_of_exploration_reduction = 100000
+        self.number_of_steps_of_exploration_reduction = 10000
         # Train the model after 4 actions
         self.update_after_actions = 4
         # How often to update the target network
@@ -122,14 +122,14 @@ class MachineLearning:
         self.episode_reward_history = []
 
         # Steps to look into the future to determine the mean reward. Should match T = 1/(1-gamma)
-        self.number_of_temporal_difference_steps = 2 * self.simulation_manager.simulation.model.tick_rate
+        self.number_of_temporal_difference_steps = 5 * self.simulation_manager.simulation.model.tick_rate
 
         # Sample Size
         # TODO: Implement soft update
-        self.sample_size = 512  # Size of batch taken from replay buffer
+        self.sample_size = 124  # Size of batch taken from replay buffer
 
         # Discount factor
-        self.gamma = 0.97  # Discount factor for past rewards
+        self.gamma = 0.95  # Discount factor for past rewards
 
         # Maximum replay buffer length
         # Note: The Deepmind paper suggests 1000000 however this causes memory issues
@@ -137,7 +137,7 @@ class MachineLearning:
 
         # OPTIMISING
         # Note: In the Deepmind paper they use RMSProp however then Adam optimizer
-        self.learning_rate = 0.0005  # 0.00025
+        self.learning_rate = 0.0001  # 0.00025
         self.optimizer = keras.optimizers.legacy.Adam(learning_rate=self.learning_rate, clipnorm=1.0)
 
         # OTHER
@@ -146,7 +146,7 @@ class MachineLearning:
 
         # MACHINE LEARNING MODELS
         n = len(self.simulation_manager.action_table)
-        self.ml_model_hidden_layers = [42, 42, 42]
+        self.ml_model_hidden_layers = [24, 24]
 
         # Change configurations to ones supplied in machine_learning_config
         if machine_learning_config is not None:
@@ -343,7 +343,7 @@ class MachineLearning:
             temporal_difference_reward = 0
 
             # TODO: Try model decision making
-            simulation_manager.take_action(self.select_action(simulation_manager.get_state(), target=True))
+            # simulation_manager.take_action(self.select_action(simulation_manager.get_state(), target=True))
             simulation_manager.simulation.compute_single_iteration()
 
             if simulation_manager.simulation.model.detect_collisions():
@@ -529,7 +529,7 @@ class MachineLearning:
     def test(self):
         episode = 1
 
-        model = keras.models.load_model("saved_model")
+        model = keras.models.load_model("saved_model1895")
         # model = None
         for episode in range(1, episode + 1):
 
