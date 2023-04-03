@@ -5,7 +5,6 @@ from math import sqrt
 from platform import system
 import sys
 
-from matplotlib import pyplot as plt
 from pynput import keyboard
 
 if system() == 'Windows':
@@ -16,7 +15,6 @@ import sys
 from simulation.junction.j_simulation_manager import SimulationManager
 from analysis_tools.graph_ml_progress import Graph
 from gui.junction_visualiser import JunctionVisualiser
-from time import sleep
 import time as tm
 
 import numpy as np
@@ -67,7 +65,7 @@ random.seed(111)
 # average wait time doesnt consider number of. ars
 
 class MachineLearning:
-    def __init__(self, simulation_manager: SimulationManager, machine_learning_config=None, graph_num_episodes=20, graph_max_step=30000):
+    def __init__(self, simulation_manager: SimulationManager, machine_learning_config=None, graph_num_episodes=100, graph_max_step=30000):
         # SIMULATION MANAGER
         self.future_wait_time = None
         self.simulation_manager = simulation_manager
@@ -82,7 +80,7 @@ class MachineLearning:
         self.all_time_reward = 0  # Total reward over all episodes
 
         # TRAINING LIMITS
-        self.max_episode_length_in_seconds = 15
+        self.max_episode_length_in_seconds = 30
         self.max_steps_per_episode = self.max_episode_length_in_seconds * self.simulation_manager.simulation.model.tick_rate  # Maximum number of steps allowed per episode
         self.episode_end_reward = -float("inf")  # Single episode total reward minimum threshold to end episode. Should be low to allow exploration
         self.solved_mean_reward = float("inf")  # Single episode total reward minimum threshold to consider ML trained
@@ -107,7 +105,7 @@ class MachineLearning:
         # Train the model after 4 actions
         self.update_after_actions = 4
         # How often to update the target network
-        self.update_target_network = 1000
+        self.update_target_network = 10
         # Penalty for collision
         self.collision_penalty = 1000
 
@@ -282,7 +280,7 @@ class MachineLearning:
                     # update the target network with new weights
                     self.ml_model_target.set_weights(self.ml_model.get_weights())
                     # Log details
-                    self.graph.update(self.get_mean_reward())
+                    self.graph.update(self.number_of_steps_taken, self.get_mean_reward())
                     print(f'{tm.strftime("%H:%M:%S", tm.localtime())}  -  {self.get_mean_reward():.2f} / {self.solved_mean_reward:.2f} at episode {self.episode_count}; frame count: {self.number_of_steps_taken}.')
                     if self.get_mean_reward() > self.max_mean_reward_solved:
                         self.max_mean_reward_solved = self.get_mean_reward()
@@ -529,7 +527,7 @@ class MachineLearning:
     def test(self):
         episode = 1
 
-        model = keras.models.load_model("saved_model")
+        model = keras.models.load_model("saved_model9507")
         # model = None
         for episode in range(1, episode + 1):
 
@@ -589,7 +587,7 @@ class MachineLearning:
 
 if __name__ == "__main__":
     # Reference Files
-    junction_file_path = os.path.join(os.path.dirname(os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))))), "junctions", "simple_Y_junction.junc")
+    junction_file_path = os.path.join(os.path.dirname(os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))))), "junctions", "complex_Y_junction.junc")
     configuration_file_path = os.path.join(os.path.dirname(os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))))), "configurations", "simulation_config", "cross_road.config")
 
     # Settings
@@ -599,7 +597,7 @@ if __name__ == "__main__":
     visualiser = JunctionVisualiser()
     visualiser_update_function = visualiser.update
 
-    disable_visualiser = False
+    disable_visualiser = True
 
     if disable_visualiser:
         simulation = SimulationManager(junction_file_path, configuration_file_path, None)

@@ -1,55 +1,32 @@
 import matplotlib.pyplot as plt
 
+
 class Graph:
     def __init__(self, num_episodes_displayed, max_steps_displayed):
         self.num_episodes_displayed = num_episodes_displayed
 
-        # to run GUI event loop
-        plt.ion()
+        self.figure, self.ax = plt.subplots()
+        self.figure.suptitle("Reward", fontsize=20)
 
-        # setting title
-        plt.title("Reward", fontsize=20)
+        self.ax.set_xlabel('Actions taken')
+        self.ax.set_ylabel('Mean reward')
 
-        # setting x-axis label and y-axis label
-        plt.xlabel("Episode")
-        plt.ylabel("Steps")
+        self.x = []
+        self.y = []
 
-        # here we are creating sub plots
-        self.figure, self.graph = plt.subplots(figsize=(10, 8))
+        self.line, = self.ax.plot(self.x, self.y)
 
-        plt.ylim([-100, 100])
+    def update(self, x: float, y: float):
+        self.y.append(y)
+        self.x.append(x)
 
-        self.x = [i for i in range(self.num_episodes_displayed, 0, -1)]
-        self.y = [0 for i in range(self.num_episodes_displayed)]
+        self.line.set_data(self.x, self.y)
 
-        self.line1, = self.graph.plot(self.x, self.y)
-        self.data = []
+        self.ax.set_ylim([min(self.y), max(self.y)])
+        self.ax.set_xlim([min(self.x), max(self.x)])
 
-    def update(self, step):
-        self.data.append(step)
-        plt.cla()
-        plt.plot(self.data)
         plt.pause(0.0001)
-
-        # self.y.append(step)
-        # self.y = self.y[-self.num_episodes_displayed:]
-        #
-        # self.line1.set_xdata(self.x)
-        # self.line1.set_ydata(self.y)
-
-        # drawing updated values
-        # self.figure.canvas.draw()
-
-        # This will run the GUI event
-        # loop until all UI events
-        # currently waiting have been processed
-        self.figure.canvas.flush_events()
+        self.figure.savefig("learning_curve.png")
 
     def hide_graph(self):
         plt.close()
-
-
-if __name__ == "__main__":
-    graph = Graph(100, 100)
-    for i in range(100):
-        graph.update(i)
