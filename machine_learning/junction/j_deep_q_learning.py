@@ -597,7 +597,7 @@ if __name__ == "__main__":
     visualiser = JunctionVisualiser()
     visualiser_update_function = visualiser.update
 
-    disable_visualiser = True
+    disable_visualiser = False
 
     if disable_visualiser:
         simulation = SimulationManager(junction_file_path, configuration_file_path, None)
