@@ -105,7 +105,7 @@ class MachineLearning:
         # Train the model after 4 actions
         self.update_after_actions = 4
         # How often to update the target network
-        self.update_target_network = 10
+        self.update_target_network = 1000
         # Penalty for collision
         self.collision_penalty = 1000
 
@@ -527,7 +527,7 @@ class MachineLearning:
     def test(self):
         episode = 1
 
-        model = keras.models.load_model("saved_model9507")
+        model = keras.models.load_model("saved_model")
         # model = None
         for episode in range(1, episode + 1):
 
