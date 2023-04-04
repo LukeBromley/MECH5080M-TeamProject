@@ -64,6 +64,11 @@ random.seed(111)
 #  the car leaves prh if using sum wiat tiem
 # average wait time doesnt consider number of. ars
 
+# Future work:
+# Seperate model for each traffic light
+# Introducing amber lights after the model has trained ensures saftey of the junction
+# Light delays in training cause problems with random actions, which ruin the simulation
+
 class MachineLearning:
     def __init__(self, simulation_manager: SimulationManager, machine_learning_config=None, graph_num_episodes=100, graph_max_step=30000):
         # SIMULATION MANAGER
@@ -80,7 +85,7 @@ class MachineLearning:
         self.all_time_reward = 0  # Total reward over all episodes
 
         # TRAINING LIMITS
-        self.max_episode_length_in_seconds = 60
+        self.max_episode_length_in_seconds = 15
         self.max_steps_per_episode = self.max_episode_length_in_seconds * self.simulation_manager.simulation.model.tick_rate  # Maximum number of steps allowed per episode
         self.episode_end_reward = -float("inf")  # Single episode total reward minimum threshold to end episode. Should be low to allow exploration
         self.solved_mean_reward = float("inf")  # Single episode total reward minimum threshold to consider ML trained
@@ -99,13 +104,13 @@ class MachineLearning:
         #  curve is much steering during exploration as compared to exploitation.
 
         # Number of steps of just random actions before the network can make some decisions
-        self.number_of_steps_of_required_exploration = 5000
+        self.number_of_steps_of_required_exploration = 1000
         # Number of steps over which epsilon greedy decays
-        self.number_of_steps_of_exploration_reduction = 100000
+        self.number_of_steps_of_exploration_reduction = 10000
         # Train the model after 4 actions
         self.update_after_actions = 4
         # How often to update the target network
-        self.update_target_network = 5000
+        self.update_target_network = 80
         # Penalty for collision
         self.collision_penalty = 1000
 
@@ -278,6 +283,9 @@ class MachineLearning:
 
                 if self.number_of_steps_taken % self.update_target_network == 0:
                     # update the target network with new weights
+
+                    # TODO: Only update when the self.ml_model gives good performance
+                    # Or set it to the mean of previous model weights
                     self.ml_model_target.set_weights(self.ml_model.get_weights())
                     # Log details
                     self.graph.update(self.number_of_steps_taken, self.get_mean_reward())
@@ -309,6 +317,7 @@ class MachineLearning:
         # More than two actions available guaranteed
         reward = 0
         state_value = self.simulation_manager.get_state_value()
+
         self.take_action(action_index)
         self.simulation_manager.simulation.run_single_iteration()
         if self.simulation_manager.simulation.model.detect_collisions():
@@ -332,7 +341,6 @@ class MachineLearning:
     def calculate_temporal_difference_reward(self, simulation_manager: SimulationManager):
         reward = 0
         # state_value = simulation_manager.get_sum_wait_time()
-        rewards = []
         # TODO: Try reset after every action
 
         # TODO: Try do_nothing_action or random_action
@@ -340,7 +348,8 @@ class MachineLearning:
             state_value = simulation_manager.get_state_value()
             temporal_difference_reward = 0
 
-            # TODO: Try model decision making
+            # TODO: Try model decision making enabled after exploration !!!
+            # TODO: Could even use active learning with a pre-trained target_network weights
             # simulation_manager.take_action(self.select_action(simulation_manager.get_state(), target=True))
             simulation_manager.simulation.compute_single_iteration()
 
@@ -349,7 +358,6 @@ class MachineLearning:
 
             temporal_difference_reward += (state_value - simulation_manager.get_state_value())
             reward += math.pow(self.gamma, index) * temporal_difference_reward
-            rewards.append(math.pow(self.gamma, index) * temporal_difference_reward)
         # print(rewards)
         return reward
 
@@ -587,7 +595,7 @@ class MachineLearning:
 
 if __name__ == "__main__":
     # Reference Files
-    junction_file_path = os.path.join(os.path.dirname(os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))))), "junctions", "simple_X_junction.junc")
+    junction_file_path = os.path.join(os.path.dirname(os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))))), "junctions", "simple_T_junction.junc")
     configuration_file_path = os.path.join(os.path.dirname(os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))))), "configurations", "simulation_config", "cross_road.config")
 
     # Settings
@@ -597,7 +605,7 @@ if __name__ == "__main__":
     visualiser = JunctionVisualiser()
     visualiser_update_function = visualiser.update
 
-    disable_visualiser = False
+    disable_visualiser = True
 
     if disable_visualiser:
         simulation = SimulationManager(junction_file_path, configuration_file_path, None)

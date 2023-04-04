@@ -55,13 +55,15 @@ class SimulationManager:
 
     def reset(self):
         self.simulation = self.create_simulation()
-        self.freeze_traffic(30)
+        # self.freeze_traffic(30)
         return self.get_state()
 
     def freeze_traffic(self, n: int = None):
         if n is None:
             n = random.randint(5, 30)
-
+        
+        # TODO: randomize amount of vehicles and traffic level
+        # TODO: mean_spawn_time_per_hour should vary between 6-24
         for light in self.simulation.model.lights:
             # if random.random() > 0.5:
             light.set_red()
@@ -199,6 +201,7 @@ class SimulationManager:
             return 0.0
 
     def get_state_value(self):
+        # Squared delays gives more iompact for the vehicle which've been waiting for a long time
         return sum([self.simulation.model.get_delay(vehicle.uid)**2 for vehicle in self.simulation.model.vehicles if vehicle.get_path_index() == 0])
 
     def get_sum_wait_time(self):
