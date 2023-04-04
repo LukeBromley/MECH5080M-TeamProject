@@ -527,7 +527,7 @@ class MachineLearning:
     def test(self):
         episode = 1
 
-        model = keras.models.load_model("saved_model-255293")
+        model = keras.models.load_model("saved_model")
         # model = None
         for episode in range(1, episode + 1):
 

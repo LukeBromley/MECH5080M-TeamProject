@@ -225,8 +225,8 @@ class TrafficLight:
         self.time_remaining = 0
         self.green_time = 0
         self.red_time = 0
-        self.red_amber_time = 2
-        self.amber_time = 3
+        self.red_amber_time = 0.5
+        self.amber_time = 0.5
 
         self.include_amber = include_amber
 
