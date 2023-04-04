@@ -36,8 +36,8 @@ class SimulationManager:
         # Inputs / States
         self.features_per_vehicle_state = 4
         self.features_per_traffic_light_state = 0
-        self.number_of_tracked_vehicles_per_light_controlled_path = 4
-        self.number_of_tracked_vehicles_per_light_path = 1
+        self.number_of_tracked_vehicles_per_light_controlled_path = 5
+        self.number_of_tracked_vehicles_per_light_path = 2
         self.observation_space_size = self.features_per_vehicle_state * (
                 len(self.light_controlled_path_uids) * self.number_of_tracked_vehicles_per_light_controlled_path +
                 len(self.light_path_uids) * self.number_of_tracked_vehicles_per_light_path
@@ -55,16 +55,16 @@ class SimulationManager:
 
     def reset(self):
         self.simulation = self.create_simulation()
-        self.freeze_traffic(10)
+        self.freeze_traffic()
         return self.get_state()
 
     def freeze_traffic(self, n: int = None):
         if n is None:
-            n = random.randint(5, 30)
+            n = random.randint(5, 20)
 
         for light in self.simulation.model.lights:
-            # if random.random() > 0.5:
-            light.set_red()
+            if random.random() > 0.5:
+                light.set_red()
 
         for step in range(n * self.simulation.model.tick_rate):
             self.simulation.compute_single_iteration()

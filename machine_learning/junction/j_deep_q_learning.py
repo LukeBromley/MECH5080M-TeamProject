@@ -80,7 +80,7 @@ class MachineLearning:
         self.all_time_reward = 0  # Total reward over all episodes
 
         # TRAINING LIMITS
-        self.max_episode_length_in_seconds = 60
+        self.max_episode_length_in_seconds = 100
         self.max_steps_per_episode = self.max_episode_length_in_seconds * self.simulation_manager.simulation.model.tick_rate  # Maximum number of steps allowed per episode
         self.episode_end_reward = -float("inf")  # Single episode total reward minimum threshold to end episode. Should be low to allow exploration
         self.solved_mean_reward = float("inf")  # Single episode total reward minimum threshold to consider ML trained
@@ -105,7 +105,7 @@ class MachineLearning:
         # Train the model after 4 actions
         self.update_after_actions = 4
         # How often to update the target network
-        self.update_target_network = 110
+        # self.update_target_network = 110
         # Penalty for collision
         self.collision_penalty = 1000
 
@@ -276,19 +276,20 @@ class MachineLearning:
                     grads = tape.gradient(loss, self.ml_model.trainable_variables)
                     self.optimizer.apply_gradients(zip(grads, self.ml_model.trainable_variables))
 
-                if self.number_of_steps_taken % self.update_target_network == 0:
-                    # update the target network with new weights
-                    self.ml_model_target.set_weights(self.ml_model.get_weights())
+                if self.number_of_steps_taken % self.max_steps_per_episode == 0:
                     # Log details
                     self.graph.update(self.number_of_steps_taken, self.get_mean_reward())
                     print(f'{tm.strftime("%H:%M:%S", tm.localtime())}  -  {self.get_mean_reward():.2f} / {self.solved_mean_reward:.2f} at episode {self.episode_count}; frame count: {self.number_of_steps_taken}.')
+
                     if self.get_mean_reward() > self.max_mean_reward_solved:
                         self.max_mean_reward_solved = self.get_mean_reward()
-                        self.ml_model_target.save("saved_model" + str(round(self.get_mean_reward())))
+                        self.ml_model_target.set_weights(self.ml_model.get_weights())
+                        self.ml_model_target.save("saved_model")
                         print(f'{tm.strftime("%H:%M:%S", tm.localtime())}  -  SavedModel recorded.')
+
                 # Delete old buffer values
                 self.delete_old_replay_buffer_values()
-                #
+
                 # sys.stdout.write("\rstep: {0} / reward: {1}".format(str(episode_step), str(episode_reward)))
                 # sys.stdout.flush()
 
@@ -298,12 +299,6 @@ class MachineLearning:
             # print(action_log)
             self.episode_reward_history.append(episode_reward)
             self.episode_count += 1
-
-            if self.solved(self.get_mean_reward()):
-                print("solved")
-                self.ml_model_target.save("saved_model")
-                break
-        return self.get_mean_reward()
 
     def step(self, action_index: int, td: bool = True):
         # More than two actions available guaranteed
@@ -593,7 +588,7 @@ if __name__ == "__main__":
     visualiser = JunctionVisualiser()
     visualiser_update_function = visualiser.update
 
-    disable_visualiser = False
+    disable_visualiser = True
 
     if disable_visualiser:
         simulation = SimulationManager(junction_file_path, configuration_file_path, None)
