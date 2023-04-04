@@ -38,6 +38,11 @@ random.seed(111)
 
 # Updates:
 
+# TODO: To tackle amber and amber_red lights we can:
+#  1. assume amber to be red and amber_red to be green. Change the color for the sake of visualisation only.
+#  2. when deployed, make predictions based on future predicted states, which would eliminate the light switch delays.
+#  3. introduce a do_nothing action for amber and amber_red light states.
+
 # Idle decision-making removed
 # Traffic light timings added
 # Single-step temporal difference replaced with TD(n)
@@ -124,7 +129,7 @@ class MachineLearning:
         self.episode_reward_history = []
 
         # Steps to look into the future to determine the mean reward. Should match T = 1/(1-gamma)
-        self.number_of_temporal_difference_steps = 5 * self.simulation_manager.simulation.model.tick_rate
+        self.number_of_temporal_difference_steps = 6 * self.simulation_manager.simulation.model.tick_rate
 
         # Sample Size
         # TODO: Implement soft update
@@ -597,7 +602,7 @@ if __name__ == "__main__":
     visualiser = JunctionVisualiser()
     visualiser_update_function = visualiser.update
 
-    disable_visualiser = False
+    disable_visualiser = True
 
     if disable_visualiser:
         simulation = SimulationManager(junction_file_path, configuration_file_path, None)
