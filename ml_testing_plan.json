@@ -4,7 +4,7 @@
     "RunType": "junction",
     "Junction": "simple_T_junction.junc",
     "SimulationConfig": "demand_mean_12.config",
-    "MachineLearningModel": "ml_model",
+    "MachineLearningModel": "saved_model",
     "Steps": 10000
   }
 }

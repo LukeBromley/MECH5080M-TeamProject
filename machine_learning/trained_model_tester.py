@@ -74,7 +74,7 @@ class TrainedModelTester:
         for run in self.testing_runs:
             # MEGAMAINTEST - run_testing_runs must also be passed all parameters from the iteration file.
             time_taken, delay_mean_average, delay_standard_deviation, delay_maximum, delay_minimum, delay_num_vehicles, delays, \
-            backup_mean_average, backup_standard_deviation, backup_maximum, backup_time, backup = self.run_testing_run(run["RunUID"], run["RunType"], run["Junction"], run["SimulationConfig"], run["Steps"], run["Actions"], run["ActionDurations"], run["ActionPaths"])
+            backup_mean_average, backup_standard_deviation, backup_maximum, backup_time, backup = self.run_testing_run(run["RunUID"], run["RunType"], run["Junction"], run["SimulationConfig"], run["MachineLearningModel"], run["Steps"])
             # MEGAMAINTEST - make sure any results are returned here and 'run' is updated with them in dictionary format.
             run.update({"Time Taken": time_taken,
                         "Delay Mean Average": delay_mean_average,
@@ -95,7 +95,7 @@ class TrainedModelTester:
         print("\n\n================================================\nALL ITERATIONS COMPLETE\n    Total Time: " + str(time_taken) + "\n    Total Testing Runs: " + str(len(self.testing_runs)) + "\n    Results Directory: " + self.output_directory_path + "\n================================================")
 
     # MEGAMAINTEST - add the parameters to this function call and add in functionality as required.
-    def run_testing_run(self, run_uid, run_type, junction_file_name, sim_config_file_name, ml_model_file_name, steps):
+    def run_testing_run(self, run_uid, run_type, junction_file_name, sim_config_file_name, ml_model_folder_name, steps):
 
         print("\n================================================")
         # Create paths to config files.
@@ -103,11 +103,11 @@ class TrainedModelTester:
         simulation_config_file_path = self.get_file_path(["configurations", "simulation_config", sim_config_file_name])
 
         # Initialise and run the simulations for both fixed timings and demand scheduling
-        print("Running Machine Learning:\n    RunUID: " + str(run_uid) + "\n    Run Type: " + run_type + "\n    Junction: " + junction_file_name + "\n    Simulation Config: " + sim_config_file + "\n    Steps: " + str(steps) + "\nStarting Testinging...")
+        print("Running Machine Learning:\n    RunUID: " + str(run_uid) + "\n    Run Type: " + run_type + "\n    Junction: " + junction_file_name + "\n    Simulation Config: " + sim_config_file_name + "\n    Machine Learning Model: " + ml_model_folder_name + "\n    Steps: " + str(steps) + "\nStarting Testinging...")
         time_begin = time.perf_counter()
 
         if run_type.lower() == "junction":
-            ml_model_model_file_path = self.get_file_path(["machine_learning", "junction", ml_model_file_name])
+            ml_model_model_file_path = self.get_file_path(["machine_learning", "junction", ml_model_folder_name])
             simulation_manager = JunctionSimulationManager(junction_file_path, simulation_config_file_path, visualiser_update_function=None)
             machine_learning = JunctionMachineLearning(simulation_manager, machine_learning_config=None)
             machine_learning.test(steps, ml_model_model_file_path)
