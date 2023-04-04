@@ -524,43 +524,41 @@ class MachineLearning:
 
             listener.join()
 
-    def test(self, number_of_iterations, model_file_path):
+    def test(self, number_of_iterations: int = 10000, model_file_path: str = "saved_model"):
         model = keras.models.load_model(model_file_path)
+        # Reset the environment
+        self.simulation_manager.reset()
+        episode_reward = 0
+        episode_steps = 0
 
-        for episode in range(0, number_of_iterations):
+        self.max_steps_per_episode = number_of_iterations
 
-            # Reset the environment
-            self.simulation_manager.reset()
-            episode_reward = 0
-            episode_steps = 0
+        # Run steps in episode
+        while True:
+            # Increment the total number of steps taken by the AI in total.
+            episode_steps += 1
 
-            # Run steps in episode
-            while True:
-                # Increment the total number of steps taken by the AI in total.
-                episode_steps += 1
+            if model:
+                # Remove illegal actions
+                action_probabilities = model(self.simulation_manager.get_state().reshape(1, -1))[0].numpy()
+                # action_probabilities[self.simulation_manager.get_illegal_actions()] = np.NAN
+                action_index = np.nanargmax(action_probabilities)
+            else:
+                state = self.simulation_manager.get_state()
+                # Select an action
+                action_index = self.select_action(state)
 
-                if model:
-                    # Remove illegal actions
-                    action_probabilities = model(self.simulation_manager.get_state().reshape(1, -1))[0].numpy()
-                    # action_probabilities[self.simulation_manager.get_illegal_actions()] = np.NAN
-                    action_index = np.nanargmax(action_probabilities)
-                else:
-                    state = self.simulation_manager.get_state()
-                    # Select an action
-                    action_index = self.select_action(state)
+            # Step the simulation
+            reward = self.step(action_index, td=False)
 
-                # Step the simulation
-                reward = self.step(action_index, td=False)
+            episode_reward += reward
 
-                episode_reward += reward
+            if self.end_episode(episode_reward, episode_steps):
+                break
+            #
+            sys.stdout.write("\rstep: {0} / reward: {1}".format(str(episode_steps), str(episode_reward)))
+            sys.stdout.flush()
 
-                if self.end_episode(episode_reward, episode_steps):
-                    break
-                #
-                sys.stdout.write("\rstep: {0} / reward: {1}".format(str(episode_steps), str(episode_reward)))
-                sys.stdout.flush()
-
-        return str(episode)
 
     def save_model_weights(self, file_location, save_name):
         if os.path.isdir(file_location + "/" + save_name):
