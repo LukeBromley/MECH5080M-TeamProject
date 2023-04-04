@@ -47,6 +47,8 @@ class SimulationConfiguration:
         self.sdev_vehicle_lengths = [0.1]
         self.sdev_vehicle_widths = [0.1]
 
+        self.mass_per_cross_sectional_area = 0
+
         # Visualiser
         self.visualiser_scale = 100
 
@@ -214,6 +216,7 @@ class SpawningStats:
                  mean_vehicle_widths: list = (1.8, 2, 2.2),
                  sdev_vehicle_lengths: list = (0.5, 1, 2),
                  sdev_vehicle_widths: list = (0.2, 0.2, 0.2),
+                 mass_per_cross_sectional_area: float = 0
                  ):
 
         """
@@ -234,6 +237,7 @@ class SpawningStats:
         :param mean_vehicle_widths: List of mean vehicle widths for multi-modal normal distribution
         :param sdev_vehicle_lengths: List of vehicle length standard deviations for multi-modal normal distribution
         :param sdev_vehicle_widths: List of vehicle width standard deviations for multi-modal normal distribution
+        :param weight_per_cross_sectional_area: Weight per cross sectional area
         """
 
         # SPAWNING TIMING
@@ -258,6 +262,8 @@ class SpawningStats:
         self.mean_vehicle_widths = mean_vehicle_widths
         self.sdev_vehicle_lengths = sdev_vehicle_lengths
         self.sdev_vehicle_widths = sdev_vehicle_widths
+        # Weight
+        self.mass_per_cross_sectional_area = mass_per_cross_sectional_area
 
 
 class SpawningRandom:
@@ -330,6 +336,16 @@ class SpawningRandom:
         """
         assert len(means) == len(sdevs)
         return normal(means[i], sdevs[i])
+
+    def get_vehicle_mass(self, length, width) -> tuple:
+        """
+        The get_random_vehicle_size function returns a tuple of length and width of a vehicle using multimodal
+        distributions stored in the simulation configuration. The mean and standard deviation is randomly selected
+        and then this is used to calculate a value from a normal distribution.
+
+        :return: A tuple of length and width
+        """
+        return length * width * self.spawning_stats.mass_per_cross_sectional_area
 
     def calculate_next_spawn_time(self, distribution_type: str = 'gamma') -> None:
         """

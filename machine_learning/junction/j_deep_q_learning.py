@@ -65,7 +65,7 @@ random.seed(111)
 # average wait time doesnt consider number of. ars
 
 class MachineLearning:
-    def __init__(self, simulation_manager: SimulationManager, machine_learning_config=None, graph_num_episodes=100, graph_max_step=30000):
+    def __init__(self, simulation_manager: SimulationManager, machine_learning_config=None, graph_num_episodes=20, graph_max_step=30000):
         # SIMULATION MANAGER
         self.future_wait_time = None
         self.simulation_manager = simulation_manager
@@ -84,7 +84,7 @@ class MachineLearning:
         self.max_steps_per_episode = self.max_episode_length_in_seconds * self.simulation_manager.simulation.model.tick_rate  # Maximum number of steps allowed per episode
         self.episode_end_reward = -float("inf")  # Single episode total reward minimum threshold to end episode. Should be low to allow exploration
         self.solved_mean_reward = float("inf")  # Single episode total reward minimum threshold to consider ML trained
-
+        self.reward_history_limit = 20
         self.max_mean_reward_solved = self.episode_end_reward
 
         # TAKING AN ACTION
@@ -524,12 +524,10 @@ class MachineLearning:
 
             listener.join()
 
-    def test(self):
-        episode = 1
+    def test(self, number_of_iterations, model_file_path):
+        model = keras.models.load_model(model_file_path)
 
-        model = keras.models.load_model("saved_model")
-        # model = None
-        for episode in range(1, episode + 1):
+        for episode in range(0, number_of_iterations):
 
             # Reset the environment
             self.simulation_manager.reset()
@@ -574,12 +572,12 @@ class MachineLearning:
             os.mkdir(file_location + "/" + save_name)
         self.ml_model.save(file_location + "/" + save_name)
 
-    def load_weights(self, model, file_location, save_name):
-        model.load_weights(file_location + "/" + save_name)
+    def load_weights(self, model, file_location):
+        model.load_weights(file_location)
         return model
 
-    def load_model(self, file_location, save_name):
-        return keras.models.load_model(file_location + "/" + save_name)
+    def load_model(self, file_location):
+        return keras.models.load_model(file_location)
 
     def get_delays(self):
         return self.simulation_manager.get_delays()
@@ -615,8 +613,4 @@ if __name__ == "__main__":
         #
         # Run Simulation
         visualiser.open()
-
-
-
-
 

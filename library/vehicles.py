@@ -20,6 +20,7 @@ class Vehicle:
                  preferred_time_gap: float = 2.0,
                  length: float = 4.4,
                  width: float = 1.82,
+                 mass: float = 0,
                  sensing_radius: float = 0.0,
                  min_creep_distance: float = 0,
                  ) -> None:
@@ -40,6 +41,7 @@ class Vehicle:
         :param preferred_time_gap: time gap between vehicles [s]
         :param length: length of the vehicle [m]
         :param width: width of the vehicle [m]
+        :param weight: weight of the vehicle
         """
         self.uid = uid
         self.route_uid = route_uid
@@ -59,6 +61,7 @@ class Vehicle:
         self._preferred_time_gap = preferred_time_gap
         self.length = length
         self.width = width
+        self.mass = mass
         self._path_index = 0
         self.changing_lane = False
         self._min_creep_distance = min_creep_distance

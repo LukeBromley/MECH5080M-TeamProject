@@ -100,7 +100,7 @@ class SimulationManager:
 if __name__ == "__main__":
     # Reference Files
     junction_file_path = os.path.join(os.path.dirname(os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))))), "junctions", "simple_T_junction.junc")
-    configuration_file_path = os.path.join(os.path.dirname(os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))))), "configurations/simulation_config", "demand_mean_3.config")
+    configuration_file_path = os.path.join(os.path.dirname(os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))))), "configurations/simulation_config", "demand_mean_24.config")
 
     # Settings
     scale = 75
