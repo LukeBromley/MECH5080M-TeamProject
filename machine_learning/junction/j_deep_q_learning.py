@@ -89,7 +89,6 @@ class MachineLearning:
         self.max_steps_per_episode = self.max_episode_length_in_seconds * self.simulation_manager.simulation.model.tick_rate  # Maximum number of steps allowed per episode
         self.episode_end_reward = -float("inf")  # Single episode total reward minimum threshold to end episode. Should be low to allow exploration
         self.solved_mean_reward = float("inf")  # Single episode total reward minimum threshold to consider ML trained
-        self.reward_history_limit = 10
         self.max_mean_reward_solved = self.episode_end_reward
 
         # TAKING AN ACTION
@@ -104,13 +103,17 @@ class MachineLearning:
         #  curve is much steering during exploration as compared to exploitation.
 
         # Number of steps of just random actions before the network can make some decisions
-        self.number_of_steps_of_required_exploration = 500
+        self.number_of_episodes_of_required_exploration = 5
+        self.number_of_steps_of_required_exploration = self.number_of_episodes_of_required_exploration * self.max_steps_per_episode
         # Number of steps over which epsilon greedy decays
-        self.number_of_steps_of_exploration_reduction = 10000
+        self.number_of_episodes_of_exploration_reduction = 50
+        self.number_of_steps_of_exploration_reduction = self.number_of_episodes_of_exploration_reduction * self.max_steps_per_episode
         # Train the model after 4 actions
         self.update_after_actions = 4
         # Penalty for collision
         self.collision_penalty = 1000
+        # Number of episode to consider for mean reward
+        self.reward_history_limit = self.number_of_episodes_of_required_exploration
 
         # REPLAY
         # Buffers
@@ -249,6 +252,9 @@ class MachineLearning:
                 # Determine if episode is over
                 done = self.end_episode(episode_reward, episode_step)
 
+                if done:
+                    break
+
                 # Save actions and states in replay buffer
                 self.save_to_replay_buffers(action_index, state, done, reward)
 
@@ -277,12 +283,16 @@ class MachineLearning:
                     grads = tape.gradient(loss, self.ml_model.trainable_variables)
                     self.optimizer.apply_gradients(zip(grads, self.ml_model.trainable_variables))
 
-                if self.number_of_steps_taken % self.max_steps_per_episode == 0:
+                if (
+                        self.number_of_steps_taken > self.number_of_steps_of_required_exploration and
+                        self.number_of_steps_taken % self.max_steps_per_episode == 0
+                ):
                     # Log details
                     self.graph.update(self.number_of_steps_taken, self.get_mean_reward())
                     print(f'{tm.strftime("%H:%M:%S", tm.localtime())}  -  {self.get_mean_reward():.2f} / {self.solved_mean_reward:.2f} at episode {self.episode_count}; frame count: {self.number_of_steps_taken}.')
 
                     if self.get_mean_reward() > self.max_mean_reward_solved:
+                        # TODO: mean reward should contains as much information as possible about the last update of model
                         self.max_mean_reward_solved = self.get_mean_reward()
                         self.ml_model_target.set_weights(self.ml_model.get_weights())
                         self.ml_model_target.save("saved_model")
@@ -293,9 +303,6 @@ class MachineLearning:
 
                 # sys.stdout.write("\rstep: {0} / reward: {1}".format(str(episode_step), str(episode_reward)))
                 # sys.stdout.flush()
-
-                if done:
-                    break
 
             # print(action_log)
             self.episode_reward_history.append(episode_reward)
@@ -423,7 +430,7 @@ class MachineLearning:
         self.simulation_manager.take_action(action_index)
 
     def end_episode(self, episode_reward, step):
-        if episode_reward < self.episode_end_reward or step > self.max_steps_per_episode:
+        if episode_reward < self.episode_end_reward or step >= self.max_steps_per_episode:
             # print("")
             # print(f"   - Score: {episode_reward:.2f} / Steps: {step}")
             # print("Score at episode end:", episode_reward, "/ Steps:", step)
@@ -590,7 +597,7 @@ if __name__ == "__main__":
     visualiser = JunctionVisualiser()
     visualiser_update_function = visualiser.update
 
-    disable_visualiser = True
+    disable_visualiser = False
 
     if disable_visualiser:
         simulation = SimulationManager(junction_file_path, configuration_file_path, None)
