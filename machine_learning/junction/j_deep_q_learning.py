@@ -89,7 +89,7 @@ class MachineLearning:
 
         # TAKING AN ACTION
         # Probability of selecting a random action
-        self.epsilon_greedy_min = 0.1  # Minimum probability of selecting a random action - zero to avoid future collision penalties
+        self.epsilon_greedy_min = 0.15  # Minimum probability of selecting a random action - zero to avoid future collision penalties
         self.epsilon_greedy_max = 1.0  # Maximum probability of selecting a random action
         self.epsilon_greedy = self.epsilon_greedy_max  # Current probability of selecting a random action
 
@@ -99,13 +99,13 @@ class MachineLearning:
         #  curve is much steering during exploration as compared to exploitation.
 
         # Number of steps of just random actions before the network can make some decisions
-        self.number_of_steps_of_required_exploration = 1000
+        self.number_of_steps_of_required_exploration = 5000
         # Number of steps over which epsilon greedy decays
-        self.number_of_steps_of_exploration_reduction = 10000
+        self.number_of_steps_of_exploration_reduction = 100000
         # Train the model after 4 actions
         self.update_after_actions = 4
         # How often to update the target network
-        self.update_target_network = 1000
+        self.update_target_network = 5000
         # Penalty for collision
         self.collision_penalty = 1000
 
@@ -144,7 +144,7 @@ class MachineLearning:
 
         # MACHINE LEARNING MODELS
         n = len(self.simulation_manager.action_table)
-        self.ml_model_hidden_layers = [24, 24]
+        self.ml_model_hidden_layers = [48, 48]
 
         # Change configurations to ones supplied in machine_learning_config
         if machine_learning_config is not None:
@@ -527,7 +527,7 @@ class MachineLearning:
     def test(self):
         episode = 1
 
-        model = keras.models.load_model("saved_model-299315")
+        model = keras.models.load_model("saved_model-255293")
         # model = None
         for episode in range(1, episode + 1):
 
