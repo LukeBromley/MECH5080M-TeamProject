@@ -61,6 +61,7 @@ class Model:
         self.set_start_time_of_day(self.config.start_time_of_day)
         if self.config.random_seed is not None:
             self.set_random_seed(self.config.random_seed)
+
         self.setup_random_spawning(SpawningStats(
             max_spawn_time=self.config.max_spawn_time,
             min_spawn_time=self.config.min_spawn_time,

@@ -64,6 +64,11 @@ random.seed(111)
 #  the car leaves prh if using sum wiat tiem
 # average wait time doesnt consider number of. ars
 
+# Future work:
+# Seperate model for each traffic light
+# Introducing amber lights after the model has trained ensures saftey of the junction
+# Light delays in training cause problems with random actions, which ruin the simulation
+
 class MachineLearning:
     def __init__(self, simulation_manager: SimulationManager, machine_learning_config=None, graph_num_episodes=20, graph_max_step=30000):
         # SIMULATION MANAGER
@@ -84,12 +89,12 @@ class MachineLearning:
         self.max_steps_per_episode = self.max_episode_length_in_seconds * self.simulation_manager.simulation.model.tick_rate  # Maximum number of steps allowed per episode
         self.episode_end_reward = -float("inf")  # Single episode total reward minimum threshold to end episode. Should be low to allow exploration
         self.solved_mean_reward = float("inf")  # Single episode total reward minimum threshold to consider ML trained
-        self.reward_history_limit = 20
+        self.reward_history_limit = 10
         self.max_mean_reward_solved = self.episode_end_reward
 
         # TAKING AN ACTION
         # Probability of selecting a random action
-        self.epsilon_greedy_min = 0.1  # Minimum probability of selecting a random action - zero to avoid future collision penalties
+        self.epsilon_greedy_min = 0.1  # Minimum probability of selecting a random action
         self.epsilon_greedy_max = 1.0  # Maximum probability of selecting a random action
         self.epsilon_greedy = self.epsilon_greedy_max  # Current probability of selecting a random action
 
@@ -99,17 +104,13 @@ class MachineLearning:
         #  curve is much steering during exploration as compared to exploitation.
 
         # Number of steps of just random actions before the network can make some decisions
-        self.number_of_steps_of_required_exploration = 1000
+        self.number_of_steps_of_required_exploration = 500
         # Number of steps over which epsilon greedy decays
         self.number_of_steps_of_exploration_reduction = 10000
         # Train the model after 4 actions
         self.update_after_actions = 4
-        # How often to update the target network
-        # self.update_target_network = 110
         # Penalty for collision
         self.collision_penalty = 1000
-
-        self.reward_history_limit = int(self.update_target_network / self.max_steps_per_episode)
 
         # REPLAY
         # Buffers
@@ -327,7 +328,6 @@ class MachineLearning:
     def calculate_temporal_difference_reward(self, simulation_manager: SimulationManager):
         reward = 0
         # state_value = simulation_manager.get_sum_wait_time()
-        rewards = []
         # TODO: Try reset after every action
 
         # TODO: Try do_nothing_action or random_action
@@ -335,8 +335,11 @@ class MachineLearning:
             state_value = simulation_manager.get_state_value()
             temporal_difference_reward = 0
 
-            # TODO: Try model decision making
-            # simulation_manager.take_action(self.select_action(simulation_manager.get_state(), target=True))
+            # TODO: Try model decision making enabled after exploration !!!
+            # TODO: Could even use active learning with a pre-trained target_network weights
+            if self.number_of_steps_taken < self.number_of_steps_of_required_exploration:
+                simulation_manager.take_action(self.select_action(simulation_manager.get_state(), target=True))
+
             simulation_manager.simulation.compute_single_iteration()
 
             if simulation_manager.simulation.model.detect_collisions():
@@ -344,7 +347,6 @@ class MachineLearning:
 
             temporal_difference_reward += (state_value - simulation_manager.get_state_value())
             reward += math.pow(self.gamma, index) * temporal_difference_reward
-            rewards.append(math.pow(self.gamma, index) * temporal_difference_reward)
         # print(rewards)
         return reward
 
@@ -592,9 +594,14 @@ if __name__ == "__main__":
 
     if disable_visualiser:
         simulation = SimulationManager(junction_file_path, configuration_file_path, None)
+
+        # Randomise mean_spawn_time_per_hour
+        mean_spawn_time_per_hour = random.choice([6, 12, 24])
+        for spawner in simulation.simulation.model.spawners:
+            spawner.spawning_stats.mean_spawn_time_per_hour = [mean_spawn_time_per_hour for _ in spawner.spawning_stats.mean_spawn_time_per_hour]
+
         machine_learning = MachineLearning(simulation, machine_learning_config=None)
         machine_learning.train()
-        # machine_learning.test()
     else:
         simulation = SimulationManager(junction_file_path, configuration_file_path, visualiser_update_function)
         machine_learning = MachineLearning(simulation, machine_learning_config=None)
