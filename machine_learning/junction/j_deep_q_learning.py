@@ -513,11 +513,10 @@ class MachineLearning:
 
             listener.join()
 
-    def test(self):
-        episode = 1
+    def test(self, number_of_iterations, model_file_path):
+        model = keras.models.load_model(model_file_path)
 
-        model = keras.models.load_model("saved_model")
-        for episode in range(1, episode + 1):
+        for episode in range(0, number_of_iterations):
 
             # Reset the environment
             self.simulation_manager.reset()
@@ -564,12 +563,12 @@ class MachineLearning:
             os.mkdir(file_location + "/" + save_name)
         self.ml_model.save(file_location + "/" + save_name)
 
-    def load_weights(self, model, file_location, save_name):
-        model.load_weights(file_location + "/" + save_name)
+    def load_weights(self, model, file_location):
+        model.load_weights(file_location)
         return model
 
-    def load_model(self, file_location, save_name):
-        return keras.models.load_model(file_location + "/" + save_name)
+    def load_model(self, file_location):
+        return keras.models.load_model(file_location)
 
     def get_delays(self):
         return self.simulation_manager.get_delays()
@@ -596,9 +595,9 @@ if __name__ == "__main__":
     # machine_learning.train()
 
     # # Visualiser Setup
-    visualiser.define_main(machine_learning.test)
-    visualiser.load_junction(junction_file_path)
-    visualiser.set_scale(scale)
+    # visualiser.define_main(machine_learning.test)
+    # visualiser.load_junction(junction_file_path)
+    # visualiser.set_scale(scale)
     #
     # Run Simulation
     visualiser.open()
