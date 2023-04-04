@@ -80,7 +80,7 @@ class MachineLearning:
         self.all_time_reward = 0  # Total reward over all episodes
 
         # TRAINING LIMITS
-        self.max_episode_length_in_seconds = 30
+        self.max_episode_length_in_seconds = 60
         self.max_steps_per_episode = self.max_episode_length_in_seconds * self.simulation_manager.simulation.model.tick_rate  # Maximum number of steps allowed per episode
         self.episode_end_reward = -float("inf")  # Single episode total reward minimum threshold to end episode. Should be low to allow exploration
         self.solved_mean_reward = float("inf")  # Single episode total reward minimum threshold to consider ML trained
@@ -527,7 +527,7 @@ class MachineLearning:
     def test(self):
         episode = 1
 
-        model = keras.models.load_model("saved_model")
+        model = keras.models.load_model("saved_model-299315")
         # model = None
         for episode in range(1, episode + 1):
 
@@ -587,7 +587,7 @@ class MachineLearning:
 
 if __name__ == "__main__":
     # Reference Files
-    junction_file_path = os.path.join(os.path.dirname(os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))))), "junctions", "complex_Y_junction.junc")
+    junction_file_path = os.path.join(os.path.dirname(os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))))), "junctions", "simple_X_junction.junc")
     configuration_file_path = os.path.join(os.path.dirname(os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))))), "configurations", "simulation_config", "cross_road.config")
 
     # Settings
