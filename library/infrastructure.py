@@ -279,7 +279,7 @@ class TrafficLight:
         return 0.0
 
     def allows_traffic(self) -> bool:
-        if self.colour == "green":
+        if self.colour == "green": # or self.colour == "red_amber":
             return True
         else:
             return False

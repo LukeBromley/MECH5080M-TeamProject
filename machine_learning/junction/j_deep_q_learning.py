@@ -98,7 +98,7 @@ class MachineLearning:
 
         # TAKING AN ACTION
         # Probability of selecting a random action
-        self.epsilon_greedy_min = 0.1  # Minimum probability of selecting a random action
+        self.epsilon_greedy_min = 0.15  # Minimum probability of selecting a random action
         self.epsilon_greedy_max = 1.0  # Maximum probability of selecting a random action
         self.epsilon_greedy = self.epsilon_greedy_max  # Current probability of selecting a random action
 
@@ -108,17 +108,17 @@ class MachineLearning:
         #  curve is much steering during exploration as compared to exploitation.
 
         # Number of steps of just random actions before the network can make some decisions
-        self.number_of_episodes_of_required_exploration = 5
+        self.number_of_episodes_of_required_exploration = 1
         self.number_of_steps_of_required_exploration = self.number_of_episodes_of_required_exploration * self.max_steps_per_episode
         # Number of steps over which epsilon greedy decays
-        self.number_of_episodes_of_exploration_reduction = 50
+        self.number_of_episodes_of_exploration_reduction = 20
         self.number_of_steps_of_exploration_reduction = self.number_of_episodes_of_exploration_reduction * self.max_steps_per_episode
         # Train the model after 4 actions
         self.update_after_actions = 4
         # Penalty for collision
         self.collision_penalty = 1000
         # Number of episode to consider for mean reward
-        self.reward_history_limit = self.number_of_episodes_of_required_exploration
+        self.reward_history_limit = 10
 
         # REPLAY
         # Buffers
@@ -129,7 +129,7 @@ class MachineLearning:
         self.episode_reward_history = []
 
         # Steps to look into the future to determine the mean reward. Should match T = 1/(1-gamma)
-        self.number_of_temporal_difference_steps = 6 * self.simulation_manager.simulation.model.tick_rate
+        self.number_of_temporal_difference_steps = 5 * self.simulation_manager.simulation.model.tick_rate
 
         # Sample Size
         # TODO: Implement soft update
@@ -153,7 +153,7 @@ class MachineLearning:
 
         # MACHINE LEARNING MODELS
         n = len(self.simulation_manager.action_table)
-        self.ml_model_hidden_layers = [24, 24]
+        self.ml_model_hidden_layers = [36, 36]
 
         # Change configurations to ones supplied in machine_learning_config
         if machine_learning_config is not None:
@@ -215,6 +215,7 @@ class MachineLearning:
     def create_q_learning_model(self, state_size, action_size, hidden_layers):
         ml_layers = [layers.Input(shape=(state_size, ))]  # input dimension
         for number_of_perceptrons in hidden_layers:
+            # TODO: try softmax activation
             ml_layers.append(layers.Dense(number_of_perceptrons, activation="relu")(ml_layers[-1]))
         q_values = layers.Dense(action_size, activation="linear")(ml_layers[-1])
         q_network = tf.keras.models.Model(inputs=ml_layers[0], outputs=[q_values])
@@ -488,7 +489,7 @@ class MachineLearning:
         if self.episode_count > 0:
             return np.mean(self.episode_reward_history[-self.reward_history_limit:])
         else:
-            return 0.0
+            return -float("inf")
 
     def solved(self, mean_reward):
         if mean_reward > self.solved_mean_reward:  # Condition to consider the task solved

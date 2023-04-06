@@ -35,7 +35,7 @@ class SimulationManager:
 
         # Inputs / States
         self.features_per_vehicle_state = 4
-        self.features_per_traffic_light_state = 0
+        self.features_per_traffic_light_state = 2
         self.number_of_tracked_vehicles_per_light_controlled_path = 5
         self.number_of_tracked_vehicles_per_light_path = 2
         self.observation_space_size = self.features_per_vehicle_state * (
@@ -134,16 +134,16 @@ class SimulationManager:
 
     def get_traffic_light_state(self, light: TrafficLight):
         return [
-            light.get_state()
-            # light.time_remaining,
+            light.get_state(),
+            light.time_remaining
             # light.path_uid
         ]
 
     def get_state(self):
         inputs = []
 
-        # for light in self.simulation.model.lights:
-        #     inputs += self.get_traffic_light_state(light)
+        for light in self.simulation.model.lights:
+            inputs += self.get_traffic_light_state(light)
 
         path_inputs = [[] for _ in self.light_controlled_path_uids]
         for vehicle in self.simulation.model.vehicles:
