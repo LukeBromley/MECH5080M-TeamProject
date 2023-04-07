@@ -35,9 +35,9 @@ class SimulationManager:
 
         # Inputs / States
         self.features_per_vehicle_state = 4
-        self.features_per_traffic_light_state = 2
-        self.number_of_tracked_vehicles_per_light_controlled_path = 5
-        self.number_of_tracked_vehicles_per_light_path = 2
+        self.features_per_traffic_light_state = 0
+        self.number_of_tracked_vehicles_per_light_controlled_path = 4
+        self.number_of_tracked_vehicles_per_light_path = 1
         self.observation_space_size = self.features_per_vehicle_state * (
                 len(self.light_controlled_path_uids) * self.number_of_tracked_vehicles_per_light_controlled_path +
                 len(self.light_path_uids) * self.number_of_tracked_vehicles_per_light_path
@@ -55,16 +55,17 @@ class SimulationManager:
 
     def reset(self):
         self.simulation = self.create_simulation()
-        self.freeze_traffic()
+        self.freeze_traffic(15)
         return self.get_state()
 
     def freeze_traffic(self, n: int = None):
+        # TODO: Add randomisation
         if n is None:
             n = random.randint(5, 20)
 
         for light in self.simulation.model.lights:
-            if random.random() > 0.5:
-                light.set_red()
+            # if random.random() > 0.5:
+            light.set_red()
 
         for step in range(n * self.simulation.model.tick_rate):
             self.simulation.compute_single_iteration()
@@ -73,6 +74,7 @@ class SimulationManager:
         # TODO: Sparse actions
         # Avoid do nothing action if not using RNN
         self.action_table = list(itertools.product([-1, 1], repeat=len(self.simulation.model.lights)))
+        self.action_table = [action for action in self.action_table if action.count(1) == 1]
         # self.action_table.pop(self.action_table.index(tuple([-1 for _ in self.simulation.model.lights])))
         # self.action_table.pop(self.action_table.index(tuple([1 for _ in self.simulation.model.lights])))
         print(self.action_table)
@@ -142,8 +144,8 @@ class SimulationManager:
     def get_state(self):
         inputs = []
 
-        for light in self.simulation.model.lights:
-            inputs += self.get_traffic_light_state(light)
+        # for light in self.simulation.model.lights:
+        #     inputs += self.get_traffic_light_state(light)
 
         path_inputs = [[] for _ in self.light_controlled_path_uids]
         for vehicle in self.simulation.model.vehicles:

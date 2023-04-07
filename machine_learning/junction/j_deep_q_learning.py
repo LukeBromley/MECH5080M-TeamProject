@@ -90,7 +90,7 @@ class MachineLearning:
         self.all_time_reward = 0  # Total reward over all episodes
 
         # TRAINING LIMITS
-        self.max_episode_length_in_seconds = 100
+        self.max_episode_length_in_seconds = 60
         self.max_steps_per_episode = self.max_episode_length_in_seconds * self.simulation_manager.simulation.model.tick_rate  # Maximum number of steps allowed per episode
         self.episode_end_reward = -float("inf")  # Single episode total reward minimum threshold to end episode. Should be low to allow exploration
         self.solved_mean_reward = float("inf")  # Single episode total reward minimum threshold to consider ML trained
@@ -98,7 +98,7 @@ class MachineLearning:
 
         # TAKING AN ACTION
         # Probability of selecting a random action
-        self.epsilon_greedy_min = 0.15  # Minimum probability of selecting a random action
+        self.epsilon_greedy_min = 0.1  # Minimum probability of selecting a random action
         self.epsilon_greedy_max = 1.0  # Maximum probability of selecting a random action
         self.epsilon_greedy = self.epsilon_greedy_max  # Current probability of selecting a random action
 
@@ -111,14 +111,14 @@ class MachineLearning:
         self.number_of_episodes_of_required_exploration = 1
         self.number_of_steps_of_required_exploration = self.number_of_episodes_of_required_exploration * self.max_steps_per_episode
         # Number of steps over which epsilon greedy decays
-        self.number_of_episodes_of_exploration_reduction = 20
+        self.number_of_episodes_of_exploration_reduction = 15
         self.number_of_steps_of_exploration_reduction = self.number_of_episodes_of_exploration_reduction * self.max_steps_per_episode
         # Train the model after 4 actions
         self.update_after_actions = 4
         # Penalty for collision
         self.collision_penalty = 1000
         # Number of episode to consider for mean reward
-        self.reward_history_limit = 10
+        self.reward_history_limit = 5
 
         # REPLAY
         # Buffers
@@ -128,8 +128,8 @@ class MachineLearning:
         self.done_history = []
         self.episode_reward_history = []
 
-        # Steps to look into the future to determine the mean reward. Should match T = 1/(1-gamma)
-        self.number_of_temporal_difference_steps = 5 * self.simulation_manager.simulation.model.tick_rate
+        # Steps to look into the future to determine the mean reward. Should match n = 1/(1-gamma)
+        self.number_of_temporal_difference_steps = 10 * self.simulation_manager.simulation.model.tick_rate
 
         # Sample Size
         # TODO: Implement soft update
@@ -153,7 +153,7 @@ class MachineLearning:
 
         # MACHINE LEARNING MODELS
         n = len(self.simulation_manager.action_table)
-        self.ml_model_hidden_layers = [36, 36]
+        self.ml_model_hidden_layers = [12, 12, 12]
 
         # Change configurations to ones supplied in machine_learning_config
         if machine_learning_config is not None:
@@ -217,7 +217,7 @@ class MachineLearning:
         for number_of_perceptrons in hidden_layers:
             # TODO: try softmax activation
             ml_layers.append(layers.Dense(number_of_perceptrons, activation="relu")(ml_layers[-1]))
-        q_values = layers.Dense(action_size, activation="linear")(ml_layers[-1])
+        q_values = layers.Dense(action_size, activation="softmax")(ml_layers[-1])
         q_network = tf.keras.models.Model(inputs=ml_layers[0], outputs=[q_values])
         return q_network
 
@@ -350,7 +350,7 @@ class MachineLearning:
 
             # TODO: Try model decision making enabled after exploration !!!
             # TODO: Could even use active learning with a pre-trained target_network weights
-            if self.number_of_steps_taken < self.number_of_steps_of_required_exploration:
+            if self.number_of_steps_taken > self.number_of_steps_of_exploration_reduction:
                 simulation_manager.take_action(self.select_action(simulation_manager.get_state(), target=True))
 
             simulation_manager.simulation.compute_single_iteration()
@@ -609,9 +609,9 @@ if __name__ == "__main__":
         simulation = SimulationManager(junction_file_path, configuration_file_path, None)
 
         # Randomise mean_spawn_time_per_hour
-        mean_spawn_time_per_hour = random.choice([6, 12, 24])
-        for spawner in simulation.simulation.model.spawners:
-            spawner.spawning_stats.mean_spawn_time_per_hour = [mean_spawn_time_per_hour for _ in spawner.spawning_stats.mean_spawn_time_per_hour]
+        # mean_spawn_time_per_hour = random.choice([6, 12, 24])
+        # for spawner in simulation.simulation.model.spawners:
+        #     spawner.spawning_stats.mean_spawn_time_per_hour = [mean_spawn_time_per_hour for _ in spawner.spawning_stats.mean_spawn_time_per_hour]
 
         machine_learning = MachineLearning(simulation, machine_learning_config=None)
         machine_learning.train()
