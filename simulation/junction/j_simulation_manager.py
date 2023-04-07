@@ -55,13 +55,13 @@ class SimulationManager:
 
     def reset(self):
         self.simulation = self.create_simulation()
-        self.freeze_traffic(15)
+        self.freeze_traffic(30)
         return self.get_state()
 
     def freeze_traffic(self, n: int = None):
         # TODO: Add randomisation
         if n is None:
-            n = random.randint(5, 20)
+            n = random.randint(5, 30)
 
         for light in self.simulation.model.lights:
             # if random.random() > 0.5:
