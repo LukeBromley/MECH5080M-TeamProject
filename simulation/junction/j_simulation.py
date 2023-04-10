@@ -77,11 +77,6 @@ class Simulation:
             vehicle.update_position_data([coord_x, coord_y])
             self.vehicle_data.append([coord_x, coord_y, angle, vehicle.length, vehicle.width, vehicle.uid])
 
-            if vehicle.get_acceleration() <= 0:
-                vehicle.wait_time += self.model.tick_time
-            elif vehicle.get_speed() > 3:
-                vehicle.wait_time -= 5 * self.model.tick_time
-
         # Calculate Performance Statistics
         # Delay
         self.delays = self.delays + self.model.get_vehicle_delays()

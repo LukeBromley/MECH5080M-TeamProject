@@ -16,6 +16,8 @@ class Graph:
 
         self.line, = self.ax.plot(self.x, self.y)
 
+        plt.pause(0.001)
+
     def update(self, x: float, y: float):
         self.y.append(y)
         self.x.append(x)
@@ -25,7 +27,9 @@ class Graph:
         self.ax.set_ylim([min(self.y), max(self.y)])
         self.ax.set_xlim([min(self.x), max(self.x)])
 
-        plt.pause(0.0001)
+        self.figure.canvas.start_event_loop(0.001)
+        self.figure.canvas.draw_idle()
+
         self.figure.savefig("learning_curve.png")
 
     def hide_graph(self):
