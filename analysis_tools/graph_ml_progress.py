@@ -2,11 +2,11 @@ import matplotlib.pyplot as plt
 
 
 class Graph:
-    def __init__(self, num_episodes_displayed, max_steps_displayed):
+    def __init__(self, num_episodes_displayed, max_steps_displayed, title: str = ""):
         self.num_episodes_displayed = num_episodes_displayed
 
         self.figure, self.ax = plt.subplots()
-        self.figure.suptitle("Learning curve", fontsize=20)
+        self.figure.suptitle("Learning curve " + title, fontsize=20)
 
         self.ax.set_xlabel('Actions taken')
         self.ax.set_ylabel('Mean reward')

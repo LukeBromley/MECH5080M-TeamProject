@@ -61,7 +61,7 @@ class SimulationManager:
     def freeze_traffic(self, n: int = None):
         # TODO: Add randomisation
         if n is None:
-            n = random.randint(5, 15)
+            n = random.randint(5, 10)
 
         for light in self.simulation.model.lights:
             if random.random() > 0.5:

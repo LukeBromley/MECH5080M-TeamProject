@@ -24,8 +24,9 @@ import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers
 
-np.random.seed(111)
-random.seed(111)
+random_seed = 1
+np.random.seed(random_seed)
+random.seed(random_seed)
 
 
 # https://towardsdatascience.com/a-minimal-working-example-for-deep-q-learning-in-tensorflow-2-0-e0ca8a944d5e
@@ -90,7 +91,7 @@ class MachineLearning:
 
         # TODO: Profile code
         # GRAPH
-        self.graph = Graph(graph_num_episodes, graph_max_step)
+        self.graph = Graph(graph_num_episodes, graph_max_step, str(random_seed))
 
         # COUNTERS
         self.episode_count = 0  # Number of episodes trained
@@ -115,7 +116,7 @@ class MachineLearning:
         #  curve is much steering during exploration as compared to exploitation.
 
         # Number of steps of just random actions before the network can make some decisions
-        self.number_of_episodes_of_required_exploration = 5
+        self.number_of_episodes_of_required_exploration = 25
         self.number_of_steps_of_required_exploration = self.number_of_episodes_of_required_exploration * self.max_steps_per_episode
         # Number of steps over which epsilon greedy decays
         self.number_of_episodes_of_exploration_reduction = 500
@@ -125,7 +126,7 @@ class MachineLearning:
         # Penalty for collision
         self.collision_penalty = 1000
         # Number of episode to consider for mean reward
-        self.reward_history_limit = 10
+        self.reward_history_limit = 20
 
         # REPLAY
         # Buffers
@@ -160,8 +161,8 @@ class MachineLearning:
         self.loss_function = keras.losses.Huber()
 
         # MACHINE LEARNING MODELS
-        n = len(self.simulation_manager.action_table)
-        self.ml_model_hidden_layers = [48, 48]
+        n = self.simulation_manager.observation_space_size
+        self.ml_model_hidden_layers = [n, int(n/2), len(self.simulation_manager.action_table)]
 
         # Change configurations to ones supplied in machine_learning_config
         if machine_learning_config is not None:
@@ -246,6 +247,7 @@ class MachineLearning:
             episode_reward = 0
             episode_step = 0
 
+            action_index = 0
             # Run steps in episode
             while True:
 
@@ -261,6 +263,10 @@ class MachineLearning:
                 #     self.end_episode(episode_reward, episode_step)
                 #     continue
 
+                if episode_step % self.simulation_manager.simulation.model.tick_rate != 0:
+                    self.step(action_index, td=False)
+                    continue
+
                 state = self.simulation_manager.get_state()
 
                 # Select an action
@@ -268,6 +274,11 @@ class MachineLearning:
 
                 # TODO: Check hypothesis - Reward increasing during random phase because of td predictions by target_model
                 # Step the simulation
+
+                # TODO: Try backtraking and step skipping
+                # TODO: Try bigger network
+                # TODO: Try pyramid neurons
+
                 reward = self.step(action_index, td=True)
 
                 # Update episode reward
@@ -566,29 +577,31 @@ class MachineLearning:
         tick_time = 1 / self.simulation_manager.simulation.model.tick_rate
         self.max_steps_per_episode = number_of_iterations
 
-        # if model:
-        #     simulation_manager_copy = self.create_simulation_manager_copy()
-        #     for step in range(int(self.simulation_manager.simulation.model.tick_rate * self.simulation_manager.simulation.model.lights[0].red_amber_time)):
-        #         action_probabilities = model(simulation_manager_copy.get_state().reshape(1, -1))[0].numpy()
-        #         action_index = np.nanargmax(action_probabilities)
-        #         simulation_manager_copy.take_action(action_index)
-        #         simulation_manager_copy.simulation.compute_single_iteration()
+        if model:
+            simulation_manager_copy = self.create_simulation_manager_copy()
+            for step in range(int(self.simulation_manager.simulation.model.tick_rate * self.simulation_manager.simulation.model.lights[0].red_amber_time)):
+                action_probabilities = model(simulation_manager_copy.get_state().reshape(1, -1))[0].numpy()
+                action_index = np.nanargmax(action_probabilities)
+                simulation_manager_copy.take_action(action_index)
+                simulation_manager_copy.simulation.compute_single_iteration()
 
+        action_index = 0
         # Run steps in episode
         while True:
             # Increment the total number of steps taken by the AI in total.
             episode_steps += 1
 
-            if model:
-                # self.predict(model, simulation_manager_copy)
-                # Remove illegal actions
-                action_probabilities = model(self.simulation_manager.get_state().reshape(1, -1))[0].numpy()
-                # action_probabilities[self.simulation_manager.get_illegal_actions()] = np.NAN
-                action_index = np.nanargmax(action_probabilities)
-            else:
-                state = self.simulation_manager.get_state()
-                # Select an action
-                action_index = self.select_action(state)
+            if episode_steps % (3 * self.simulation_manager.simulation.model.tick_rate) == 0:
+                if model:
+                    # self.predict(model, simulation_manager_copy)
+                    # Remove illegal actions
+                    action_probabilities = model(self.simulation_manager.get_state().reshape(1, -1))[0].numpy()
+                    # action_probabilities[self.simulation_manager.get_illegal_actions()] = np.NAN
+                    action_index = np.nanargmax(action_probabilities)
+                else:
+                    state = self.simulation_manager.get_state()
+                    # Select an action
+                    action_index = self.select_action(state)
 
             # Step the simulation
             reward = self.step(action_index, td=False)
