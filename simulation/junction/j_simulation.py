@@ -31,9 +31,21 @@ class Simulation:
         self.kinetic_energy = {}
         self.kinetic_energy_waste = {}
         self.collision = False
+        self.freeze_traffic()
 
         # Visualiser
         self.visualiser_update_function = visualiser_update_function
+
+    def freeze_traffic(self, n: int = None):
+        if n is None:
+            n = random.randint(5, 15)
+
+        for light in self.model.lights:
+            if random.random() > 0.5:
+                light.set_red()
+
+        for step in range(n * self.model.tick_rate):
+            self.compute_single_iteration()
 
     def run_continuous(self, speed_multiplier=None):
         for tick in range(self.model.config.simulation_duration):

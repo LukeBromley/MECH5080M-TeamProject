@@ -14,13 +14,9 @@ from machine_learning.fixed_timings_tester import FixedTimingsTester
 # MEGAMAIN - Choose between automated training and automated testing of pretrained models.
 # MEGAMAINTEST - Choose between automated training and automated testing of pretrained models.
 if __name__ == "__main__":
-    # Visualiser Init
-    visualiser = JunctionVisualiser()
-    visualiser_update_function = visualiser.update
-
     # iteration_file = "ml_training_plan.csv"
     # iterations = MachineLearningManager(iteration_file)
-    tester_file = "ml_testing_plan.json"
-    testing = TrainedModelTester(tester_file)
-    # tester_file = "ft_testing_plan.json"
-    # testing = FixedTimingsTester(tester_file)
+    # tester_file = "ml_testing_plan.json"
+    # testing = TrainedModelTester(tester_file)
+    tester_file = "ft_testing_plan.json"
+    testing = FixedTimingsTester(tester_file)

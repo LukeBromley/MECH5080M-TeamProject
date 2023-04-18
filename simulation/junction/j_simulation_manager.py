@@ -55,20 +55,7 @@ class SimulationManager:
 
     def reset(self):
         self.simulation = self.create_simulation()
-        self.freeze_traffic()
         return self.get_state()
-
-    def freeze_traffic(self, n: int = None):
-        # TODO: Add randomisation
-        if n is None:
-            n = random.randint(5, 15)
-
-        for light in self.simulation.model.lights:
-            if random.random() > 0.5:
-                light.set_red()
-
-        for step in range(n * self.simulation.model.tick_rate):
-            self.simulation.compute_single_iteration()
 
     def calculate_actions(self):
         # TODO: Sparse actions
