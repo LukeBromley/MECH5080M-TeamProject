@@ -24,13 +24,12 @@ import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers
 
-random_seed = 1
-np.random.seed(random_seed)
-random.seed(random_seed)
 
+random_seed = 1
+# np.random.seed(random_seed)
+# random.seed(random_seed)
 
 # https://towardsdatascience.com/a-minimal-working-example-for-deep-q-learning-in-tensorflow-2-0-e0ca8a944d5e
-
 
 # Infinity acceleration
 # Remove light delays
@@ -116,7 +115,7 @@ class MachineLearning:
         #  curve is much steering during exploration as compared to exploitation.
 
         # Number of steps of just random actions before the network can make some decisions
-        self.number_of_episodes_of_required_exploration = 25
+        self.number_of_episodes_of_required_exploration = 15
         self.number_of_steps_of_required_exploration = self.number_of_episodes_of_required_exploration * self.max_steps_per_episode
         # Number of steps over which epsilon greedy decays
         self.number_of_episodes_of_exploration_reduction = 500
@@ -138,14 +137,14 @@ class MachineLearning:
 
         # Steps to look into the future to determine the mean reward. Should match n = 1/(1-gamma)
         # TODO: Does it think it will actually last for than many seconds but then seeks for temp reward anyway?
-        self.number_of_temporal_difference_steps = int(5 * self.simulation_manager.simulation.model.tick_rate)
+        self.number_of_temporal_difference_steps = int(10 * self.simulation_manager.simulation.model.tick_rate)
 
         # Sample Size
         # TODO: Implement soft update
         self.sample_size = 124  # Size of batch taken from replay buffer
 
         # Discount factor
-        self.gamma = 0.9  # Discount factor for past rewards
+        self.gamma = 0.95  # Discount factor for past rewards
 
         # Maximum replay buffer length
         # Note: The Deepmind paper suggests 1000000 however this causes memory issues
@@ -281,6 +280,10 @@ class MachineLearning:
 
                 reward = self.step(action_index, td=True)
 
+                # # TODO: sort of backtrackoing
+                # if reward > 0.9*self.collision_penalty:
+                #     continue
+
                 # Update episode reward
                 episode_reward += reward
 
@@ -328,6 +331,7 @@ class MachineLearning:
                     print(
                         f'{tm.strftime("%H:%M:%S", tm.localtime())}  -  {self.get_mean_reward():.2f} / {self.solved_mean_reward:.2f} at episode {self.episode_count}; frame count: {self.number_of_steps_taken}.')
 
+                    # TODO: Update at peak is not a good idea
                     if self.get_mean_reward() > self.max_mean_reward_solved:
                         # TODO: mean reward should contains as much information as possible about the last update of model
                         self.max_mean_reward_solved = self.get_mean_reward()
@@ -394,7 +398,8 @@ class MachineLearning:
 
             # TODO: Try model decision making enabled after exploration !!!
             # TODO: Could even use active learning with a pre-trained target_network weights
-            if 2 * self.number_of_steps_taken > self.number_of_steps_of_exploration_reduction:
+            # TODO: Taking action at random rather is worse than after half-way exploration
+            if self.number_of_steps_taken > 0.6 * self.number_of_steps_of_exploration_reduction:
                 simulation_manager.take_action(self.select_action(simulation_manager.get_state(), target=True))
 
             simulation_manager.simulation.compute_single_iteration()
@@ -418,8 +423,7 @@ class MachineLearning:
             action = self.select_best_action(state, target)
         else:
             # Exploration vs Exploitation
-            if self.number_of_steps_taken < self.number_of_steps_of_required_exploration or self.epsilon_greedy > \
-                    np.random.rand(1)[0]:
+            if self.number_of_steps_taken < self.number_of_steps_of_required_exploration or self.epsilon_greedy > np.random.rand(1)[0]:
                 # Take random action
                 action = self.select_random_action()
             else:
@@ -591,9 +595,9 @@ class MachineLearning:
             # Increment the total number of steps taken by the AI in total.
             episode_steps += 1
 
-            if episode_steps % (3 * self.simulation_manager.simulation.model.tick_rate) == 0:
+            if episode_steps % (10 * self.simulation_manager.simulation.model.tick_rate) == 0:
                 if model:
-                    # self.predict(model, simulation_manager_copy)
+                    self.predict(model, simulation_manager_copy)
                     # Remove illegal actions
                     action_probabilities = model(self.simulation_manager.get_state().reshape(1, -1))[0].numpy()
                     # action_probabilities[self.simulation_manager.get_illegal_actions()] = np.NAN

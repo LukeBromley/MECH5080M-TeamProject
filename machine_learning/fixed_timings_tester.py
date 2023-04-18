@@ -16,13 +16,13 @@ import time
 
 
 class FixedTimingsTester:
-    def __init__(self, file_path) -> None:
+    def __init__(self, file_path, visualiser_update_function=None) -> None:
         # MEGAMAINTEST - Add additional data outputs here as required
         self.testing_runs = []
         self.output_directory_path = ""
         self.summary_file_path = ""
         self.prepare_files(file_path)
-        self.run_testing_runs()
+        self.run_testing_runs(visualiser_update_function)
 
     def prepare_files(self, file_path: str) -> None:
         """
@@ -60,7 +60,7 @@ class FixedTimingsTester:
             for key in file_dict:
                 self.testing_runs.append(file_dict[key])
 
-    def run_testing_runs(self) -> None:
+    def run_testing_runs(self, visualiser_update_function=None) -> None:
         """
         The run_testing_runs function is the main function of the Testing class. It runs all testing runs listed in the
         iteration file, and saves their results to a directory.
@@ -74,7 +74,7 @@ class FixedTimingsTester:
             time_taken, \
             delay_mean_average, delay_standard_deviation, delay_maximum, delay_minimum, delay_num_vehicles, delays, \
             backup_mean_average, backup_standard_deviation, backup_maximum, backup_time, backup, \
-            kinetic_energy_waste_mean_average, kinetic_energy_waste_standard_deviation, kinetic_energy_waste_maximum, kinetic_energy_waste_minimum, kinetic_energy = self.run_testing_run(run["RunUID"], run["RunType"], run["Junction"], run["SimulationConfig"], run["Steps"], run["Actions"], run["ActionDurations"], run["ActionPaths"])
+            kinetic_energy_waste_mean_average, kinetic_energy_waste_standard_deviation, kinetic_energy_waste_maximum, kinetic_energy_waste_minimum, kinetic_energy = self.run_testing_run(run["RunUID"], run["RunType"], run["Junction"], run["SimulationConfig"], run["Steps"], run["Actions"], run["ActionDurations"], run["ActionPaths"], visualiser_update_function)
 
             # MEGAMAINTEST - make sure any results are returned here and 'run' is updated with them in dictionary format.
             run.update({"Time Taken": time_taken,
@@ -101,7 +101,7 @@ class FixedTimingsTester:
         print("\n\n================================================\nALL ITERATIONS COMPLETE\n    Total Time: " + str(time_taken) + "\n    Total Testing Runs: " + str(len(self.testing_runs)) + "\n    Results Directory: " + self.output_directory_path + "\n================================================")
 
     # MEGAMAINTEST - add the parameters to this function call and add in functionality as required.
-    def run_testing_run(self, run_uid, run_type, junction_file_name, sim_config_file, steps, actions, action_durations, action_paths):
+    def run_testing_run(self, run_uid, run_type, junction_file_name, sim_config_file, steps, actions, action_durations, action_paths, visualiser_update_function=None):
 
         """
         The run_testing_run function is used to run a single testing run using the parameters specified in the iteration
@@ -127,10 +127,10 @@ class FixedTimingsTester:
         time_begin = time.perf_counter()
 
         if run_type.lower() == "fixed timings":
-            simulation_manager = FixedTimingSimulationManager(junction_file_path, simulation_config_file_path, visualiser_update_function=None)
+            simulation_manager = FixedTimingSimulationManager(junction_file_path, simulation_config_file_path, visualiser_update_function=visualiser_update_function)
             simulation_manager.run(steps, actions, action_durations)
         elif run_type.lower() == "demand scheduling":
-            simulation_manager = DemandSchedulingSimulationManager(junction_file_path, simulation_config_file_path,visualiser_update_function=None)
+            simulation_manager = DemandSchedulingSimulationManager(junction_file_path, simulation_config_file_path, visualiser_update_function=visualiser_update_function)
             simulation_manager.run(steps, actions, action_durations, action_paths)
         else:
             print("ERROR Incompatible Type in config UID:" + str(run_uid))

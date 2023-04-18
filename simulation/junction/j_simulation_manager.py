@@ -36,7 +36,7 @@ class SimulationManager:
         # Inputs / States
         self.features_per_vehicle_state = 4
         self.features_per_traffic_light_state = 0
-        self.number_of_tracked_vehicles_per_light_controlled_path = 5
+        self.number_of_tracked_vehicles_per_light_controlled_path = 6
         self.number_of_tracked_vehicles_per_light_path = 2
         self.observation_space_size = self.features_per_vehicle_state * (
                 len(self.light_controlled_path_uids) * self.number_of_tracked_vehicles_per_light_controlled_path +
@@ -46,7 +46,7 @@ class SimulationManager:
         self.light_controlled_path_uids += self.light_path_uids
 
         # TODO: Initialize separate boxes by argmax for different inputs
-        self.observation_space = Box(0, 50, shape=(1, self.observation_space_size), dtype=float)
+        self.observation_space = Box(0, 75, shape=(1, self.observation_space_size), dtype=float)
         self.reset()
 
     def create_simulation(self):
@@ -61,7 +61,7 @@ class SimulationManager:
     def freeze_traffic(self, n: int = None):
         # TODO: Add randomisation
         if n is None:
-            n = random.randint(5, 10)
+            n = random.randint(5, 15)
 
         for light in self.simulation.model.lights:
             if random.random() > 0.5:
@@ -201,8 +201,8 @@ class SimulationManager:
             return 0.0
 
     def get_state_value(self):
-        # TODO: square
-        return sum([self.simulation.model.get_delay(vehicle.uid)**2 - vehicle.get_speed() for vehicle in self.simulation.model.vehicles if vehicle.get_path_index() == 0])
+        # TODO: unsquare
+        return sum([self.simulation.model.get_delay(vehicle.uid)**2 - vehicle.get_speed()**2 for vehicle in self.simulation.model.vehicles if vehicle.get_path_index() == 0])
 
     def get_sum_wait_time(self):
         return sum([vehicle.wait_time for vehicle in self.simulation.model.vehicles])
