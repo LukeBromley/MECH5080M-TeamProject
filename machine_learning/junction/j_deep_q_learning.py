@@ -589,13 +589,12 @@ class MachineLearning:
                 simulation_manager_copy.take_action(action_index)
                 simulation_manager_copy.simulation.compute_single_iteration()
 
-        action_index = 0
         # Run steps in episode
         while True:
             # Increment the total number of steps taken by the AI in total.
             episode_steps += 1
 
-            if episode_steps % (10 * self.simulation_manager.simulation.model.tick_rate) == 0:
+            if episode_steps % (10 * self.simulation_manager.simulation.model.tick_rate) == 0 or episode_steps == 0:
                 if model:
                     self.predict(model, simulation_manager_copy)
                     # Remove illegal actions
