@@ -28,6 +28,8 @@ class Simulation:
         self.delays = []
         self.path_backup_total = {}
         self.path_backup = {}
+        self.kinetic_energy = {}
+        self.kinetic_energy_waste = {}
         self.collision = False
 
         # Visualiser
@@ -45,15 +47,15 @@ class Simulation:
         # Update visualiser
         if self.visualiser_update_function is not None:
             self.visualiser_update_function(self.vehicle_data, self.model.lights, self.model.calculate_time_of_day(), self.collision)
-            # sleep(0.05)
+            sleep(0.05)
 
     def compute_single_iteration(self):
         # Spawn vehicles
         for index, node_uid in enumerate(self.model.calculate_start_nodes()):
             nudge_result = self.model.nudge_spawner(node_uid, self.model.calculate_time_of_day())
             if nudge_result is not None:
-                route_uid, length, width, distance_delta = nudge_result
-                self.add_vehicle(route_uid, length, width, distance_delta)
+                route_uid, length, width, mass, distance_delta = nudge_result
+                self.add_vehicle(route_uid, length, width, mass, distance_delta)
 
         # Control lights
         for light in self.model.lights:
@@ -75,14 +77,11 @@ class Simulation:
             vehicle.update_position_data([coord_x, coord_y])
             self.vehicle_data.append([coord_x, coord_y, angle, vehicle.length, vehicle.width, vehicle.uid])
 
-            if vehicle.get_acceleration() <= 0:
-                vehicle.wait_time += self.model.tick_time
-            elif vehicle.get_speed() > 3:
-                vehicle.wait_time -= 5 * self.model.tick_time
-
         # Calculate Performance Statistics
+        # Delay
         self.delays = self.delays + self.model.get_vehicle_delays()
 
+        # Backup
         path_backup_total, path_backup = self.model.get_backed_up_paths(4, 5)
 
         for path_uid in path_backup_total:
@@ -97,13 +96,27 @@ class Simulation:
             else:
                 self.path_backup[path_uid] = [path_backup[path_uid]]
 
+        # Kinetic energy waste
+        kinetic_energy, kinetic_energy_waste = self.model.get_vehicle_kinetic_energy_change()
+
+        for vehicle_uid in kinetic_energy:
+            if vehicle_uid in self.kinetic_energy:
+                self.kinetic_energy[vehicle_uid].append(kinetic_energy[vehicle_uid])
+            else:
+                self.kinetic_energy[vehicle_uid] = [kinetic_energy[vehicle_uid]]
+
+            if vehicle_uid in self.kinetic_energy_waste:
+                self.kinetic_energy_waste[vehicle_uid] += kinetic_energy_waste[vehicle_uid]
+            else:
+                self.kinetic_energy_waste[vehicle_uid] = kinetic_energy_waste[vehicle_uid]
+
         # Remove finished vehicles
         self.model.remove_finished_vehicles()
 
         # Increment Time
         self.model.tock()
 
-    def add_vehicle(self, route_uid: int, length, width, delta_distance):
+    def add_vehicle(self, route_uid: int, length, width, mass, delta_distance):
         self.uid += 1
         initial_speed_multiplier = clamp(delta_distance, 0, 20) / 20
         self.model.add_vehicle(
@@ -121,6 +134,7 @@ class Simulation:
                 preferred_time_gap=self.model.config.preferred_time_gap,
                 length=length,
                 width=width,
+                mass=mass,
                 sensing_radius=self.model.config.maximum_lateral_acceleration,
                 min_creep_distance=self.model.config.min_creep_distance
             )

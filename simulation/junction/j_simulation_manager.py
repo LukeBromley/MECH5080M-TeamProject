@@ -29,18 +29,15 @@ class SimulationManager:
 
         # Actions
         self.number_of_possible_actions, self.action_space = self.calculate_actions()
-
-        # TODO: Soft code the id's
-        self.light_controlled_path_uids = [1, 4]
-        self.light_path_uids = [2, 5]
+        self.light_controlled_path_uids, self.light_path_uids = self.simulation.model.get_traffic_light_controlled_path_uids()
 
         # TODO: Try combining both and using route_distance_travelled for input oir distance to the traffic light?
 
         # Inputs / States
-        self.features_per_vehicle_state = 3
+        self.features_per_vehicle_state = 4
         self.features_per_traffic_light_state = 0
         self.number_of_tracked_vehicles_per_light_controlled_path = 6
-        self.number_of_tracked_vehicles_per_light_path = 1
+        self.number_of_tracked_vehicles_per_light_path = 2
         self.observation_space_size = self.features_per_vehicle_state * (
                 len(self.light_controlled_path_uids) * self.number_of_tracked_vehicles_per_light_controlled_path +
                 len(self.light_path_uids) * self.number_of_tracked_vehicles_per_light_path
@@ -49,7 +46,7 @@ class SimulationManager:
         self.light_controlled_path_uids += self.light_path_uids
 
         # TODO: Initialize separate boxes by argmax for different inputs
-        self.observation_space = Box(0, 50, shape=(1, self.observation_space_size), dtype=float)
+        self.observation_space = Box(0, 75, shape=(1, self.observation_space_size), dtype=float)
         self.reset()
 
     def create_simulation(self):
@@ -58,15 +55,17 @@ class SimulationManager:
 
     def reset(self):
         self.simulation = self.create_simulation()
-        self.freeze_traffic(80)
+        self.freeze_traffic()
         return self.get_state()
 
     def freeze_traffic(self, n: int = None):
+        # TODO: Add randomisation
         if n is None:
-            n = random.randint(15, 20)
+            n = random.randint(5, 15)
 
         for light in self.simulation.model.lights:
-            light.set_red()
+            if random.random() > 0.5:
+                light.set_red()
 
         for step in range(n * self.simulation.model.tick_rate):
             self.simulation.compute_single_iteration()
@@ -75,6 +74,10 @@ class SimulationManager:
         # TODO: Sparse actions
         # Avoid do nothing action if not using RNN
         self.action_table = list(itertools.product([-1, 1], repeat=len(self.simulation.model.lights)))
+        self.action_table = [action for action in self.action_table if action.count(1) <= 2]
+        # self.action_table.pop(self.action_table.index(tuple([-1 for _ in self.simulation.model.lights])))
+        # self.action_table.pop(self.action_table.index(tuple([1 for _ in self.simulation.model.lights])))
+        print(self.action_table)
         # self.action_table = []
         # for action in list(itertools.product([-1, 0, 1], repeat=len(self.simulation.model.lights))):
         #     if action.count(0) >= len(self.simulation.model.lights) - 1:
@@ -118,21 +121,23 @@ class SimulationManager:
                 continue
 
     def get_vehicle_state(self, vehicle: Vehicle):
-        x, y = self.simulation.model.get_vehicle_coordinates(vehicle.uid)
+        # x, y = self.simulation.model.get_vehicle_coordinates(vehicle.uid)
         return [
+            vehicle.get_route_uid(),
             vehicle.get_route_distance_travelled(),
-            vehicle.get_speed()
-            # vehicle.wait_time,
+            vehicle.get_speed(),
+            self.simulation.model.get_delay(vehicle.uid)
             # x,
-            # y,
+            # y
+            # vehicle.wait_time,
             # vehicle.get_length(),
             # vehicle.get_acceleration()
         ]
 
     def get_traffic_light_state(self, light: TrafficLight):
         return [
-            light.get_state()
-            # light.time_remaining,
+            light.get_state(),
+            light.time_remaining
             # light.path_uid
         ]
 
@@ -147,7 +152,7 @@ class SimulationManager:
             route = self.simulation.model.get_route(vehicle.get_route_uid())
             path_uid = route.get_path_uid(vehicle.get_path_index())
             if path_uid in self.light_controlled_path_uids:
-                path_inputs[self.light_controlled_path_uids.index(path_uid)].append(self.get_vehicle_state(vehicle) + [path_uid])
+                path_inputs[self.light_controlled_path_uids.index(path_uid)].append(self.get_vehicle_state(vehicle)) # TODO: use if route_uid is disabled #+ [path_uid])
 
         # Sort and flatten the inputs by distance travelled
         for index, path_input in enumerate(path_inputs):
@@ -196,7 +201,8 @@ class SimulationManager:
             return 0.0
 
     def get_state_value(self):
-        return sum([self.simulation.model.get_delay(vehicle.uid) for vehicle in self.simulation.model.vehicles if vehicle.get_path_index() == 0])
+        # TODO: unsquare
+        return sum([self.simulation.model.get_delay(vehicle.uid)**2 - vehicle.get_speed()**2 for vehicle in self.simulation.model.vehicles if vehicle.get_path_index() == 0])
 
     def get_sum_wait_time(self):
         return sum([vehicle.wait_time for vehicle in self.simulation.model.vehicles])

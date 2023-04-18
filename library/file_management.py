@@ -54,6 +54,7 @@ class FileManagement:
         self.mean_car_widths_key = "mean_car_widths"
         self.sdev_car_lengths_key = "sdev_car_lengths"
         self.sdev_car_widths_key = "sdev_car_widths"
+        self.mass_per_cross_sectional_area_key = "mass_per_cross_sectional_area"
         # Visualiser
         self.visualiser_scale_key = "visualiser_scale"
         # Junction identifiers
@@ -133,7 +134,7 @@ class FileManagement:
         # Load light data
         lights = []
         for uid in file_dict[self.lights_key]:
-            lights.append(TrafficLight(int(uid), file_dict[self.lights_key][uid][0], include_amber=False))
+            lights.append(TrafficLight(int(uid), file_dict[self.lights_key][uid][0], include_amber=True))
 
         # Return the data
         return nodes, paths, lights
@@ -303,6 +304,8 @@ class FileManagement:
         s_config.mean_car_widths = file_dict[self.mean_car_widths_key]
         s_config.sdev_car_lengths = file_dict[self.sdev_car_lengths_key]
         s_config.sdev_car_widths = file_dict[self.sdev_car_widths_key]
+
+        s_config.mass_per_cross_sectional_area = file_dict[self.mass_per_cross_sectional_area_key]
 
         # Visualiser
         s_config.visualiser_scale = file_dict[self.visualiser_scale_key]

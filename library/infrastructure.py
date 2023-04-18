@@ -222,11 +222,12 @@ class TrafficLight:
             "red_amber": 3
         }
 
+        # TODO: Add to config
         self.time_remaining = 0
         self.green_time = 0
         self.red_time = 0
         self.red_amber_time = 2
-        self.amber_time = 3
+        self.amber_time = 2
 
         self.include_amber = include_amber
 
@@ -279,7 +280,7 @@ class TrafficLight:
         return 0.0
 
     def allows_traffic(self) -> bool:
-        if self.colour == "green":
+        if self.colour == "green": # or self.colour == "red_amber":
             return True
         else:
             return False

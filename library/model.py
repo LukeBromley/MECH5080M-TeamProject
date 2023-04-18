@@ -61,6 +61,7 @@ class Model:
         self.set_start_time_of_day(self.config.start_time_of_day)
         if self.config.random_seed is not None:
             self.set_random_seed(self.config.random_seed)
+
         self.setup_random_spawning(SpawningStats(
             max_spawn_time=self.config.max_spawn_time,
             min_spawn_time=self.config.min_spawn_time,
@@ -75,7 +76,8 @@ class Model:
             mean_vehicle_lengths=self.config.mean_vehicle_lengths,
             mean_vehicle_widths=self.config.mean_vehicle_widths,
             sdev_vehicle_lengths=self.config.sdev_vehicle_lengths,
-            sdev_vehicle_widths=self.config.sdev_vehicle_widths
+            sdev_vehicle_widths=self.config.sdev_vehicle_widths,
+            mass_per_cross_sectional_area=self.config.mass_per_cross_sectional_area
         ))
 
     def save_config(self, config_file_location, configuration):
@@ -165,11 +167,12 @@ class Model:
         index = self.get_spawner_index(node_uid)
         if self.spawners[index].nudge(time):
             length, width = self.get_spawner_vehicle_size(node_uid)
+            mass = self.get_spawner_vehicle_mass(node_uid, length, width)
             distance = self.distance_of_first_vehicle_from_start_node(node_uid)
             if distance > 2 * length:
                 route_uid = self.get_spawner_route(node_uid)
                 distance_delta = distance - (length/2)
-                return route_uid, length, width, distance_delta
+                return route_uid, length, width, mass, distance_delta
         else:
             return None
 
@@ -180,6 +183,10 @@ class Model:
     def get_spawner_vehicle_size(self, node_uid):
         index = self.get_spawner_index(node_uid)
         return self.spawners[index].get_random_vehicle_size()
+
+    def get_spawner_vehicle_mass(self, node_uid, length, width):
+        index = self.get_spawner_index(node_uid)
+        return self.spawners[index].get_vehicle_mass(length, width)
 
     def get_spawner_index(self, node_uid):
         return self.spawners_hash_table[str(node_uid)]
@@ -345,7 +352,7 @@ class Model:
         self.lights.pop(index)
         self.update_light_hash_table()
 
-    def get_traffic_light_uids(self):
+    def get_traffic_light_controlled_path_uids(self):
         paths_with_lights = []
         paths_preceding_lights = []
         for light in self.lights:
@@ -355,7 +362,7 @@ class Model:
                 preceding_paths = self.get_paths_from_end_node(shared_node)
                 for path in preceding_paths:
                     paths_preceding_lights.append(path)
-        return paths_with_lights, paths_preceding_lights
+        return list(dict.fromkeys(paths_preceding_lights)), paths_with_lights
 
     # VEHICLES
     
@@ -632,6 +639,18 @@ class Model:
             if vehicle.get_speed() < speed_threshold:
                 number_vehicles_backed_up += 1
         return number_vehicles_backed_up
+
+    def get_vehicle_kinetic_energy_change(self):
+        kinetic_energy = {}
+        kinetic_energy_waste = {}
+        for vehicle in self.vehicles:
+            kinetic_energy[str(vehicle.uid)] = 0.5 * vehicle.mass * (vehicle.get_speed())**2
+            if vehicle.get_acceleration() < 0:
+                kinetic_energy_waste[str(vehicle.uid)] = 0.5 * vehicle.mass * ((vehicle.get_speed() - vehicle.get_acceleration() * self.tick_time)**2 - (vehicle.get_speed())**2)
+            else:
+                kinetic_energy_waste[str(vehicle.uid)] = 0
+
+        return kinetic_energy, kinetic_energy_waste
 
     # GENERAL
     
