@@ -7,8 +7,6 @@ import matplotlib
 from platform import system
 import sys
 
-from pynput import keyboard
-
 if system() == 'Windows':
     sys.path.append('./')
 
@@ -537,42 +535,6 @@ class MachineLearning:
             return True
         else:
             return False
-
-    def play(self):
-        global keyboard_input
-        keyboard_input = [False for _ in range(self.simulation_manager.number_of_possible_actions)]
-
-        def on_press(key):
-            global keyboard_input
-            keyboard_input[int(key.char) - 1] = True
-
-        def on_release(key):
-            global keyboard_input
-            keyboard_input[int(key.char) - 1] = False
-
-        with keyboard.Listener(on_press=on_press, on_release=on_release) as listener:
-            self.simulation_manager.reset()
-            action_index = self.simulation_manager.action_table.index(
-                tuple([-1 for _ in range(len(self.simulation_manager.simulation.model.lights))]))
-            episode_reward = 0
-            episode_steps = 0
-
-            while True:
-                episode_steps += 1
-
-                # Select an action
-                if True in keyboard_input:
-                    action_index = keyboard_input.index(True)
-
-                episode_reward += self.step(action_index, td=False)
-
-                if self.end_episode(episode_reward, episode_steps):
-                    break
-
-                sys.stdout.write("\rstep: {0} / reward: {1}".format(str(episode_steps), str(episode_reward)))
-                sys.stdout.flush()
-
-            listener.join()
 
     def test(self, number_of_iterations: int = 10000, model_file_path: str = "saved_model"):
         model = keras.models.load_model(model_file_path)
