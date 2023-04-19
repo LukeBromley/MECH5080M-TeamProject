@@ -3,7 +3,7 @@ import math
 import random
 from math import sqrt
 import matplotlib
-matplotlib.use("Qt5agg")
+# matplotlib.use("Qt5agg")
 from platform import system
 import sys
 
