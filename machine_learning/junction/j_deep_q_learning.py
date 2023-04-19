@@ -90,7 +90,7 @@ class MachineLearning:
 
         # TODO: Profile code
         # GRAPH
-        self.graph = Graph(graph_num_episodes, graph_max_step, str(random_seed))
+        self.graph = Graph(graph_num_episodes, graph_max_step, "2n CNN")
 
         # COUNTERS
         self.episode_count = 0  # Number of episodes trained
@@ -120,7 +120,7 @@ class MachineLearning:
         # Number of steps of just random actions before the network can make some decisions
         self.number_of_random_actions = 2500
         # Number of steps over which epsilon greedy decays
-        self.number_of_exploration_actions = 100000
+        self.number_of_exploration_actions = 200000
 
         # Add visuals
         self.graph.add_vline(self.number_of_random_actions)
@@ -157,7 +157,7 @@ class MachineLearning:
 
         # OPTIMISING
         # Note: In the Deepmind paper they use RMSProp however then Adam optimizer TODO: Hyperparameter
-        self.learning_rate = 0.00005  # 0.00025
+        self.learning_rate = 0.00001  # 0.00025
         self.optimizer = keras.optimizers.legacy.Adam(learning_rate=self.learning_rate, clipnorm=1.0)
 
         # OTHER
@@ -332,7 +332,7 @@ class MachineLearning:
                 ):
                     # Log details
                     self.graph.update(self.number_of_actions_taken, self.get_mean_reward())
-                    print(f'{tm.strftime("%H:%M:%S", tm.localtime())}  -  {self.get_mean_reward():.2f} / {self.solved_mean_reward:.2f} at episode {self.num}; frame count: {self.number_of_actions_taken}.')
+                    print(f'{tm.strftime("%H:%M:%S", tm.localtime())}  -  {self.get_mean_reward():.2f} / {self.solved_mean_reward:.2f} at episode {self.episode_count}; action count: {self.number_of_actions_taken}.')
 
                     # TODO: Update at peak is not a good idea
                     if self.get_mean_reward() > self.max_mean_reward_solved:
@@ -667,7 +667,7 @@ if __name__ == "__main__":
     visualiser = JunctionVisualiser()
     visualiser_update_function = visualiser.update
 
-    disable_visualiser = False
+    disable_visualiser = True
 
     if disable_visualiser:
         simulation = SimulationManager(junction_file_path, configuration_file_path, None)

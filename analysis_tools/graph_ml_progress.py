@@ -2,13 +2,13 @@ import matplotlib.pyplot as plt
 
 
 class Graph:
-    def __init__(self, num_episodes_displayed, max_steps_displayed, random_seed: str):
+    def __init__(self, num_episodes_displayed: object, max_steps_displayed: object, random_seed: str) -> object:
         self.num_episodes_displayed = num_episodes_displayed
 
         self.figure, self.ax = plt.subplots()
         self.figure.suptitle("Learning curve - " + random_seed, fontsize=20)
 
-        self.ax.set_xlabel('Episode')
+        self.ax.set_xlabel('Number of actions')
         self.ax.set_ylabel('Mean reward')
 
         self.x = []
