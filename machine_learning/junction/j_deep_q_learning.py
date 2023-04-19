@@ -118,9 +118,9 @@ class MachineLearning:
         self.steps_to_skip = self.simulation_manager.simulation.model.tick_rate
 
         # Number of steps of just random actions before the network can make some decisions
-        self.number_of_random_actions = 2500
+        self.number_of_random_actions = 500
         # Number of steps over which epsilon greedy decays
-        self.number_of_exploration_actions = 200000
+        self.number_of_exploration_actions = 10000
 
         # Add visuals
         self.graph.add_vline(self.number_of_random_actions)
@@ -166,7 +166,7 @@ class MachineLearning:
 
         # MACHINE LEARNING MODELS
         n = self.simulation_manager.observation_space_size
-        self.ml_model_hidden_layers = [2*n, n, len(self.simulation_manager.action_table)]
+        self.ml_model_hidden_layers = [3*n, n, len(self.simulation_manager.action_table)]
 
         # Change configurations to ones supplied in machine_learning_config
         if machine_learning_config is not None:
@@ -402,7 +402,7 @@ class MachineLearning:
             # TODO: Try model decision making enabled after exploration !!!
             # TODO: Could even use active learning with a pre-trained target_network weights
             # TODO: Taking action at random rather is worse than after half-way exploration
-            if self.number_of_actions_taken > 0.6 * self.number_of_exploration_actions:
+            if self.number_of_actions_taken > 0.5 * self.number_of_exploration_actions:
                 simulation_manager.take_action(self.select_action(simulation_manager.get_state(), target=True))
 
             simulation_manager.simulation.compute_single_iteration()
