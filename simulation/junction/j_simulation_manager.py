@@ -10,7 +10,7 @@ if system() == 'Windows':
     import sys
     sys.path.append('../')
 
-from gym.spaces import Discrete, Box
+# from gym.spaces import Discrete, Box
 import numpy as np
 from numpy import mean
 
@@ -28,7 +28,7 @@ class SimulationManager:
         self.simulation = Simulation(self.junction_file_path, self.config_file_path, self.visualiser_update_function)
 
         # Actions
-        self.number_of_possible_actions, self.action_space = self.calculate_actions()
+        self.number_of_possible_actions = self.calculate_actions()
         self.light_controlled_path_uids, self.light_path_uids = self.simulation.model.get_traffic_light_controlled_path_uids()
 
         # TODO: Try combining both and using route_distance_travelled for input oir distance to the traffic light?
@@ -46,7 +46,7 @@ class SimulationManager:
         self.light_controlled_path_uids += self.light_path_uids
 
         # TODO: Initialize separate boxes by argmax for different inputs
-        self.observation_space = Box(0, 75, shape=(1, self.observation_space_size), dtype=float)
+        # self.observation_space = Box(0, 75, shape=(1, self.observation_space_size), dtype=float)
         self.reset()
 
     def create_simulation(self):
@@ -64,14 +64,14 @@ class SimulationManager:
         self.action_table = [action for action in self.action_table if action.count(1) <= 2]
         # self.action_table.pop(self.action_table.index(tuple([-1 for _ in self.simulation.model.lights])))
         # self.action_table.pop(self.action_table.index(tuple([1 for _ in self.simulation.model.lights])))
-        print(self.action_table)
+
         # self.action_table = []
         # for action in list(itertools.product([-1, 0, 1], repeat=len(self.simulation.model.lights))):
         #     if action.count(0) >= len(self.simulation.model.lights) - 1:
         #         self.action_table.append(action)
         # self.do_nothing_action_index = self.action_table.index(tuple([0 for _ in range(len(self.simulation.model.lights))]))
         number_of_actions = len(self.action_table)
-        return number_of_actions, Discrete(number_of_actions)
+        return number_of_actions
 
     def get_legal_actions(self):
         return list(range(len(self.action_table)))
