@@ -78,6 +78,7 @@ random_seed = 1
 class MachineLearning:
     def __init__(self, simulation_manager: SimulationManager, machine_learning_config=None, graph_num_episodes=20,
                  graph_max_step=30000):
+
         # SIMULATION MANAGER
         self.future_wait_time = None
         self.simulation_manager = simulation_manager
@@ -164,7 +165,7 @@ class MachineLearning:
 
         # MACHINE LEARNING MODELS
         n = self.simulation_manager.observation_space_size
-        self.ml_model_hidden_layers = [3*n, n, len(self.simulation_manager.action_table)]
+        self.ml_model_hidden_layers = [n, int(n/2), len(self.simulation_manager.action_table)]
 
         # Change configurations to ones supplied in machine_learning_config
         if machine_learning_config is not None:
@@ -613,7 +614,7 @@ class MachineLearning:
         return self.simulation_manager.get_delays()
 
 
-if __name__ == "__main__":
+def main():
     # Reference Files
     junction_file_path = os.path.join(
         os.path.dirname(os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))))), "junctions",
@@ -652,3 +653,6 @@ if __name__ == "__main__":
         #
         # Run Simulation
         visualiser.open()
+
+if __name__ == "__main__":
+    main()
