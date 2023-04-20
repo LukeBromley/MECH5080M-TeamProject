@@ -54,8 +54,8 @@ class Simulation:
         for index, node_uid in enumerate(self.model.calculate_start_nodes()):
             nudge_result = self.model.nudge_spawner(node_uid, self.model.calculate_time_of_day())
             if nudge_result is not None:
-                route_uid, length, width, mass, distance_delta = nudge_result
-                self.add_vehicle(route_uid, length, width, mass, distance_delta)
+                route_uid, length, width, mass, distance_delta, driver_type = nudge_result
+                self.add_vehicle(route_uid, length, width, mass, distance_delta, driver_type)
 
         # Control lights
         for light in self.model.lights:
@@ -116,7 +116,7 @@ class Simulation:
         # Increment Time
         self.model.tock()
 
-    def add_vehicle(self, route_uid: int, length, width, mass, delta_distance):
+    def add_vehicle(self, route_uid: int, length, width, mass, delta_distance, driver_type):
         self.uid += 1
         initial_speed_multiplier = clamp(delta_distance, 0, 20) / 20
         self.model.add_vehicle(
@@ -131,12 +131,13 @@ class Simulation:
                 maximum_speed=self.model.config.maximum_speed,
                 minimum_speed=self.model.config.minimum_speed,
                 maximum_lateral_acceleration=self.model.config.maximum_lateral_acceleration,
-                preferred_time_gap=self.model.config.preferred_time_gap,
+                preferred_time_gap=self.model.config.autonomous_preferred_time_gap if driver_type == "autonomous" else self.model.config.human_preferred_time_gap,
                 length=length,
                 width=width,
                 mass=mass,
                 sensing_radius=self.model.config.maximum_lateral_acceleration,
-                min_creep_distance=self.model.config.min_creep_distance
+                min_creep_distance=self.model.config.min_creep_distance,
+                driver_type=driver_type
             )
         )
 
@@ -144,10 +145,10 @@ class Simulation:
 if __name__ == "__main__":
     # Reference Files
     junction_file_path = os.path.join(os.path.dirname(os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))))), "junctions", "scale_library_pub_junction.junc")
-    configuration_file_path = os.path.join(os.path.dirname(os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))))), "configurations", "simulation_config", "cross_road.config")
+    configuration_file_path = os.path.join(os.path.dirname(os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))))), "configurations", "simulation_config", "demand_mean_6.config")
 
     # Settings
-    scale = 100
+    scale = 50
     speed_multiplier = 1
 
     # Visualiser Init

@@ -77,7 +77,8 @@ class Model:
             mean_vehicle_widths=self.config.mean_vehicle_widths,
             sdev_vehicle_lengths=self.config.sdev_vehicle_lengths,
             sdev_vehicle_widths=self.config.sdev_vehicle_widths,
-            mass_per_cross_sectional_area=self.config.mass_per_cross_sectional_area
+            mass_per_cross_sectional_area=self.config.mass_per_cross_sectional_area,
+            autonomous_driver_probability=self.config.autonomous_driver_probability
         ))
 
     def save_config(self, config_file_location, configuration):
@@ -169,10 +170,11 @@ class Model:
             length, width = self.get_spawner_vehicle_size(node_uid)
             mass = self.get_spawner_vehicle_mass(node_uid, length, width)
             distance = self.distance_of_first_vehicle_from_start_node(node_uid)
+            driver_type = self.spawners[index].get_vehicle_driver_type()
             if distance > 2 * length:
                 route_uid = self.get_spawner_route(node_uid)
                 distance_delta = distance - (length/2)
-                return route_uid, length, width, mass, distance_delta
+                return route_uid, length, width, mass, distance_delta, driver_type
         else:
             return None
 

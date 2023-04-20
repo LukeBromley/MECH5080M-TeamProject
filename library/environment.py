@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta, time
 from math import floor, log, gamma, pow, exp
-from random import random, randint, uniform, normalvariate as normal
+from random import random, randint, uniform, normalvariate as normal, choices
 from library.maths import clamp
 
 
@@ -23,6 +23,8 @@ class SimulationConfiguration:
         self.maximum_acceleration = 3.0
         self.maximum_deceleration = 9.0
         self.maximum_lateral_acceleration = 2.0
+        self.autonomous_preferred_time_gap = 1.0
+        self.human_preferred_time_gap = 2.0
         self.preferred_time_gap = 2.0
         self.maximum_speed = 30.0
         self.minimum_speed = 0.0
@@ -48,6 +50,8 @@ class SimulationConfiguration:
         self.sdev_vehicle_widths = [0.1]
 
         self.mass_per_cross_sectional_area = 0
+
+        self.autonomous_driver_probability = 1
 
         # Visualiser
         self.visualiser_scale = 100
@@ -216,7 +220,8 @@ class SpawningStats:
                  mean_vehicle_widths: list = (1.8, 2, 2.2),
                  sdev_vehicle_lengths: list = (0.5, 1, 2),
                  sdev_vehicle_widths: list = (0.2, 0.2, 0.2),
-                 mass_per_cross_sectional_area: float = 0
+                 mass_per_cross_sectional_area: float = 0,
+                 autonomous_driver_probability: float = 1
                  ):
 
         """
@@ -237,7 +242,8 @@ class SpawningStats:
         :param mean_vehicle_widths: List of mean vehicle widths for multi-modal normal distribution
         :param sdev_vehicle_lengths: List of vehicle length standard deviations for multi-modal normal distribution
         :param sdev_vehicle_widths: List of vehicle width standard deviations for multi-modal normal distribution
-        :param weight_per_cross_sectional_area: Weight per cross sectional area
+        :param mass_per_cross_sectional_area: Mass per cross sectional area
+        :param autonomous_driver_probability: Probability of a spawned vehicle being autonomous. Range 0-1
         """
 
         # SPAWNING TIMING
@@ -264,6 +270,9 @@ class SpawningStats:
         self.sdev_vehicle_widths = sdev_vehicle_widths
         # Weight
         self.mass_per_cross_sectional_area = mass_per_cross_sectional_area
+
+        # DRIVER TYPES
+        self.autonomous_driver_probability = autonomous_driver_probability
 
 
 class SpawningRandom:
@@ -467,7 +476,6 @@ class SpawningRandom:
             next_min_spawn_time = self.spawning_stats.min_spawn_time_per_hour
         self.current_min_spawn_time = (last_min_spawn_time * (60 - time.minute) + next_min_spawn_time * time.minute) / 60
 
-
     def select_route(self, routes):
         """
         The select_route function takes in a list of routes and returns one route at random.
@@ -477,6 +485,12 @@ class SpawningRandom:
         """
         index = randint(0, len(routes) - 1)
         return routes[index]
+
+    def get_vehicle_driver_type(self):
+        if choices([0, 1], weights=[self.spawning_stats.autonomous_driver_probability, 1 - self.spawning_stats.autonomous_driver_probability], cum_weights=None, k=1) == 0:
+            return "autonomous"
+        else:
+            return "human"
 
 
 class SpawningFixed(SpawningRandom):
