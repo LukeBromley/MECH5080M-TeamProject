@@ -117,9 +117,9 @@ class MachineLearning:
         self.steps_to_skip = self.simulation_manager.simulation.model.tick_rate
 
         # Number of steps of just random actions before the network can make some decisions
-        self.number_of_random_actions = 500
+        self.number_of_random_actions = 1000
         # Number of steps over which epsilon greedy decays
-        self.number_of_exploration_actions = 10000
+        self.number_of_exploration_actions = 250000
 
         # Add visuals
         self.graph.add_vline(self.number_of_random_actions)
@@ -165,7 +165,7 @@ class MachineLearning:
 
         # MACHINE LEARNING MODELS
         n = self.simulation_manager.observation_space_size
-        self.ml_model_hidden_layers = [n, int(n/2), len(self.simulation_manager.action_table)]
+        self.ml_model_hidden_layers = [2 * n, n, len(self.simulation_manager.action_table)]
 
         # Change configurations to ones supplied in machine_learning_config
         if machine_learning_config is not None:
@@ -626,10 +626,6 @@ def main():
     # Settings
     scale = 30
 
-    # Visualiser Init
-    visualiser = JunctionVisualiser()
-    visualiser_update_function = visualiser.update
-
     disable_visualiser = True
 
     if disable_visualiser:
@@ -643,6 +639,10 @@ def main():
         machine_learning = MachineLearning(simulation, machine_learning_config=None)
         machine_learning.train()
     else:
+        # Visualiser Init
+        visualiser = JunctionVisualiser()
+        visualiser_update_function = visualiser.update
+
         simulation = SimulationManager(junction_file_path, configuration_file_path, visualiser_update_function)
         machine_learning = MachineLearning(simulation, machine_learning_config=None)
 
