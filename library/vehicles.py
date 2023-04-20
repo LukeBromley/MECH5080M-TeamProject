@@ -23,6 +23,7 @@ class Vehicle:
                  mass: float = 0,
                  sensing_radius: float = 0.0,
                  min_creep_distance: float = 0,
+                 driver_type: str = "autonomous"
                  ) -> None:
         """
 
@@ -66,6 +67,7 @@ class Vehicle:
         self.changing_lane = False
         self._min_creep_distance = min_creep_distance
         self.wait_time = 0
+        self.driver_type = driver_type
 
     def update(self, time_delta: float, object_ahead: "Vehicle", delta_distance_ahead: float, curvature: float = 0.0) -> None:
         """
