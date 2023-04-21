@@ -658,7 +658,7 @@ if __name__ == "__main__":
         "scale_library_pub_junction.junc")
     configuration_file_path = os.path.join(
         os.path.dirname(os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))))), "configurations",
-        "simulation_config", "cross_road.config")
+        "simulation_config", "demand_mean_12.config")
 
     # Settings
     scale = 30
