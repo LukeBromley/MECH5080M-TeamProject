@@ -2,11 +2,51 @@
   "0": {
     "RunUID": 0,
     "RunType": "demand scheduling",
-    "Junction": "scale_library_pub_junction.junc",
+    "Junction": "ds_scale_library_pub_junction.junc",
+    "SimulationConfig": "demand_mean_3.config",
+    "Steps": 10000,
+    "Actions": [35, 56, 22],
+    "ActionDurations": [150, 150, 150],
+    "ActionPaths": [[7, 8], [10, 11], [13, 14]]
+  },
+  "1": {
+    "RunUID": 1,
+    "RunType": "demand scheduling",
+    "Junction": "ds_scale_library_pub_junction.junc",
+    "SimulationConfig": "demand_mean_6.config",
+    "Steps": 10000,
+    "Actions": [35, 56, 22],
+    "ActionDurations": [150, 150, 150],
+    "ActionPaths": [[7, 8], [10, 11], [13, 14]]
+  },
+  "2": {
+    "RunUID": 2,
+    "RunType": "demand scheduling",
+    "Junction": "ds_scale_library_pub_junction.junc",
     "SimulationConfig": "demand_mean_12.config",
     "Steps": 10000,
     "Actions": [35, 56, 22],
     "ActionDurations": [150, 150, 150],
     "ActionPaths": [[7, 8], [10, 11], [13, 14]]
-    }
+  },
+  "3": {
+    "RunUID": 3,
+    "RunType": "demand scheduling",
+    "Junction": "ds_scale_library_pub_junction.junc",
+    "SimulationConfig": "demand_mean_24.config",
+    "Steps": 10000,
+    "Actions": [35, 56, 22],
+    "ActionDurations": [150, 150, 150],
+    "ActionPaths": [[7, 8], [10, 11], [13, 14]]
+  },
+  "4": {
+    "RunUID": 4,
+    "RunType": "demand scheduling",
+    "Junction": "ds_scale_library_pub_junction.junc",
+    "SimulationConfig": "demand_mean_48.config",
+    "Steps": 10000,
+    "Actions": [35, 56, 22],
+    "ActionDurations": [150, 150, 150],
+    "ActionPaths": [[7, 8], [10, 11], [13, 14]]
+  }
 }
