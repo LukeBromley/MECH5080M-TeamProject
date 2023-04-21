@@ -3,6 +3,8 @@ import math
 import random
 from math import sqrt
 import matplotlib
+from numpy import mean
+
 matplotlib.use("Qt5agg")
 from platform import system
 import sys
@@ -597,7 +599,7 @@ class MachineLearning:
             # Increment the total number of steps taken by the AI in total.
             episode_steps += 1
 
-            if episode_steps % (10 * self.simulation_manager.simulation.model.tick_rate) == 0 or episode_steps == 0:
+            if episode_steps % (6 * self.simulation_manager.simulation.model.tick_rate) == 0 or episode_steps == 0:
                 if model:
                     self.predict(model, simulation_manager_copy)
                     # Remove illegal actions
@@ -619,6 +621,8 @@ class MachineLearning:
             #
             sys.stdout.write("\r{0}s - step: {1} / reward: {2}".format(str(round(episode_steps*tick_time, 1)), str(episode_steps), str(round(episode_reward, 2))))
             sys.stdout.flush()
+
+        print(" -- ", mean(self.simulation_manager.simulation.delays))
 
     def predict(self, model: keras.Model, simulation_manager_copy: SimulationManager):
         action_probabilities = model(simulation_manager_copy.get_state().reshape(1, -1))[0].numpy()
@@ -672,13 +676,13 @@ if __name__ == "__main__":
     if disable_visualiser:
         simulation = SimulationManager(junction_file_path, configuration_file_path, None)
 
-        # Randomise mean_spawn_time_per_hour
-        mean_spawn_time_per_hour = random.choice([6, 12, 24])
-        for spawner in simulation.simulation.model.spawners:
-            spawner.spawning_stats.mean_spawn_time_per_hour = [mean_spawn_time_per_hour for _ in spawner.spawning_stats.mean_spawn_time_per_hour]
+        # # Randomise mean_spawn_time_per_hour
+        # mean_spawn_time_per_hour = random.choice([6, 12, 24])
+        # for spawner in simulation.simulation.model.spawners:
+        #     spawner.spawning_stats.mean_spawn_time_per_hour = [mean_spawn_time_per_hour for _ in spawner.spawning_stats.mean_spawn_time_per_hour]
 
         machine_learning = MachineLearning(simulation, machine_learning_config=None)
-        machine_learning.train()
+        machine_learning.test()
     else:
         simulation = SimulationManager(junction_file_path, configuration_file_path, visualiser_update_function)
         machine_learning = MachineLearning(simulation, machine_learning_config=None)
@@ -690,3 +694,4 @@ if __name__ == "__main__":
         #
         # Run Simulation
         visualiser.open()
+

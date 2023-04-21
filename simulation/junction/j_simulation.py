@@ -47,7 +47,6 @@ class Simulation:
         # Update visualiser
         if self.visualiser_update_function is not None:
             self.visualiser_update_function(self.vehicle_data, self.model.lights, self.model.calculate_time_of_day(), self.collision)
-            sleep(0.05)
 
     def compute_single_iteration(self):
         # Spawn vehicles

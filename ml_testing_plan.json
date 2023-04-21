@@ -3,47 +3,7 @@
     "RunUID": 0,
     "RunType": "junction",
     "Junction": "scale_library_pub_junction.junc",
-    "SimulationConfig": "demand_mean_3.config",
-    "MachineLearningModel": "saved_model",
-    "Steps": 10000,
-    "HumanDriversVisible": true,
-    "NetworkLatency": 0
-  },
-  "1": {
-    "RunUID": 1,
-    "RunType": "junction",
-    "Junction": "scale_library_pub_junction.junc",
-    "SimulationConfig": "demand_mean_6.config",
-    "MachineLearningModel": "saved_model",
-    "Steps": 10000,
-    "HumanDriversVisible": true,
-    "NetworkLatency": 0
-  },
-  "2": {
-    "RunUID": 2,
-    "RunType": "junction",
-    "Junction": "scale_library_pub_junction.junc",
     "SimulationConfig": "demand_mean_12.config",
-    "MachineLearningModel": "saved_model",
-    "Steps": 10000,
-    "HumanDriversVisible": true,
-    "NetworkLatency": 0
-  },
-  "3": {
-    "RunUID": 3,
-    "RunType": "junction",
-    "Junction": "scale_library_pub_junction.junc",
-    "SimulationConfig": "demand_mean_24.config",
-    "MachineLearningModel": "saved_model",
-    "Steps": 10000,
-    "HumanDriversVisible": true,
-    "NetworkLatency": 0
-  },
-  "4": {
-    "RunUID": 4,
-    "RunType": "junction",
-    "Junction": "scale_library_pub_junction.junc",
-    "SimulationConfig": "demand_mean_48.config",
     "MachineLearningModel": "saved_model",
     "Steps": 10000,
     "HumanDriversVisible": true,
