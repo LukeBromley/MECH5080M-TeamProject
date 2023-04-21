@@ -150,18 +150,22 @@ if __name__ == "__main__":
     configuration_file_path = os.path.join(os.path.dirname(os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))))), "configurations/simulation_config", "demand_mean_12.config")
 
     # Settings
-    scale = 50
+    scale = 30
 
     # Visualiser Init
     visualiser = JunctionVisualiser()
 
-    simulation_manager = SimulationManager(junction_file_path, configuration_file_path, visualiser_update_function=visualiser.update)
-    simulation_manager.print_possible_actions()
+    disable_visualiser = False
 
-    # Visualiser Setup
-    visualiser.define_main(partial(simulation_manager.run, 10000, [35, 56, 22], [150, 150, 150], [[7, 8], [10, 11], [13, 14]], visualiser_delay=True))
-    visualiser.load_junction(junction_file_path)
-    visualiser.set_scale(scale)
+    if disable_visualiser:
+        simulation_manager = SimulationManager(junction_file_path, configuration_file_path, visualiser_update_function=None)
+        simulation_manager.run(1000, [35, 56, 22], [150, 150, 150], [[7, 8], [10, 11], [13, 14]], visualiser_delay=False)
+    else:
+        simulation_manager = SimulationManager(junction_file_path, configuration_file_path, visualiser_update_function=visualiser.update)
+        # Visualiser Setup
+        visualiser.define_main(partial(simulation_manager.run, 10000, [35, 56, 22], [150, 150, 150], [[7, 8], [10, 11], [13, 14]], visualiser_delay=False))
+        visualiser.load_junction(junction_file_path)
+        visualiser.set_scale(scale)
 
-    # Run Simulation
-    visualiser.open()
+        # Run Simulation
+        visualiser.open()
