@@ -32,6 +32,9 @@ class SimulationManager:
         self.action_duration_counter = 0
         self.empty_action_duration_counter = 0
 
+        self.intermediary_action_counter = 0
+        self.intermediary_action = False
+
         self.reset()
 
     def calculate_possible_actions(self):
@@ -69,12 +72,16 @@ class SimulationManager:
         self.simulation = self.create_simulation()
 
     def take_action(self, action):
-        bin = format(action, '0' + str(self.number_of_lights) + 'b')
-        for index, light in enumerate(self.simulation.model.lights):
-            if bin[index] == "0":
+        if self.intermediary_action:
+            for light in self.simulation.model.lights:
                 light.set_red()
-            else:
-                light.set_green()
+        else:
+            bin = format(action, '0' + str(self.number_of_lights) + 'b')
+            for index, light in enumerate(self.simulation.model.lights):
+                if bin[index] == "0":
+                    light.set_red()
+                else:
+                    light.set_green()
 
     def get_lights(self):
         return self.simulation.model.get_lights()
@@ -96,23 +103,29 @@ class SimulationManager:
 
             self.check_demand()
 
-            self.action_duration_counter += 1
-            if self.action_duration_counter >= self.action_duration[self.current_action_index]:
-                demand = self.check_current_demand()
-                if demand and self.action_duration_counter >= 200:
-                    pass
-                else:
-                    self.action_duration_counter = 0
-                    self.empty_action_duration_counter = 0
-                    self.demand_increment_action()
-            elif self.action_duration_counter >= 30:
-                demand = self.check_current_demand()
-                if not demand and len(self.demand) > 0:
-                    self.empty_action_duration_counter += 1
-                    if self.empty_action_duration_counter >= 20:
-                        self.empty_action_duration_counter = 0
+            if not self.intermediary_action:
+                self.intermediary_action_counter = 0
+                self.action_duration_counter += 1
+                if self.action_duration_counter >= self.action_duration[self.current_action_index]:
+                    demand = self.check_current_demand()
+                    if demand and self.action_duration_counter <= 200:
+                        pass
+                    else:
                         self.action_duration_counter = 0
+                        self.empty_action_duration_counter = 0
                         self.demand_increment_action()
+                elif self.action_duration_counter >= 30:
+                    demand = self.check_current_demand()
+                    if not demand and len(self.demand) > 0:
+                        self.empty_action_duration_counter += 1
+                        if self.empty_action_duration_counter >= 20:
+                            self.empty_action_duration_counter = 0
+                            self.action_duration_counter = 0
+                            self.demand_increment_action()
+            else:
+                self.intermediary_action_counter += 1
+                if self.intermediary_action_counter > 30:
+                    self.intermediary_action = False
 
     def check_demand(self):
         for action_index, path_uids in enumerate(self.action_paths):
@@ -137,6 +150,7 @@ class SimulationManager:
             self.demand.pop(0)
         else:
             self.increment_action()
+        self.intermediary_action = True
 
     def increment_action(self):
         self.current_action_index += 1
@@ -146,7 +160,7 @@ class SimulationManager:
 
 if __name__ == "__main__":
     # Reference Files
-    junction_file_path = os.path.join(os.path.dirname(os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))))), "junctions", "scale_library_pub_junction.junc")
+    junction_file_path = os.path.join(os.path.dirname(os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))))), "junctions", "ds_scale_library_pub_junction.junc")
     configuration_file_path = os.path.join(os.path.dirname(os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))))), "configurations/simulation_config", "demand_mean_12.config")
 
     # Settings
