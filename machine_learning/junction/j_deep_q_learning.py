@@ -571,7 +571,7 @@ class MachineLearning:
 
             listener.join()
 
-    def test(self, number_of_iterations: int = 10000, model_file_path: str = "saved_model"):
+    def test(self, number_of_iterations: int = 10000, model_file_path: str = "saved_model", human_drivers_visible: bool = True):
         model = keras.models.load_model(model_file_path)
         # Reset the environment
         self.simulation_manager.reset()
@@ -583,6 +583,8 @@ class MachineLearning:
 
         if model:
             simulation_manager_copy = self.create_simulation_manager_copy()
+            simulation_manager_copy.human_drivers_visible = human_drivers_visible
+
             for step in range(int(self.simulation_manager.simulation.model.tick_rate * self.simulation_manager.simulation.model.lights[0].red_amber_time)):
                 action_probabilities = model(simulation_manager_copy.get_state().reshape(1, -1))[0].numpy()
                 action_index = np.nanargmax(action_probabilities)

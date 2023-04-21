@@ -30,6 +30,7 @@ class SimulationManager:
         # Actions
         self.number_of_possible_actions, self.action_space = self.calculate_actions()
         self.light_controlled_path_uids, self.light_path_uids = self.simulation.model.get_traffic_light_controlled_path_uids()
+        self.human_drivers_visible = True
 
         # TODO: Try combining both and using route_distance_travelled for input oir distance to the traffic light?
 
@@ -149,11 +150,13 @@ class SimulationManager:
 
         path_inputs = [[] for _ in self.light_controlled_path_uids]
         for vehicle in self.simulation.model.vehicles:
-            route = self.simulation.model.get_route(vehicle.get_route_uid())
-            path_uid = route.get_path_uid(vehicle.get_path_index())
-            if path_uid in self.light_controlled_path_uids:
-                path_inputs[self.light_controlled_path_uids.index(path_uid)].append(self.get_vehicle_state(vehicle)) # TODO: use if route_uid is disabled #+ [path_uid])
-
+            if self.human_drivers_visible or vehicle.driver_type == "autonomous":
+                route = self.simulation.model.get_route(vehicle.get_route_uid())
+                path_uid = route.get_path_uid(vehicle.get_path_index())
+                if path_uid in self.light_controlled_path_uids:
+                    path_inputs[self.light_controlled_path_uids.index(path_uid)].append(self.get_vehicle_state(vehicle)) # TODO: use if route_uid is disabled #+ [path_uid])
+            else:
+                print("ignored", vehicle.uid)
         # Sort and flatten the inputs by distance travelled
         for index, path_input in enumerate(path_inputs):
             # Sorted adds more weight to the neural inputs of vehicles close to the traffic light
