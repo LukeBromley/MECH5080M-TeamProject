@@ -114,12 +114,12 @@ class MachineLearning:
         #  curve is much steering during exploration as compared to exploitation.
 
         # Skip steps between recorded states to reduce over-fitting risk
-        self.steps_to_skip = self.simulation_manager.simulation.model.tick_rate
+        self.steps_to_skip = 2 * self.simulation_manager.simulation.model.tick_rate
 
         # Number of steps of just random actions before the network can make some decisions
-        self.number_of_random_actions = 1000
+        self.number_of_random_actions = 10000
         # Number of steps over which epsilon greedy decays
-        self.number_of_exploration_actions = 250000
+        self.number_of_exploration_actions = 300000
 
         # Add visuals
         self.graph.add_vline(self.number_of_random_actions)
