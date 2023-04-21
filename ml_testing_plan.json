@@ -6,6 +6,7 @@
     "SimulationConfig": "cross_road.config",
     "MachineLearningModel": "saved_model",
     "Steps": 10000,
-    "HumanDriversVisible": true
+    "HumanDriversVisible": true,
+    "NetworkLatency": 0
   }
 }

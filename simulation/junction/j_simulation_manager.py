@@ -31,6 +31,8 @@ class SimulationManager:
         self.number_of_possible_actions, self.action_space = self.calculate_actions()
         self.light_controlled_path_uids, self.light_path_uids = self.simulation.model.get_traffic_light_controlled_path_uids()
         self.human_drivers_visible = True
+        self.network_latency = 0
+        self.network_latency_buffer = []
 
         # TODO: Try combining both and using route_distance_travelled for input oir distance to the traffic light?
 
@@ -57,6 +59,11 @@ class SimulationManager:
     def reset(self):
         self.simulation = self.create_simulation()
         self.freeze_traffic()
+
+        while len(self.network_latency_buffer) < self.network_latency:
+            self.network_latency_buffer.append(self.simulation)
+            self.simulation.compute_single_iteration()
+
         return self.get_state()
 
     def freeze_traffic(self, n: int = None):
@@ -121,13 +128,13 @@ class SimulationManager:
             else:
                 continue
 
-    def get_vehicle_state(self, vehicle: Vehicle):
+    def get_vehicle_state(self, vehicle: Vehicle, simulation):
         # x, y = self.simulation.model.get_vehicle_coordinates(vehicle.uid)
         return [
             vehicle.get_route_uid(),
             vehicle.get_route_distance_travelled(),
             vehicle.get_speed(),
-            self.simulation.model.get_delay(vehicle.uid)
+            simulation.model.get_delay(vehicle.uid)
             # x,
             # y
             # vehicle.wait_time,
@@ -149,14 +156,21 @@ class SimulationManager:
         #     inputs += self.get_traffic_light_state(light)
 
         path_inputs = [[] for _ in self.light_controlled_path_uids]
-        for vehicle in self.simulation.model.vehicles:
+
+        if self.network_latency == 0:
+            simulation = self.simulation
+        else:
+            simulation = self.network_latency_buffer[0]
+            self.network_latency_buffer.pop(0)
+            self.network_latency_buffer.append(self.simulation)
+
+        for vehicle in simulation.model.vehicles:
             if self.human_drivers_visible or vehicle.driver_type == "autonomous":
                 route = self.simulation.model.get_route(vehicle.get_route_uid())
                 path_uid = route.get_path_uid(vehicle.get_path_index())
                 if path_uid in self.light_controlled_path_uids:
-                    path_inputs[self.light_controlled_path_uids.index(path_uid)].append(self.get_vehicle_state(vehicle)) # TODO: use if route_uid is disabled #+ [path_uid])
-            else:
-                print("ignored", vehicle.uid)
+                    path_inputs[self.light_controlled_path_uids.index(path_uid)].append(self.get_vehicle_state(vehicle, simulation))  # TODO: use if route_uid is disabled #+ [path_uid])
+
         # Sort and flatten the inputs by distance travelled
         for index, path_input in enumerate(path_inputs):
             # Sorted adds more weight to the neural inputs of vehicles close to the traffic light
