@@ -123,7 +123,7 @@ class FixedTimingsTester:
         simulation_config_file_path = self.get_file_path(["configurations", "simulation_config", sim_config_file])
 
         # Initialise and run the simulations for both fixed timings and demand scheduling
-        print("Running Machine Learning:\n    RunUID: " + str(run_uid) + "\n    Run Type: " + run_type + "\n    Junction: " + junction_file_name + "\n    Simulation Config: " + sim_config_file + "\n    Steps: " + str(steps) + "\nStarting Testinging...")
+        print("Running Legacy Control:\n    RunUID: " + str(run_uid) + "\n    Run Type: " + run_type + "\n    Junction: " + junction_file_name + "\n    Simulation Config: " + sim_config_file + "\n    Steps: " + str(steps) + "\nStarting Testinging...")
         time_begin = time.perf_counter()
 
         if run_type.lower() == "fixed timings":
