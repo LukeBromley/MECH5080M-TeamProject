@@ -487,7 +487,7 @@ class SpawningRandom:
         return routes[index]
 
     def get_vehicle_driver_type(self):
-        if choices([0, 1], weights=[self.spawning_stats.autonomous_driver_probability, 1 - self.spawning_stats.autonomous_driver_probability], cum_weights=None, k=1) == 0:
+        if choices([0, 1], weights=[self.spawning_stats.autonomous_driver_probability, 1 - self.spawning_stats.autonomous_driver_probability], cum_weights=None, k=1)[0] == 0:
             return "autonomous"
         else:
             return "human"
