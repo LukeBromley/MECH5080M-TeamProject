@@ -1,6 +1,7 @@
 import copy
 import math
 import random
+import time
 from math import sqrt
 import matplotlib
 # matplotlib.use("Qt5agg")
@@ -116,14 +117,14 @@ class MachineLearning:
         self.steps_to_skip = self.simulation_manager.simulation.model.tick_rate
 
         # Number of steps of just random actions before the network can make some decisions
-        self.number_of_random_actions = 10000
+        self.number_of_random_actions = 1000
         # Number of steps over which epsilon greedy decays
-        self.number_of_exploration_actions = 300000
+        self.number_of_exploration_actions = 100000
 
         # Add visuals
         self.graph.add_vline(self.number_of_random_actions)
         self.graph.add_vline(self.number_of_exploration_actions)
-        self.graph.add_vline(int(self.temporal_difference_threshold * self.number_of_actions_taken))
+        self.graph.add_vline(int(self.temporal_difference_threshold * self.number_of_exploration_actions))
         # Train the model after 4 actions
         self.update_after_actions = 4
         # Penalty for collision
@@ -577,7 +578,7 @@ class MachineLearning:
             reward = self.step(action_index, td=False)
 
             episode_reward += reward
-
+            time.sleep(0.01)
             if self.end_episode(episode_reward, episode_steps):
                 break
             #
@@ -619,10 +620,10 @@ def main():
     # Reference Files
     junction_file_path = os.path.join(
         os.path.dirname(os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))))), "junctions",
-        "scale_library_pub_junction.junc")
+        "simple_T_junction.junc")
     configuration_file_path = os.path.join(
         os.path.dirname(os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))))), "configurations",
-        "simulation_config", "cross_road.config")
+        "simulation_config", "demand_mean_12.config")
 
     # Settings
     scale = 30

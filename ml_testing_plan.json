@@ -3,7 +3,7 @@
     "RunUID": 0,
     "RunType": "junction",
     "Junction": "scale_library_pub_junction.junc",
-    "SimulationConfig": "cross_road.config",
+    "SimulationConfig": "demand_mean_12.config",
     "MachineLearningModel": "saved_model",
     "Steps": 10000,
     "HumanDriversVisible": true,
