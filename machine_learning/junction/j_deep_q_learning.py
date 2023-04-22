@@ -78,7 +78,6 @@ random_seed = 1
 class MachineLearning:
     def __init__(self, simulation_manager: SimulationManager, machine_learning_config=None, graph_num_episodes=20,
                  graph_max_step=30000):
-
         # SIMULATION MANAGER
         self.future_wait_time = None
         self.simulation_manager = simulation_manager
@@ -108,13 +107,13 @@ class MachineLearning:
         self.epsilon_greedy_min = 0.1  # Minimum probability of selecting a random action
         self.epsilon_greedy_max = 1.0  # Maximum probability of selecting a random action
         self.epsilon_greedy = self.epsilon_greedy_max  # Current probability of selecting a random action
-
+        self.temporal_difference_threshold = 0.75
         # Exploration
         # TODO: The algorithm should explore as many different scenarios as possible. It is quite clear that the learning
         #  curve is much steering during exploration as compared to exploitation.
 
         # Skip steps between recorded states to reduce over-fitting risk
-        self.steps_to_skip = 2 * self.simulation_manager.simulation.model.tick_rate
+        self.steps_to_skip = self.simulation_manager.simulation.model.tick_rate
 
         # Number of steps of just random actions before the network can make some decisions
         self.number_of_random_actions = 10000
@@ -124,7 +123,7 @@ class MachineLearning:
         # Add visuals
         self.graph.add_vline(self.number_of_random_actions)
         self.graph.add_vline(self.number_of_exploration_actions)
-
+        self.graph.add_vline(int(self.temporal_difference_threshold * self.number_of_actions_taken))
         # Train the model after 4 actions
         self.update_after_actions = 4
         # Penalty for collision
@@ -165,7 +164,7 @@ class MachineLearning:
 
         # MACHINE LEARNING MODELS
         n = self.simulation_manager.observation_space_size
-        self.ml_model_hidden_layers = [2 * n, n, len(self.simulation_manager.action_table)]
+        self.ml_model_hidden_layers = [n, int(n/2), len(self.simulation_manager.action_table)]
 
         # Change configurations to ones supplied in machine_learning_config
         if machine_learning_config is not None:
@@ -401,7 +400,7 @@ class MachineLearning:
             # TODO: Try model decision making enabled after exploration !!!
             # TODO: Could even use active learning with a pre-trained target_network weights
             # TODO: Taking action at random rather is worse than after half-way exploration
-            if self.number_of_actions_taken > 0.5 * self.number_of_exploration_actions:
+            if self.number_of_actions_taken > self.temporal_difference_threshold * self.number_of_exploration_actions:
                 simulation_manager.take_action(self.select_action(simulation_manager.get_state(), target=True))
 
             simulation_manager.simulation.compute_single_iteration()
@@ -468,8 +467,7 @@ class MachineLearning:
 
     def update_epsilon_greedy(self):
         if self.epsilon_greedy >= self.epsilon_greedy_min:
-            self.epsilon_greedy -= (
-                                               self.epsilon_greedy_max - self.epsilon_greedy_min) / self.number_of_exploration_actions
+            self.epsilon_greedy -= (self.epsilon_greedy_max - self.epsilon_greedy_min) / self.number_of_exploration_actions
 
     def take_action(self, action_index):
         self.simulation_manager.take_action(action_index)
@@ -537,7 +535,7 @@ class MachineLearning:
         else:
             return False
 
-    def test(self, number_of_iterations: int = 10000, model_file_path: str = "saved_model"):
+    def test(self, number_of_iterations: int = 10000, model_file_path: str = "saved_model", human_drivers_visible: bool = True, network_latency: int = 0):
         model = keras.models.load_model(model_file_path)
         # Reset the environment
         self.simulation_manager.reset()
@@ -549,6 +547,9 @@ class MachineLearning:
 
         if model:
             simulation_manager_copy = self.create_simulation_manager_copy()
+            simulation_manager_copy.human_drivers_visible = human_drivers_visible
+            simulation_manager_copy.network_latency = network_latency
+
             for step in range(int(self.simulation_manager.simulation.model.tick_rate * self.simulation_manager.simulation.model.lights[0].red_amber_time)):
                 action_probabilities = model(simulation_manager_copy.get_state().reshape(1, -1))[0].numpy()
                 action_index = np.nanargmax(action_probabilities)

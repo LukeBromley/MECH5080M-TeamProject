@@ -5,6 +5,8 @@
     "Junction": "scale_library_pub_junction.junc",
     "SimulationConfig": "cross_road.config",
     "MachineLearningModel": "saved_model",
-    "Steps": 10000
+    "Steps": 10000,
+    "HumanDriversVisible": true,
+    "NetworkLatency": 0
   }
 }
