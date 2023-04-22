@@ -86,19 +86,16 @@ class FixedTimingsTester:
                         "Delay Maximum": delay_maximum,
                         "Delay Minimum": delay_minimum,
                         "Delay Number Of Cars": delay_num_vehicles,
-                        "Delay": delays,
                         "Backup Mean Average": backup_mean_average,
                         "Backup Standard Deviation": backup_standard_deviation,
                         "Backup Maximum": backup_maximum,
                         "Backup Time": backup_time,
-                        "Backup": backup,
                         "Kinetic Energy Waste Average": kinetic_energy_waste_mean_average,
                         "Kinetic Energy Waste Standard Deviation": kinetic_energy_waste_standard_deviation,
                         "Kinetic Energy Waste Maximum": kinetic_energy_waste_maximum,
                         "Kinetic Energy Waste Time": kinetic_energy_waste_minimum,
-                        "Kinetic Energy Waste": kinetic_energy
                         })
-            self.make_results_directory(run)
+            self.make_results_directory(run, delays, backup, kinetic_energy)
         time_taken = time.perf_counter() - time_begin
         # MEGAMAINTEST - Add any results you want printed to terminal as required.
         print("\n\n================================================\nALL ITERATIONS COMPLETE\n    Total Time: " + str(time_taken) + "\n    Total Testing Runs: " + str(len(self.testing_runs)) + "\n    Results Directory: " + self.output_directory_path + "\n================================================")
@@ -229,7 +226,7 @@ class FixedTimingsTester:
             file_path = os.path.join(file_path, path)
         return file_path
 
-    def make_results_directory(self, run: dict) -> None:
+    def make_results_directory(self, run: dict, delays, backup, kinetic_energy) -> None:
         """
         The make_results_directory function creates a directory for the results of each run.
         It also writes the parameters used in that run to a text file, and writes the delay and backup results to csv
@@ -241,31 +238,30 @@ class FixedTimingsTester:
         # Make results director
         results_directory_path = self.get_file_path([self.output_directory_path, ("run_" + str(run["RunUID"]))])
         os.mkdir(results_directory_path)
-        with open(results_directory_path + "/testing_run_parameters.txt", "a", newline='') as file:
-            file.write("This is a summary of the parameters for this Model:")
-            for line in run:
-                file.write("\n" + line + ": " + str(run[line]))
+
+        with open(results_directory_path + "/testing_run_parameters.json", "a", newline='') as file:
+            json.dump(run, file)
 
         # Write raw delay results
         with open(results_directory_path + "/testing_run_delay_results.csv", 'w') as file:
             write = csv.writer(file)
-            for value in run["Delay"]:
+            for value in delays:
                 write.writerow([value])
 
         # Write raw backup results
         with open(results_directory_path + "/testing_run_backup_results.csv", 'w') as file:
             write = csv.writer(file)
-            for i in range(len(run["Backup"][list(run["Backup"].keys())[0]])):
+            for i in range(len(backup[list(backup.keys())[0]])):
                 values = []
-                for path in run["Backup"]:
-                    values.append(run["Backup"][path][i])
+                for path in backup:
+                    values.append(backup[path][i])
                 write.writerow(values)
 
         # Write raw kinetic energy results
         with open(results_directory_path + "/testing_run_kinetic_energy_results.csv", 'w') as file:
             write = csv.writer(file)
 
-            kinetic_energy = run["Kinetic Energy Waste"].values()
+            kinetic_energy = kinetic_energy.values()
 
             max_len = 0
             for vehicle_kinetic_energy in kinetic_energy:
