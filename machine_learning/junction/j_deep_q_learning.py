@@ -561,7 +561,7 @@ class MachineLearning:
             # Increment the total number of steps taken by the AI in total.
             episode_steps += 1
 
-            if episode_steps % (10 * self.simulation_manager.simulation.model.tick_rate) == 0 or episode_steps == 0:
+            if episode_steps % (6 * self.simulation_manager.simulation.model.tick_rate) == 0 or episode_steps == 0:
                 if model:
                     self.predict(model, simulation_manager_copy)
                     # Remove illegal actions
@@ -627,7 +627,7 @@ def main():
     # Settings
     scale = 30
 
-    disable_visualiser = True
+    disable_visualiser = False
 
     if disable_visualiser:
         simulation = SimulationManager(junction_file_path, configuration_file_path, None)
