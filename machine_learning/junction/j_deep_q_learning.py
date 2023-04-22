@@ -623,7 +623,7 @@ def main():
         "simple_T_junction.junc")
     configuration_file_path = os.path.join(
         os.path.dirname(os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))))), "configurations",
-        "simulation_config", "demand_mean_12.config")
+        "simulation_config", "uneven_spawning.config")
 
     # Settings
     scale = 30
