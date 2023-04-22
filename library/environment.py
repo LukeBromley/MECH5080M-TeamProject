@@ -371,11 +371,9 @@ class SpawningRandom:
         elif distribution_type == 'weibull':
             self.next_spawn_time_delta = self.weibull(self.current_mean_spawn_time, self.current_sdev_spawn_time, self.current_min_spawn_time)
         else:
-            if (type(self.spawning_stats.mean_spawn_time_per_hour) == dict) and (self.spawning_stats.mean_spawn_time_per_hour.contains_key(self.node_uid)):
-                print("Uneven")
-                spawn_time = self.spawning_stats.mean_spawn_time_per_hour[self.node_uid]
+            if (type(self.spawning_stats.mean_spawn_time_per_hour) == dict) and (str(self.node_uid) in self.spawning_stats.mean_spawn_time_per_hour):
+                spawn_time = self.spawning_stats.mean_spawn_time_per_hour[str(self.node_uid)]
             else:
-                print("Even")
                 spawn_time = self.current_mean_spawn_time
             alpha = 1.0354 * spawn_time - 0.8897
             beta = 1 / alpha
