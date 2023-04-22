@@ -151,10 +151,10 @@ class SimulationManager:
 if __name__ == "__main__":
     # Reference Files
     junction_file_path = os.path.join(os.path.dirname(os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))))), "junctions", "scale_library_pub_junction.junc")
-    configuration_file_path = os.path.join(os.path.dirname(os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))))), "configurations/simulation_config", "demand_mean_12.config")
+    configuration_file_path = os.path.join(os.path.dirname(os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))))), "configurations/simulation_config", "uneven_spawning.config")
 
     # Settings
-    scale = 50
+    scale = 30
 
     # Visualiser Init
     visualiser = JunctionVisualiser()
@@ -163,7 +163,7 @@ if __name__ == "__main__":
     simulation_manager.print_possible_actions()
 
     # Visualiser Setup
-    visualiser.define_main(partial(simulation_manager.run, 10000, [4, 2, 1], [150, 150, 150], [[10], [3], [5]], visualiser_delay=True))
+    visualiser.define_main(partial(simulation_manager.run, 10000, [35, 56, 22], [300, 300, 300], [[7,8], [10,11], [13,14]], visualiser_delay=True))
     visualiser.load_junction(junction_file_path)
     visualiser.set_scale(scale)
 
