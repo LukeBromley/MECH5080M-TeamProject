@@ -24,7 +24,7 @@ for index, junction in enumerate(junctions):
             print(spawn_time_delta_value)
 
             plan[str(uid)] = {
-                "RunUID": uid,
+                "RunUID": str(junction) + "_" + str(random_seed_value) + "_" + spawn_time_delta_value,
                 "RunType": "junction",
                 "Junction": junction,
                 "SimulationConfig": "final_testing/autonomous/seed_" + str(random_seed_value) + "/" + str(round(60 / spawn_time_delta_value)) + "cpm.config",
@@ -66,7 +66,7 @@ for autonomous_percentage_value in autonomous_percentage_values:
             print(spawn_time_delta_value)
 
             plan[str(uid)] = {
-                "RunUID": uid,
+                "RunUID": str(autonomous_percentage_value) + "_" + str(random_seed_value) + "_" + spawn_time_delta_value,
                 "RunType": "junction",
                 "Junction": junctions[0],
                 "SimulationConfig": "final_testing/mixed_driver_type/" + str(autonomous_percentage_value) + "_perc_autonomous/seed_" + str(random_seed_value) + "/" + str(round(60 / spawn_time_delta_value)) + "cpm.config",
@@ -106,7 +106,7 @@ for latency in network_latency:
             print(spawn_time_delta_value)
 
             plan[str(uid)] = {
-                "RunUID": uid,
+                "RunUID": str(latency) + "_" + str(random_seed_value) + "_" + spawn_time_delta_value,
                 "RunType": "junction",
                 "Junction": junctions[0],
                 "SimulationConfig": "final_testing/autonomous/seed_" + str(random_seed_value) + "/" + str(round(60 / spawn_time_delta_value)) + "cpm.config",
@@ -147,7 +147,7 @@ for packet_loss in packet_loss_perc:
             print(spawn_time_delta_value)
 
             plan[str(uid)] = {
-                "RunUID": uid,
+                "RunUID": str(packet_loss*100) + "_" + str(random_seed_value) + "_" + spawn_time_delta_value,
                 "RunType": "junction",
                 "Junction": junctions[0],
                 "SimulationConfig": "final_testing/autonomous/seed_" + str(random_seed_value) + "/" + str(round(60 / spawn_time_delta_value)) + "cpm.config",

@@ -32,6 +32,9 @@ class SimulationManager:
         self.action_duration_counter = 0
         self.empty_action_duration_counter = 0
 
+        self.intermdiary_action_counter = 0
+        self.intermdiary_action = False
+
         self.reset()
 
     def calculate_possible_actions(self):
@@ -69,12 +72,16 @@ class SimulationManager:
         self.simulation = self.create_simulation()
 
     def take_action(self, action):
-        bin = format(action, '0' + str(self.number_of_lights) + 'b')
-        for index, light in enumerate(self.simulation.model.lights):
-            if bin[index] == "0":
+        if self.intermdiary_action:
+            for light in self.simulation.model.lights:
                 light.set_red()
-            else:
-                light.set_green()
+        else:
+            bin = format(action, '0' + str(self.number_of_lights) + 'b')
+            for index, light in enumerate(self.simulation.model.lights):
+                if bin[index] == "0":
+                    light.set_red()
+                else:
+                    light.set_green()
 
     def get_lights(self):
         return self.simulation.model.get_lights()
@@ -90,29 +97,35 @@ class SimulationManager:
             self.simulation.run_single_iteration()
 
             if visualiser_delay:
-                sleep(0.1)
+                sleep(0.01)
 
             self.simulation.collision = self.simulation.model.detect_collisions()
 
             self.check_demand()
 
-            self.action_duration_counter += 1
-            if self.action_duration_counter >= self.action_duration[self.current_action_index]:
-                demand = self.check_current_demand()
-                if demand and self.action_duration_counter >= 200:
-                    pass
-                else:
-                    self.action_duration_counter = 0
-                    self.empty_action_duration_counter = 0
-                    self.demand_increment_action()
-            elif self.action_duration_counter >= 30:
-                demand = self.check_current_demand()
-                if not demand and len(self.demand) > 0:
-                    self.empty_action_duration_counter += 1
-                    if self.empty_action_duration_counter >= 20:
-                        self.empty_action_duration_counter = 0
+            if not self.intermdiary_action:
+                self.intermdiary_action_counter = 0
+                self.action_duration_counter += 1
+                if self.action_duration_counter >= self.action_duration[self.current_action_index]:
+                    demand = self.check_current_demand()
+                    if demand and self.action_duration_counter <= 450:
+                        pass
+                    else:
                         self.action_duration_counter = 0
+                        self.empty_action_duration_counter = 0
                         self.demand_increment_action()
+                elif self.action_duration_counter >= 30:
+                    demand = self.check_current_demand()
+                    if not demand and len(self.demand) > 0:
+                        self.empty_action_duration_counter += 1
+                        if self.empty_action_duration_counter >= 20:
+                            self.empty_action_duration_counter = 0
+                            self.action_duration_counter = 0
+                            self.demand_increment_action()
+            else:
+                self.intermdiary_action_counter += 1
+                if self.intermdiary_action_counter > 30:
+                    self.intermdiary_action = False
 
     def check_demand(self):
         for action_index, path_uids in enumerate(self.action_paths):
@@ -132,11 +145,19 @@ class SimulationManager:
         return demand
 
     def demand_increment_action(self):
-        if len(self.demand) > 0:
-            self.current_action_index = self.demand[0]
-            self.demand.pop(0)
-        else:
-            self.increment_action()
+        action_changed = False
+        while not action_changed:
+            if len(self.demand) > 0:
+                if self.demand[0] == self.current_action_index:
+                    self.demand.pop(0)
+                else:
+                    self.current_action_index = self.demand[0]
+                    self.demand.pop(0)
+                    action_changed = True
+            else:
+                self.increment_action()
+                action_changed = True
+        self.intermdiary_action = True
 
     def increment_action(self):
         self.current_action_index += 1
@@ -159,7 +180,7 @@ if __name__ == "__main__":
     simulation_manager.print_possible_actions()
 
     # Visualiser Setup
-    visualiser.define_main(partial(simulation_manager.run, 10000, [35, 56, 22], [300, 300, 300], [[7,8], [10,11], [13,14]], visualiser_delay=True))
+    visualiser.define_main(partial(simulation_manager.run, 10000, [35, 56, 22], [300, 300, 300], [[7, 8], [10, 11], [13, 14]], visualiser_delay=True))
     visualiser.load_junction(junction_file_path)
     visualiser.set_scale(scale)
 

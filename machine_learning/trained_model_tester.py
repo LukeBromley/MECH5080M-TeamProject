@@ -76,7 +76,7 @@ class TrainedModelTester:
             time_taken, \
             delay_mean_average, delay_standard_deviation, delay_maximum, delay_minimum, delay_num_vehicles, delays, \
             backup_mean_average, backup_standard_deviation, backup_maximum, backup_time, backup, \
-            kinetic_energy_waste_mean_average, kinetic_energy_waste_standard_deviation, kinetic_energy_waste_maximum, kinetic_energy_waste_minimum, kinetic_energy = self.run_testing_run(run["RunUID"], run["RunType"], run["Junction"], run["SimulationConfig"], run["MachineLearningModel"], run["Steps"], run["HumanDriversVisible"], run["NetworkLatency"])
+            kinetic_energy_waste_mean_average, kinetic_energy_waste_standard_deviation, kinetic_energy_waste_maximum, kinetic_energy_waste_minimum, kinetic_energy = self.run_testing_run(run["RunUID"], run["RunType"], run["Junction"], run["SimulationConfig"], run["MachineLearningModel"], run["Steps"], run["HumanDriversVisible"], run["NetworkLatency"], run["PacketLoss"])
             # MEGAMAINTEST - make sure any results are returned here and 'run' is updated with them in dictionary format.
             run.update({"Time Taken": time_taken,
                         "Delay Mean Average": delay_mean_average,
@@ -99,7 +99,7 @@ class TrainedModelTester:
         print("\n\n================================================\nALL ITERATIONS COMPLETE\n    Total Time: " + str(time_taken) + "\n    Total Testing Runs: " + str(len(self.testing_runs)) + "\n    Results Directory: " + self.output_directory_path + "\n================================================")
 
     # MEGAMAINTEST - add the parameters to this function call and add in functionality as required.
-    def run_testing_run(self, run_uid, run_type, junction_file_name, sim_config_file_name, ml_model_folder_name, steps, human_drivers_visible, network_latency):
+    def run_testing_run(self, run_uid, run_type, junction_file_name, sim_config_file_name, ml_model_folder_name, steps, human_drivers_visible, network_latency, packet_loss):
 
         print("\n================================================")
         # Create paths to config files.
@@ -107,14 +107,14 @@ class TrainedModelTester:
         simulation_config_file_path = self.get_file_path(["configurations", "simulation_config", sim_config_file_name])
 
         # Initialise and run the simulations for both fixed timings and demand scheduling
-        print("Running Machine Learning:\n    RunUID: " + str(run_uid) + "\n    Run Type: " + run_type + "\n    Junction: " + junction_file_name + "\n    Simulation Config: " + sim_config_file_name + "\n    Machine Learning Model: " + ml_model_folder_name + "\n    Steps: " + str(steps) + "\n    Human Drivers Visible: " + str(human_drivers_visible) + "\n    Network Latency: " + str(network_latency) + " ticks" + "\nStarting Testinging...")
+        print("Running Machine Learning:\n    RunUID: " + str(run_uid) + "\n    Run Type: " + run_type + "\n    Junction: " + junction_file_name + "\n    Simulation Config: " + sim_config_file_name + "\n    Machine Learning Model: " + ml_model_folder_name + "\n    Steps: " + str(steps) + "\n    Human Drivers Visible: " + str(human_drivers_visible) + "\n    Network Latency: " + str(network_latency) + " ticks" + "\n    Packet Loss: " + str(packet_loss * 100) + "%" + "\nStarting Testinging...")
         time_begin = time.perf_counter()
 
         if run_type.lower() == "junction":
             ml_model_model_file_path = self.get_file_path(["machine_learning", "junction", ml_model_folder_name])
             simulation_manager = JunctionSimulationManager(junction_file_path, simulation_config_file_path, visualiser_update_function=None)
             machine_learning = JunctionMachineLearning(simulation_manager, machine_learning_config=None)
-            machine_learning.test(steps, ml_model_model_file_path, human_drivers_visible, network_latency)
+            machine_learning.test(steps, ml_model_model_file_path, human_drivers_visible, network_latency, packet_loss)
         elif run_type.lower() == "lane_changing":
             pass
         else:

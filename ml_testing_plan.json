@@ -7,6 +7,18 @@
     "MachineLearningModel": "saved_model",
     "Steps": 10000,
     "HumanDriversVisible": true,
-    "NetworkLatency": 0
+    "NetworkLatency": 0,
+    "PacketLoss": 0
+  },
+  "1": {
+    "RunUID": 1,
+    "RunType": "junction",
+    "Junction": "scale_library_pub_junction.junc",
+    "SimulationConfig": "cross_road.config",
+    "MachineLearningModel": "saved_model",
+    "Steps": 10000,
+    "HumanDriversVisible": true,
+    "NetworkLatency": 0,
+    "PacketLoss": 0.7
   }
 }
