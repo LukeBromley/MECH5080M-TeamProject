@@ -5,8 +5,7 @@ headers = ['Run Type', 'Junction', 'CPM', 'Delay Mean Average', 'Delay Standard 
            'Delay Minimum', 'Delay Number Of Cars', 'Backup Mean Average', 'Backup Standard Deviation', 'Backup Maximum',
            'Backup Time', 'Kinetic Energy Waste Average', 'Kinetic Energy Waste Standard Deviation',
            'Kinetic Energy Waste Maximum', 'Kinetic Energy Waste Time']
-wb_name = "./TestExample.xlsx"
-def main(all_results):
+def main(all_results, wb_name):
     # create a new workbook
     wb = openpyxl.Workbook()
     # select the active worksheet
@@ -14,7 +13,7 @@ def main(all_results):
     csv, paths = get_data(all_results)
     write_spreadsheet(ws, headers, paths)
     add_data(ws, csv)
-    ws.freeze_panes = 'X3'
+    ws.freeze_panes = 'A3'
     # save the workbook
     wb.save(wb_name)
     wb.close()
@@ -40,7 +39,7 @@ def write_spreadsheet(ws, headers, paths):
 
 def get_data(all_results):
     existing_seeds = []
-    paths = [6]
+    paths = []
     data_list = []
     for result in all_results:
         data = get_entry(result)
