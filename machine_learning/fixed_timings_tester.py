@@ -90,7 +90,7 @@ class FixedTimingsTester:
                         "Kinetic Energy Waste Average": kinetic_energy_waste_mean_average,
                         "Kinetic Energy Waste Standard Deviation": kinetic_energy_waste_standard_deviation,
                         "Kinetic Energy Waste Maximum": kinetic_energy_waste_maximum,
-                        "Kinetic Energy Waste Time": kinetic_energy_waste_minimum,
+                        "Kinetic Energy Waste Minimum": kinetic_energy_waste_minimum,
                         })
             self.make_results_directory(run, delays, backup, kinetic_energy)
         time_taken = time.perf_counter() - time_begin
