@@ -117,9 +117,9 @@ class MachineLearning:
         self.steps_to_skip = self.simulation_manager.simulation.model.tick_rate
 
         # Number of steps of just random actions before the network can make some decisions
-        self.number_of_random_actions = 1000
+        self.number_of_random_actions = 5000
         # Number of steps over which epsilon greedy decays
-        self.number_of_exploration_actions = 100000
+        self.number_of_exploration_actions = 150000
 
         # Add visuals
         self.graph.add_vline(self.number_of_random_actions)
@@ -243,7 +243,8 @@ class MachineLearning:
         q_network = tf.keras.models.Model(inputs=ml_layers[0], outputs=[q_values])
         return q_network
 
-    def train(self):
+    def train(self, junction_name: str = "saved_model"):
+        self.graph.set_title(junction_name)
         mean_reward = 0
         while True:  # Run until solved
             self.simulation_manager.reset()
@@ -338,7 +339,7 @@ class MachineLearning:
                         # TODO: mean reward should contains as much information as possible about the last update of model
                         self.max_mean_reward_solved = self.get_mean_reward()
                         self.ml_model_target.set_weights(self.ml_model.get_weights())
-                        self.ml_model_target.save("saved_model")
+                        self.ml_model_target.save("saved_model_" + junction_name)
                         print(f'{tm.strftime("%H:%M:%S", tm.localtime())}  -  SavedModel recorded.')
 
                 # Delete old buffer values
@@ -401,7 +402,10 @@ class MachineLearning:
             # TODO: Try model decision making enabled after exploration !!!
             # TODO: Could even use active learning with a pre-trained target_network weights
             # TODO: Taking action at random rather is worse than after half-way exploration
-            if self.number_of_actions_taken > self.temporal_difference_threshold * self.number_of_exploration_actions:
+            if (
+                    self.number_of_actions_taken > self.temporal_difference_threshold * self.number_of_exploration_actions and
+                    index % self.steps_to_skip == 0
+            ):
                 simulation_manager.take_action(self.select_action(simulation_manager.get_state(), target=True))
 
             simulation_manager.simulation.compute_single_iteration()
@@ -616,11 +620,10 @@ class MachineLearning:
         return self.simulation_manager.get_delays()
 
 
-def main():
+def main(junction_name: str = "scale_library_pub_junction"):
     # Reference Files
     junction_file_path = os.path.join(
-        os.path.dirname(os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))))), "junctions",
-        "simple_T_junction.junc")
+        os.path.dirname(os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))))), "junctions", junction_name + ".junc")
     configuration_file_path = os.path.join(
         os.path.dirname(os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))))), "configurations",
         "simulation_config", "uneven_spawning.config")
@@ -628,7 +631,7 @@ def main():
     # Settings
     scale = 30
 
-    disable_visualiser = False
+    disable_visualiser = True
 
     if disable_visualiser:
         simulation = SimulationManager(junction_file_path, configuration_file_path, None)
@@ -639,7 +642,7 @@ def main():
             spawner.spawning_stats.mean_spawn_time_per_hour = [mean_spawn_time_per_hour for _ in spawner.spawning_stats.mean_spawn_time_per_hour]
 
         machine_learning = MachineLearning(simulation, machine_learning_config=None)
-        machine_learning.train()
+        machine_learning.train(junction_name=junction_name)
     else:
         # Visualiser Init
         visualiser = JunctionVisualiser()
@@ -647,6 +650,10 @@ def main():
 
         simulation = SimulationManager(junction_file_path, configuration_file_path, visualiser_update_function)
         machine_learning = MachineLearning(simulation, machine_learning_config=None)
+
+        mean_spawn_time_per_hour = random.choice([6, 12, 24])
+        for spawner in simulation.simulation.model.spawners:
+            spawner.spawning_stats.mean_spawn_time_per_hour = [mean_spawn_time_per_hour for _ in spawner.spawning_stats.mean_spawn_time_per_hour]
 
         # Visualiser Setup
         visualiser.define_main(machine_learning.test)
@@ -657,4 +664,4 @@ def main():
         visualiser.open()
 
 if __name__ == "__main__":
-    main()
+    main(junction_name="simple_X_junction")

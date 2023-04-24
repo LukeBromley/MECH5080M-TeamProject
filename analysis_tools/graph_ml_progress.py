@@ -6,7 +6,6 @@ class Graph:
         self.num_episodes_displayed = num_episodes_displayed
 
         self.figure, self.ax = plt.subplots()
-        self.figure.suptitle("Learning curve - " + random_seed, fontsize=20)
 
         self.ax.set_xlabel('Number of actions')
         self.ax.set_ylabel('Mean reward')
@@ -17,6 +16,11 @@ class Graph:
         self.line, = self.ax.plot(self.x, self.y)
 
         plt.pause(0.001)
+
+    def set_title(self, title: str = "Learning curve"):
+        self.figure.suptitle(title, fontsize=20)
+        self.figure.canvas.start_event_loop(0.001)
+        self.figure.canvas.draw_idle()
 
     def update(self, x: float, y: float):
         self.y.append(y)

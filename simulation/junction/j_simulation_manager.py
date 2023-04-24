@@ -69,7 +69,7 @@ class SimulationManager:
         # TODO: Sparse actions
         # Avoid do nothing action if not using RNN
         self.action_table = list(itertools.product([-1, 1], repeat=len(self.simulation.model.lights)))
-        self.action_table = [action for action in self.action_table if action.count(1) <= 2]
+        self.action_table = [action for action in self.action_table if action.count(1) <= 3]
         # self.action_table.pop(self.action_table.index(tuple([-1 for _ in self.simulation.model.lights])))
         # self.action_table.pop(self.action_table.index(tuple([1 for _ in self.simulation.model.lights])))
 
