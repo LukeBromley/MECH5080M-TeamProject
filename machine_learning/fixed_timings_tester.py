@@ -171,9 +171,7 @@ class FixedTimingsTester:
             backup_mean_average[path] = mean(simulation_manager.simulation.path_backup[path])
             backup_standard_deviation[path] = stdev(simulation_manager.simulation.path_backup[path])
             backup_maximum[path] = max(simulation_manager.simulation.path_backup[path])
-            backup_time[path] = 0
-            if path in simulation_manager.simulation.path_backup_total:
-                backup_time[path] = simulation_manager.simulation.path_backup_total[path]
+            backup_time[path] = simulation_manager.simulation.path_backup_total[path]
 
             # Print results for backup
             print("\n    Path " + str(path) + ": "
