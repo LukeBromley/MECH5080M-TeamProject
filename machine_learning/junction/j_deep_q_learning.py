@@ -89,7 +89,7 @@ class MachineLearning:
 
         # TODO: Profile code
         # GRAPH
-        self.graph = Graph(graph_num_episodes, graph_max_step, "2n CNN")
+        # self.graph = Graph(graph_num_episodes, graph_max_step, "2n CNN")
 
         # COUNTERS
         self.episode_count = 0  # Number of episodes trained
@@ -122,9 +122,9 @@ class MachineLearning:
         self.number_of_exploration_actions = 150000
 
         # Add visuals
-        self.graph.add_vline(self.number_of_random_actions)
-        self.graph.add_vline(self.number_of_exploration_actions)
-        self.graph.add_vline(int(self.temporal_difference_threshold * self.number_of_exploration_actions))
+        # self.graph.add_vline(self.number_of_random_actions)
+        # self.graph.add_vline(self.number_of_exploration_actions)
+        # self.graph.add_vline(int(self.temporal_difference_threshold * self.number_of_exploration_actions))
         # Train the model after 4 actions
         self.update_after_actions = 4
         # Penalty for collision
@@ -244,7 +244,7 @@ class MachineLearning:
         return q_network
 
     def train(self, junction_name: str = "saved_model"):
-        self.graph.set_title(junction_name)
+        # self.graph.set_title(junction_name)
         mean_reward = 0
         while True:  # Run until solved
             self.simulation_manager.reset()
@@ -331,7 +331,7 @@ class MachineLearning:
                         self.number_of_actions_taken % self.max_steps_per_episode == 0
                 ):
                     # Log details
-                    self.graph.update(self.number_of_actions_taken, self.get_mean_reward())
+                    # self.graph.update(self.number_of_actions_taken, self.get_mean_reward())
                     print(f'{tm.strftime("%H:%M:%S", tm.localtime())}  -  {self.get_mean_reward():.2f} / {self.solved_mean_reward:.2f} at episode {self.episode_count}; action count: {self.number_of_actions_taken}.')
 
                     # TODO: Update at peak is not a good idea
@@ -664,4 +664,4 @@ def main(junction_name: str = "scale_library_pub_junction"):
         visualiser.open()
 
 if __name__ == "__main__":
-    main(junction_name="simple_X_junction")
+    main(junction_name="complex_Y_junction")
