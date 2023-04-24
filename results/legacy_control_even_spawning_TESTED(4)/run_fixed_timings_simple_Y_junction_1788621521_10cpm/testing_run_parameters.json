@@ -1,1 +1,49 @@
-{"RunUID": "fixed_timings_simple_Y_junction_1788621521_10cpm", "RunType": "fixed timings", "Junction": "simple_Y_junction.junc", "SimulationConfig": "final_testing/even_spawning/autonomous/seed_1788621521/10cpm.config", "Steps": 9000, "Actions": [2, 1], "ActionDurations": [300, 300], "ActionPaths": [[5], [7]], "Time Taken": 8.286965012, "Delay Mean Average": 19.054935239073036, "Delay Standard Deviation": 23.911849686334662, "Delay Maximum": 61.15558449870335, "Delay Minimum": -0.0068468703956594545, "Delay Number Of Cars": 521, "Backup Mean Average": {"5": 2.9138888888888888, "7": 2.925666666666667}, "Backup Standard Deviation": {"5": 3.0025411301119758, "7": 2.991919164465932}, "Backup Maximum": {"5": 7, "7": 7}, "Backup Time": {"5": 0, "7": 0}, "Kinetic Energy Waste Average": 12393.43802696106, "Kinetic Energy Waste Standard Deviation": 15728.437794599304, "Kinetic Energy Waste Maximum": 54773.86537575099, "Kinetic Energy Waste Time": 0}
+{
+  "RunUID": "fixed_timings_simple_Y_junction_1788621521_10cpm",
+  "RunType": "fixed timings",
+  "Junction": "simple_Y_junction.junc",
+  "SimulationConfig": "final_testing/even_spawning/autonomous/seed_1788621521/10cpm.config",
+  "Steps": 9000,
+  "Actions": [
+    2,
+    1
+  ],
+  "ActionDurations": [
+    300,
+    300
+  ],
+  "ActionPaths": [
+    [
+      5
+    ],
+    [
+      7
+    ]
+  ],
+  "Time Taken": 8.286965012,
+  "Delay Mean Average": 19.054935239073036,
+  "Delay Standard Deviation": 23.911849686334662,
+  "Delay Maximum": 61.15558449870335,
+  "Delay Minimum": -0.0068468703956594545,
+  "Delay Number Of Cars": 521,
+  "Backup Mean Average": {
+    "5": 2.9138888888888888,
+    "7": 2.925666666666667
+  },
+  "Backup Standard Deviation": {
+    "5": 3.0025411301119758,
+    "7": 2.991919164465932
+  },
+  "Backup Maximum": {
+    "5": 7,
+    "7": 7
+  },
+  "Backup Time": {
+    "5": 0,
+    "7": 0
+  },
+  "Kinetic Energy Waste Average": 12393.43802696106,
+  "Kinetic Energy Waste Standard Deviation": 15728.437794599304,
+  "Kinetic Energy Waste Maximum": 54773.86537575099,
+  "Kinetic Energy Waste Time": 0
+}

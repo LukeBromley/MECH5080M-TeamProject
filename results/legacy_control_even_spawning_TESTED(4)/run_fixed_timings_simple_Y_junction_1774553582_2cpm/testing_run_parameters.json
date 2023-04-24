@@ -1,1 +1,49 @@
-{"RunUID": "fixed_timings_simple_Y_junction_1774553582_2cpm", "RunType": "fixed timings", "Junction": "simple_Y_junction.junc", "SimulationConfig": "final_testing/even_spawning/autonomous/seed_1774553582/2cpm.config", "Steps": 9000, "Actions": [2, 1], "ActionDurations": [300, 300], "ActionPaths": [[5], [7]], "Time Taken": 2.8825639830000114, "Delay Mean Average": 15.209505199947376, "Delay Standard Deviation": 18.92723766872326, "Delay Maximum": 61.155575843454486, "Delay Minimum": -0.01178072733714286, "Delay Number Of Cars": 126, "Backup Mean Average": {"5": 0.5407777777777778, "7": 0.5798888888888889}, "Backup Standard Deviation": {"5": 0.760380952384929, "7": 0.772237459132169}, "Backup Maximum": {"5": 3, "7": 3}, "Backup Time": {"5": 0, "7": 0}, "Kinetic Energy Waste Average": 24583.920414813896, "Kinetic Energy Waste Standard Deviation": 23065.90468190811, "Kinetic Energy Waste Maximum": 54572.69425477276, "Kinetic Energy Waste Time": 0}
+{
+  "RunUID": "fixed_timings_simple_Y_junction_1774553582_2cpm",
+  "RunType": "fixed timings",
+  "Junction": "simple_Y_junction.junc",
+  "SimulationConfig": "final_testing/even_spawning/autonomous/seed_1774553582/2cpm.config",
+  "Steps": 9000,
+  "Actions": [
+    2,
+    1
+  ],
+  "ActionDurations": [
+    300,
+    300
+  ],
+  "ActionPaths": [
+    [
+      5
+    ],
+    [
+      7
+    ]
+  ],
+  "Time Taken": 2.8825639830000114,
+  "Delay Mean Average": 15.209505199947376,
+  "Delay Standard Deviation": 18.92723766872326,
+  "Delay Maximum": 61.155575843454486,
+  "Delay Minimum": -0.01178072733714286,
+  "Delay Number Of Cars": 126,
+  "Backup Mean Average": {
+    "5": 0.5407777777777778,
+    "7": 0.5798888888888889
+  },
+  "Backup Standard Deviation": {
+    "5": 0.760380952384929,
+    "7": 0.772237459132169
+  },
+  "Backup Maximum": {
+    "5": 3,
+    "7": 3
+  },
+  "Backup Time": {
+    "5": 0,
+    "7": 0
+  },
+  "Kinetic Energy Waste Average": 24583.920414813896,
+  "Kinetic Energy Waste Standard Deviation": 23065.90468190811,
+  "Kinetic Energy Waste Maximum": 54572.69425477276,
+  "Kinetic Energy Waste Time": 0
+}
