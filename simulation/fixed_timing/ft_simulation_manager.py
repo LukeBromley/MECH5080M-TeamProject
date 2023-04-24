@@ -24,6 +24,8 @@ class SimulationManager:
         self.number_of_lights, self.number_of_possible_actions = self.calculate_possible_actions()
         self.actions = [2, 0, 1, 0]
         self.action_duration = [150, 30, 150, 30]
+        self.intermdiary_action = False
+        self.intermdiary_action_counter = 0
 
         # Current Action
         self.current_action_index = 0
@@ -66,12 +68,16 @@ class SimulationManager:
         self.simulation = self.create_simulation()
 
     def take_action(self, action):
-        bin = format(action, '0' + str(self.number_of_lights) + 'b')
-        for index, light in enumerate(self.simulation.model.lights):
-            if bin[index] == "0":
+        if not self.intermdiary_action:
+            bin = format(action, '0' + str(self.number_of_lights) + 'b')
+            for index, light in enumerate(self.simulation.model.lights):
+                if bin[index] == "0":
+                    light.set_red()
+                else:
+                    light.set_green()
+        else:
+            for index, light in enumerate(self.simulation.model.lights):
                 light.set_red()
-            else:
-                light.set_green()
 
     def get_lights(self):
         return self.simulation.model.get_lights()
@@ -90,17 +96,26 @@ class SimulationManager:
 
             self.simulation.collision = self.simulation.model.detect_collisions()
 
-            self.action_duration_counter += 1
-            if self.action_duration_counter >= self.action_duration[self.current_action_index]:
-                self.action_duration_counter = 0
-                self.current_action_index += 1
-                if self.current_action_index >= len(self.actions):
-                    self.current_action_index = 0
+            if not self.intermdiary_action:
+                self.intermdiary_action_counter = 0
+                self.action_duration_counter += 1
+                if self.action_duration_counter >= self.action_duration[self.current_action_index]:
+                    self.action_duration_counter = 0
+                    self.current_action_index += 1
+                    if self.current_action_index >= len(self.actions):
+                        self.current_action_index = 0
+                    self.intermdiary_action = True
+            else:
+                self.intermdiary_action_counter += 1
+                if self.intermdiary_action_counter > 30:
+                    self.intermdiary_action = False
+
+
 
 if __name__ == "__main__":
     # Reference Files
-    junction_file_path = os.path.join(os.path.dirname(os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))))), "junctions", "simple_T_junction.junc")
-    configuration_file_path = os.path.join(os.path.dirname(os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))))), "configurations/simulation_config", "demand_mean_6.config")
+    junction_file_path = os.path.join(os.path.dirname(os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))))), "junctions", "simple_Y_junction.junc")
+    configuration_file_path = os.path.join(os.path.dirname(os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))))), "configurations/simulation_config/final_testing/even_spawning/autonomous/seed_997415346", "15.0cpm.config")
 
     # Settings
     scale = 50
@@ -108,11 +123,11 @@ if __name__ == "__main__":
     # Visualiser Init
     visualiser = JunctionVisualiser()
 
-    simulation_manager = SimulationManager(junction_file_path, configuration_file_path, visualiser_update_function=visualiser.update)
+    simulation_manager = SimulationManager(junction_file_path, configuration_file_path, visualiser_update_function=visualiser.update)  # visualiser.update
     simulation_manager.print_possible_actions()
 
     # Visualiser Setup
-    visualiser.define_main(partial(simulation_manager.run, 10000, [4, 2, 1], [150, 150, 150], visualiser_delay=True))
+    visualiser.define_main(partial(simulation_manager.run, 4500, [2, 1], [50, 50], visualiser_delay=False))
     visualiser.load_junction(junction_file_path)
     visualiser.set_scale(scale)
 
