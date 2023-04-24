@@ -314,7 +314,7 @@ class SpawningRandom:
         :return: Boolean
         """
         time_delta = time - self.time_of_last_spawn
-        if time_delta.total_seconds() > self.next_spawn_time_delta:
+        if time_delta.total_milliseconds() > self.next_spawn_time_delta * 1000:
             self.time_of_last_spawn = time
             self.calculate_next_spawn_time(distribution_type=self.spawning_stats.distribution_method)
             return True
