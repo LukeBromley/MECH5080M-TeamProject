@@ -33,6 +33,7 @@ class SimulationManager:
         self.human_drivers_visible = True
         self.network_latency = 0
         self.network_latency_buffer = []
+        self.packet_loss = 0.2
 
         # TODO: Try combining both and using route_distance_travelled for input oir distance to the traffic light?
 
@@ -166,10 +167,11 @@ class SimulationManager:
 
         for vehicle in simulation.model.vehicles:
             if self.human_drivers_visible or vehicle.driver_type == "autonomous":
-                route = self.simulation.model.get_route(vehicle.get_route_uid())
-                path_uid = route.get_path_uid(vehicle.get_path_index())
-                if path_uid in self.light_controlled_path_uids:
-                    path_inputs[self.light_controlled_path_uids.index(path_uid)].append(self.get_vehicle_state(vehicle, simulation))  # TODO: use if route_uid is disabled #+ [path_uid])
+                if random.choices([0, 1], weights=[self.packet_loss, 1 - self.packet_loss], cum_weights=None, k=1)[0] == 1:
+                    route = self.simulation.model.get_route(vehicle.get_route_uid())
+                    path_uid = route.get_path_uid(vehicle.get_path_index())
+                    if path_uid in self.light_controlled_path_uids:
+                        path_inputs[self.light_controlled_path_uids.index(path_uid)].append(self.get_vehicle_state(vehicle, simulation))  # TODO: use if route_uid is disabled #+ [path_uid])
 
         # Sort and flatten the inputs by distance travelled
         for index, path_input in enumerate(path_inputs):

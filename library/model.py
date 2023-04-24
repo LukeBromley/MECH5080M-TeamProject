@@ -171,12 +171,25 @@ class Model:
             mass = self.get_spawner_vehicle_mass(node_uid, length, width)
             distance = self.distance_of_first_vehicle_from_start_node(node_uid)
             driver_type = self.spawners[index].get_vehicle_driver_type()
-            if distance > 2 * length:
-                route_uid = self.get_spawner_route(node_uid)
+            route_uid = self.get_spawner_route(node_uid)
+            self.spawners[index].backup_buffer.append([self.calculate_seconds_elapsed(), route_uid, length, width, mass, driver_type])
+            if distance > 6:
                 distance_delta = distance - (length/2)
-                return route_uid, length, width, mass, distance_delta, driver_type
-        else:
-            return None
+                time_created, route_uid, length, width, mass, driver_type = self.spawners[index].backup_buffer[0]
+                self.spawners[index].backup_buffer.pop(0)
+                return time_created, route_uid, length, width, mass, distance_delta, driver_type
+        return None
+
+    def nudge_spawn_buffer(self, node_uid):
+        index = self.get_spawner_index(node_uid)
+        if len(self.spawners[index].backup_buffer) > 0:
+            distance = self.distance_of_first_vehicle_from_start_node(node_uid)
+            if distance > 6:
+                time_created, route_uid, length, width, mass, driver_type = self.spawners[index].backup_buffer[0]
+                distance_delta = distance - (length/2)
+                self.spawners[index].backup_buffer.pop(0)
+                return time_created, route_uid, length, width, mass, distance_delta, driver_type
+        return None
 
     def get_spawner_route(self, node_uid):
         index = self.get_spawner_index(node_uid)

@@ -73,8 +73,10 @@ class TrainedModelTester:
         time_begin = time.perf_counter()
         for run in self.testing_runs:
             # MEGAMAINTEST - run_testing_runs must also be passed all parameters from the iteration file.
-            time_taken, delay_mean_average, delay_standard_deviation, delay_maximum, delay_minimum, delay_num_vehicles, delays, \
-            backup_mean_average, backup_standard_deviation, backup_maximum, backup_time, backup = self.run_testing_run(run["RunUID"], run["RunType"], run["Junction"], run["SimulationConfig"], run["MachineLearningModel"], run["Steps"], run["HumanDriversVisible"], run["NetworkLatency"])
+            time_taken, \
+            delay_mean_average, delay_standard_deviation, delay_maximum, delay_minimum, delay_num_vehicles, delays, \
+            backup_mean_average, backup_standard_deviation, backup_maximum, backup_time, backup, \
+            kinetic_energy_waste_mean_average, kinetic_energy_waste_standard_deviation, kinetic_energy_waste_maximum, kinetic_energy_waste_minimum, kinetic_energy = self.run_testing_run(run["RunUID"], run["RunType"], run["Junction"], run["SimulationConfig"], run["MachineLearningModel"], run["Steps"], run["HumanDriversVisible"], run["NetworkLatency"], run["PacketLoss"])
             # MEGAMAINTEST - make sure any results are returned here and 'run' is updated with them in dictionary format.
             run.update({"Time Taken": time_taken,
                         "Delay Mean Average": delay_mean_average,
@@ -82,20 +84,22 @@ class TrainedModelTester:
                         "Delay Maximum": delay_maximum,
                         "Delay Minimum": delay_minimum,
                         "Delay Number Of Cars": delay_num_vehicles,
-                        "Delay": delays,
                         "Backup Mean Average": backup_mean_average,
                         "Backup Standard Deviation": backup_standard_deviation,
                         "Backup Maximum": backup_maximum,
                         "Backup Time": backup_time,
-                        "Backup": backup
+                        "Kinetic Energy Waste Average": kinetic_energy_waste_mean_average,
+                        "Kinetic Energy Waste Standard Deviation": kinetic_energy_waste_standard_deviation,
+                        "Kinetic Energy Waste Maximum": kinetic_energy_waste_maximum,
+                        "Kinetic Energy Waste Time": kinetic_energy_waste_minimum,
                         })
-            self.make_results_directory(run)
+            self.make_results_directory(run, delays, backup, kinetic_energy)
         time_taken = time.perf_counter() - time_begin
         # MEGAMAINTEST - Add any results you want printed to terminal as required.
         print("\n\n================================================\nALL ITERATIONS COMPLETE\n    Total Time: " + str(time_taken) + "\n    Total Testing Runs: " + str(len(self.testing_runs)) + "\n    Results Directory: " + self.output_directory_path + "\n================================================")
 
     # MEGAMAINTEST - add the parameters to this function call and add in functionality as required.
-    def run_testing_run(self, run_uid, run_type, junction_file_name, sim_config_file_name, ml_model_folder_name, steps, human_drivers_visible, network_latency):
+    def run_testing_run(self, run_uid, run_type, junction_file_name, sim_config_file_name, ml_model_folder_name, steps, human_drivers_visible, network_latency, packet_loss):
 
         print("\n================================================")
         # Create paths to config files.
@@ -103,14 +107,14 @@ class TrainedModelTester:
         simulation_config_file_path = self.get_file_path(["configurations", "simulation_config", sim_config_file_name])
 
         # Initialise and run the simulations for both fixed timings and demand scheduling
-        print("Running Machine Learning:\n    RunUID: " + str(run_uid) + "\n    Run Type: " + run_type + "\n    Junction: " + junction_file_name + "\n    Simulation Config: " + sim_config_file_name + "\n    Machine Learning Model: " + ml_model_folder_name + "\n    Steps: " + str(steps) + "\n    Human Drivers Visible: " + str(human_drivers_visible) + "\n    Network Latency: " + str(network_latency) + " ticks" + "\nStarting Testinging...")
+        print("Running Machine Learning:\n    RunUID: " + str(run_uid) + "\n    Run Type: " + run_type + "\n    Junction: " + junction_file_name + "\n    Simulation Config: " + sim_config_file_name + "\n    Machine Learning Model: " + ml_model_folder_name + "\n    Steps: " + str(steps) + "\n    Human Drivers Visible: " + str(human_drivers_visible) + "\n    Network Latency: " + str(network_latency) + " ticks" + "\n    Packet Loss: " + str(packet_loss * 100) + "%" + "\nStarting Testinging...")
         time_begin = time.perf_counter()
 
         if run_type.lower() == "junction":
             ml_model_model_file_path = self.get_file_path(["machine_learning", "junction", ml_model_folder_name])
             simulation_manager = JunctionSimulationManager(junction_file_path, simulation_config_file_path, visualiser_update_function=None)
             machine_learning = JunctionMachineLearning(simulation_manager, machine_learning_config=None)
-            machine_learning.test(steps, ml_model_model_file_path, human_drivers_visible, network_latency)
+            machine_learning.test(steps, ml_model_model_file_path, human_drivers_visible, network_latency, packet_loss)
         elif run_type.lower() == "lane_changing":
             pass
         else:
@@ -161,7 +165,25 @@ class TrainedModelTester:
                   + "\n        Backup Maximum Delay:" + str(backup_maximum[path])
                   + "\n        Backup Time:" + str(backup_time[path]))
 
-        return time_taken, delay_mean_average, delay_standard_deviation, delay_maximum, delay_minimum, delay_num_vehicles, simulation_manager.simulation.delays, backup_mean_average, backup_standard_deviation, backup_maximum, backup_time, simulation_manager.simulation.path_backup
+        # Determine results for kinetic energy waste
+
+        kinetic_energy_waste = simulation_manager.simulation.kinetic_energy_waste.values()
+        kinetic_energy_waste_mean_average = mean(kinetic_energy_waste)
+        kinetic_energy_waste_standard_deviation = stdev(kinetic_energy_waste)
+        kinetic_energy_waste_maximum = max(kinetic_energy_waste)
+        kinetic_energy_waste_minimum = min(kinetic_energy_waste)
+
+        # Print results for kinetic energy waste
+        print("\n Kinetic Energy Data:"
+              + "\n    Kinetic Energy Waste Mean Average:" + str(kinetic_energy_waste_mean_average)
+              + "\n    Kinetic Energy Waste Standard Deviation:" + str(kinetic_energy_waste_standard_deviation)
+              + "\n    Kinetic Energy Waste Maximum Delay:" + str(kinetic_energy_waste_maximum)
+              + "\n    Kinetic Energy Waste Minimum Delay: " + str(kinetic_energy_waste_minimum))
+
+        return time_taken, \
+            delay_mean_average, delay_standard_deviation, delay_maximum, delay_minimum, delay_num_vehicles, simulation_manager.simulation.delays, \
+            backup_mean_average, backup_standard_deviation, backup_maximum, backup_time, simulation_manager.simulation.path_backup, \
+            kinetic_energy_waste_mean_average, kinetic_energy_waste_standard_deviation, kinetic_energy_waste_maximum, kinetic_energy_waste_minimum, simulation_manager.simulation.kinetic_energy
 
     def get_file_path(self, path_names: list) -> str:
         """
@@ -176,7 +198,7 @@ class TrainedModelTester:
             file_path = os.path.join(file_path, path)
         return file_path
 
-    def make_results_directory(self, run: dict) -> None:
+    def make_results_directory(self, run: dict, delays, backup, kinetic_energy) -> None:
         """
         The make_results_directory function creates a directory for the results of each run.
         It also writes the parameters used in that run to a text file, and writes the delay and backup results to csv
@@ -188,23 +210,40 @@ class TrainedModelTester:
         # Make results director
         results_directory_path = self.get_file_path([self.output_directory_path, ("run_" + str(run["RunUID"]))])
         os.mkdir(results_directory_path)
-        with open(results_directory_path + "/testing_run_parameters.txt", "a", newline='') as file:
-            file.write("This is a summary of the parameters for this Model:")
-            for line in run:
-                file.write("\n" + line + ": " + str(run[line]))
+
+        with open(results_directory_path + "/testing_run_parameters.json", "a", newline='') as file:
+            json.dump(run, file)
 
         # Write raw delay results
         with open(results_directory_path + "/testing_run_delay_results.csv", 'w') as file:
             write = csv.writer(file)
-            for value in run["Delay"]:
+            for value in delays:
                 write.writerow([value])
 
         # Write raw backup results
         with open(results_directory_path + "/testing_run_backup_results.csv", 'w') as file:
             write = csv.writer(file)
-            for i in range(len(run["Backup"][list(run["Backup"].keys())[0]])):
+            for i in range(len(backup[list(backup.keys())[0]])):
                 values = []
-                for path in run["Backup"]:
-                    values.append(run["Backup"][path][i])
+                for path in backup:
+                    values.append(backup[path][i])
+                write.writerow(values)
+
+        # Write raw kinetic energy results
+        with open(results_directory_path + "/testing_run_kinetic_energy_results.csv", 'w') as file:
+            write = csv.writer(file)
+
+            kinetic_energy = kinetic_energy.values()
+
+            max_len = 0
+            for vehicle_kinetic_energy in kinetic_energy:
+                if max_len < len(vehicle_kinetic_energy):
+                    max_len = len(vehicle_kinetic_energy)
+
+            for i in range(max_len):
+                values = []
+                for vehicle_kinetic_energy in kinetic_energy:
+                    if i < len(vehicle_kinetic_energy):
+                        values.append(vehicle_kinetic_energy[i])
                 write.writerow(values)
 

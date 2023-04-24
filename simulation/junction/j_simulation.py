@@ -31,6 +31,7 @@ class Simulation:
         self.kinetic_energy = {}
         self.kinetic_energy_waste = {}
         self.collision = False
+        self.number_of_vehicles_spawned = 0
 
         # Visualiser
         self.visualiser_update_function = visualiser_update_function
@@ -53,9 +54,13 @@ class Simulation:
         # Spawn vehicles
         for index, node_uid in enumerate(self.model.calculate_start_nodes()):
             nudge_result = self.model.nudge_spawner(node_uid, self.model.calculate_time_of_day())
+            if nudge_result is None:
+                nudge_result = self.model.nudge_spawn_buffer(node_uid)
+
             if nudge_result is not None:
-                route_uid, length, width, mass, distance_delta, driver_type = nudge_result
-                self.add_vehicle(route_uid, length, width, mass, distance_delta, driver_type)
+                time_created, route_uid, length, width, mass, distance_delta, driver_type = nudge_result
+                self.add_vehicle(time_created, route_uid, length, width, mass, distance_delta, driver_type)
+                self.number_of_vehicles_spawned += 1
 
         # Control lights
         for light in self.model.lights:
@@ -116,13 +121,13 @@ class Simulation:
         # Increment Time
         self.model.tock()
 
-    def add_vehicle(self, route_uid: int, length, width, mass, delta_distance, driver_type):
+    def add_vehicle(self, time_created, route_uid: int, length, width, mass, delta_distance, driver_type):
         self.uid += 1
         initial_speed_multiplier = clamp(delta_distance, 0, 20) / 20
         self.model.add_vehicle(
             Vehicle(
                 uid=self.uid,
-                start_time=self.model.calculate_seconds_elapsed(),
+                start_time=time_created,
                 route_uid=route_uid,
                 speed=self.model.config.initial_speed * initial_speed_multiplier,
                 acceleration=self.model.config.initial_acceleration,
@@ -145,7 +150,7 @@ class Simulation:
 if __name__ == "__main__":
     # Reference Files
     junction_file_path = os.path.join(os.path.dirname(os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))))), "junctions", "scale_library_pub_junction.junc")
-    configuration_file_path = os.path.join(os.path.dirname(os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))))), "configurations", "simulation_config", "demand_mean_6.config")
+    configuration_file_path = os.path.join(os.path.dirname(os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))))), "configurations", "simulation_config", "cross_road.config")
 
     # Settings
     scale = 50

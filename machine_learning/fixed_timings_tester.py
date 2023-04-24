@@ -71,31 +71,29 @@ class FixedTimingsTester:
         for run in self.testing_runs:
             # MEGAMAINTEST - run_testing_runs must also be passed all parameters from the iteration file.
 
-            time_taken, \
+            time_taken, number_of_vehicles_spawned,\
             delay_mean_average, delay_standard_deviation, delay_maximum, delay_minimum, delay_num_vehicles, delays, \
             backup_mean_average, backup_standard_deviation, backup_maximum, backup_time, backup, \
             kinetic_energy_waste_mean_average, kinetic_energy_waste_standard_deviation, kinetic_energy_waste_maximum, kinetic_energy_waste_minimum, kinetic_energy = self.run_testing_run(run["RunUID"], run["RunType"], run["Junction"], run["SimulationConfig"], run["Steps"], run["Actions"], run["ActionDurations"], run["ActionPaths"], visualiser_update_function)
 
             # MEGAMAINTEST - make sure any results are returned here and 'run' is updated with them in dictionary format.
             run.update({"Time Taken": time_taken,
+                        "Number Of Vehicles Spawned": number_of_vehicles_spawned,
                         "Delay Mean Average": delay_mean_average,
                         "Delay Standard Deviation": delay_standard_deviation,
                         "Delay Maximum": delay_maximum,
                         "Delay Minimum": delay_minimum,
                         "Delay Number Of Cars": delay_num_vehicles,
-                        "Delay": delays,
                         "Backup Mean Average": backup_mean_average,
                         "Backup Standard Deviation": backup_standard_deviation,
                         "Backup Maximum": backup_maximum,
                         "Backup Time": backup_time,
-                        "Backup": backup,
                         "Kinetic Energy Waste Average": kinetic_energy_waste_mean_average,
                         "Kinetic Energy Waste Standard Deviation": kinetic_energy_waste_standard_deviation,
                         "Kinetic Energy Waste Maximum": kinetic_energy_waste_maximum,
                         "Kinetic Energy Waste Time": kinetic_energy_waste_minimum,
-                        "Kinetic Energy Waste": kinetic_energy
                         })
-            self.make_results_directory(run)
+            self.make_results_directory(run, delays, backup, kinetic_energy)
         time_taken = time.perf_counter() - time_begin
         # MEGAMAINTEST - Add any results you want printed to terminal as required.
         print("\n\n================================================\nALL ITERATIONS COMPLETE\n    Total Time: " + str(time_taken) + "\n    Total Testing Runs: " + str(len(self.testing_runs)) + "\n    Results Directory: " + self.output_directory_path + "\n================================================")
@@ -140,6 +138,10 @@ class FixedTimingsTester:
 
         print("\nTesting Complete."
               + "\n    Time Taken To Test: " + str(time_taken))
+
+        number_of_vehicles_spawned = simulation_manager.simulation.number_of_vehicles_spawned
+
+        print("\n Number Vehicles Spawned:" + str(number_of_vehicles_spawned))
 
         # Determine results for delay
         delay_mean_average = mean(simulation_manager.simulation.delays)
@@ -195,7 +197,7 @@ class FixedTimingsTester:
               + "\n    Kinetic Energy Waste Maximum Delay:" + str(kinetic_energy_waste_maximum)
               + "\n    Kinetic Energy Waste Minimum Delay: " + str(kinetic_energy_waste_minimum))
 
-        return time_taken, \
+        return time_taken, number_of_vehicles_spawned, \
             delay_mean_average, delay_standard_deviation, delay_maximum, delay_minimum, delay_num_vehicles, simulation_manager.simulation.delays, \
             backup_mean_average, backup_standard_deviation, backup_maximum, backup_time, simulation_manager.simulation.path_backup, \
             kinetic_energy_waste_mean_average, kinetic_energy_waste_standard_deviation, kinetic_energy_waste_maximum, kinetic_energy_waste_minimum, simulation_manager.simulation.kinetic_energy
@@ -214,7 +216,7 @@ class FixedTimingsTester:
             file_path = os.path.join(file_path, path)
         return file_path
 
-    def make_results_directory(self, run: dict) -> None:
+    def make_results_directory(self, run: dict, delays, backup, kinetic_energy) -> None:
         """
         The make_results_directory function creates a directory for the results of each run.
         It also writes the parameters used in that run to a text file, and writes the delay and backup results to csv
@@ -226,31 +228,30 @@ class FixedTimingsTester:
         # Make results director
         results_directory_path = self.get_file_path([self.output_directory_path, ("run_" + str(run["RunUID"]))])
         os.mkdir(results_directory_path)
-        with open(results_directory_path + "/testing_run_parameters.txt", "a", newline='') as file:
-            file.write("This is a summary of the parameters for this Model:")
-            for line in run:
-                file.write("\n" + line + ": " + str(run[line]))
+
+        with open(results_directory_path + "/testing_run_parameters.json", "a", newline='') as file:
+            json.dump(run, file)
 
         # Write raw delay results
         with open(results_directory_path + "/testing_run_delay_results.csv", 'w') as file:
             write = csv.writer(file)
-            for value in run["Delay"]:
+            for value in delays:
                 write.writerow([value])
 
         # Write raw backup results
         with open(results_directory_path + "/testing_run_backup_results.csv", 'w') as file:
             write = csv.writer(file)
-            for i in range(len(run["Backup"][list(run["Backup"].keys())[0]])):
+            for i in range(len(backup[list(backup.keys())[0]])):
                 values = []
-                for path in run["Backup"]:
-                    values.append(run["Backup"][path][i])
+                for path in backup:
+                    values.append(backup[path][i])
                 write.writerow(values)
 
         # Write raw kinetic energy results
         with open(results_directory_path + "/testing_run_kinetic_energy_results.csv", 'w') as file:
             write = csv.writer(file)
 
-            kinetic_energy = run["Kinetic Energy Waste"].values()
+            kinetic_energy = kinetic_energy.values()
 
             max_len = 0
             for vehicle_kinetic_energy in kinetic_energy:

@@ -292,6 +292,7 @@ class SpawningRandom:
         self.node_uid = node_uid
         self.time_of_last_spawn = start_time_of_day
         self.next_spawn_time_delta = 0
+        self.backup_buffer = []
 
         # Spawning distribution parameters
         self.spawning_stats = spawning_stats
@@ -313,7 +314,7 @@ class SpawningRandom:
         :return: Boolean
         """
         time_delta = time - self.time_of_last_spawn
-        if time_delta.total_seconds() > self.next_spawn_time_delta:
+        if time_delta.total_milliseconds() > self.next_spawn_time_delta * 1000:
             self.time_of_last_spawn = time
             self.calculate_next_spawn_time(distribution_type=self.spawning_stats.distribution_method)
             return True
@@ -361,6 +362,7 @@ class SpawningRandom:
         The calculate_next_spawn_time function uses the probability distribution methods to calculate the next spawn
         time. The function also constrains the spawn time between limits
 
+        :param node_uid: int: Starting node uid used for uneven spawning
         :param distribution_type: str: Select which distribution to use for calculating the next spawn time
         :return: None
         """
@@ -370,9 +372,13 @@ class SpawningRandom:
         elif distribution_type == 'weibull':
             self.next_spawn_time_delta = self.weibull(self.current_mean_spawn_time, self.current_sdev_spawn_time, self.current_min_spawn_time)
         else:
-            alpha = 1.0354 * self.current_mean_spawn_time - 0.8897
+            if (type(self.spawning_stats.mean_spawn_time_per_hour) == dict) and (str(self.node_uid) in self.spawning_stats.mean_spawn_time_per_hour):
+                spawn_time = self.spawning_stats.mean_spawn_time_per_hour[str(self.node_uid)]
+            else:
+                spawn_time = self.current_mean_spawn_time
+            alpha = 1.004 * spawn_time - 0.1025
             beta = 1 / alpha
-            self.next_spawn_time_delta = self.gamma(alpha, beta)
+            self.next_spawn_time_delta = self.gamma(alpha, beta) + 1
         if self.next_spawn_time_delta < self.spawning_stats.min_spawn_time:
             self.next_spawn_time_delta = self.spawning_stats.min_spawn_time
         if self.spawning_stats.max_spawn_time is not None:
@@ -455,6 +461,9 @@ class SpawningRandom:
         if type(self.spawning_stats.mean_spawn_time_per_hour) == list:
             last_mean = self.spawning_stats.mean_spawn_time_per_hour[last_hour]
             next_mean = self.spawning_stats.mean_spawn_time_per_hour[next_hour]
+        elif type(self.spawning_stats.mean_spawn_time_per_hour) == dict:
+            last_mean = self.spawning_stats.mean_spawn_time_per_hour["default"]
+            next_mean = self.spawning_stats.mean_spawn_time_per_hour["default"]
         else:
             last_mean = self.spawning_stats.mean_spawn_time_per_hour
             next_mean = self.spawning_stats.mean_spawn_time_per_hour
