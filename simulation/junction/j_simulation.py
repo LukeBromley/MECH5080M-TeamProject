@@ -32,6 +32,7 @@ class Simulation:
         self.kinetic_energy_waste = {}
         self.collision = False
         self.freeze_traffic()
+        self.number_of_vehicles_spawned = 0
 
         # Visualiser
         self.visualiser_update_function = visualiser_update_function
@@ -64,9 +65,13 @@ class Simulation:
         # Spawn vehicles
         for index, node_uid in enumerate(self.model.calculate_start_nodes()):
             nudge_result = self.model.nudge_spawner(node_uid, self.model.calculate_time_of_day())
+            if nudge_result is None:
+                nudge_result = self.model.nudge_spawn_buffer(node_uid)
+
             if nudge_result is not None:
-                route_uid, length, width, mass, distance_delta, driver_type = nudge_result
-                self.add_vehicle(route_uid, length, width, mass, distance_delta, driver_type)
+                time_created, route_uid, length, width, mass, distance_delta, driver_type = nudge_result
+                self.add_vehicle(time_created, route_uid, length, width, mass, distance_delta, driver_type)
+                self.number_of_vehicles_spawned += 1
 
         # Control lights
         for light in self.model.lights:
@@ -82,7 +87,6 @@ class Simulation:
             coord_x, coord_y = self.model.get_vehicle_coordinates(vehicle.uid)
             curvature = self.model.get_vehicle_path_curvature(vehicle.uid)
             angle = self.model.get_vehicle_direction(vehicle.uid)
-
             object_ahead, delta_distance_ahead = self.model.get_object_ahead(vehicle.uid)
             vehicle.update(self.model.tick_time, object_ahead, delta_distance_ahead, curvature)
             vehicle.update_position_data([coord_x, coord_y])
@@ -94,7 +98,6 @@ class Simulation:
 
         # Backup
         path_backup_total, path_backup = self.model.get_backed_up_paths(4, 5)
-
         for path_uid in path_backup_total:
             if str(path_uid) in self.path_backup_total:
                 self.path_backup_total[str(path_uid)] += self.model.tick_time
@@ -127,13 +130,13 @@ class Simulation:
         # Increment Time
         self.model.tock()
 
-    def add_vehicle(self, route_uid: int, length, width, mass, delta_distance, driver_type):
+    def add_vehicle(self, time_created, route_uid: int, length, width, mass, delta_distance, driver_type):
         self.uid += 1
         initial_speed_multiplier = clamp(delta_distance, 0, 20) / 20
         self.model.add_vehicle(
             Vehicle(
                 uid=self.uid,
-                start_time=self.model.calculate_seconds_elapsed(),
+                start_time=time_created,
                 route_uid=route_uid,
                 speed=self.model.config.initial_speed * initial_speed_multiplier,
                 acceleration=self.model.config.initial_acceleration,

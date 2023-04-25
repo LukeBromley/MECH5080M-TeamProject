@@ -229,9 +229,11 @@ class FileManagement:
         file_dict[self.initial_acceleration_key] = s_config.initial_acceleration
         file_dict[self.maximum_acceleration_key] = s_config.maximum_acceleration
         file_dict[self.maximum_deceleration_key] = s_config.maximum_deceleration
+        file_dict[self.maximum_lateral_acceleration_key] = s_config.maximum_lateral_acceleration
         file_dict[self.autonomous_preferred_time_gap_key] = s_config.autonomous_preferred_time_gap
         file_dict[self.human_preferred_time_gap_key] = s_config.human_preferred_time_gap
         file_dict[self.maximum_speed_key] = s_config.maximum_speed
+        file_dict[self.minimum_speed_key] = s_config.minimum_speed
         file_dict[self.min_creep_distance_key] = s_config.min_creep_distance
 
         # Spawning
@@ -242,6 +244,7 @@ class FileManagement:
         file_dict[self.mean_spawn_time_per_hour_key] = s_config.mean_spawn_time_per_hour
         file_dict[self.sdev_spawn_time_per_hour_key] = s_config.sdev_spawn_time_per_hour
         file_dict[self.min_spawn_time_per_hour_key] = s_config.min_spawn_time_per_hour
+        file_dict[self.distribution_method_key] = s_config.distribution_method
 
         file_dict[self.max_car_length_key] = s_config.max_vehicle_length
         file_dict[self.min_car_length_key] = s_config.min_vehicle_length
@@ -252,6 +255,10 @@ class FileManagement:
         file_dict[self.mean_car_widths_key] = s_config.mean_vehicle_widths
         file_dict[self.sdev_car_lengths_key] = s_config.sdev_vehicle_lengths
         file_dict[self.sdev_car_widths_key] = s_config.sdev_vehicle_widths
+
+        file_dict[self.mass_per_cross_sectional_area_key] = s_config.mass_per_cross_sectional_area
+
+        file_dict[self.autonomous_driver_probability_key] = s_config.autonomous_driver_probability
 
         # Visualiser
         file_dict[self.visualiser_scale_key] = s_config.visualiser_scale
