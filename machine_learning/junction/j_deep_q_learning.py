@@ -586,6 +586,7 @@ class MachineLearning:
             simulation_manager_copy.human_drivers_visible = human_drivers_visible
             simulation_manager_copy.network_latency = network_latency
             simulation_manager_copy.packet_loss = packet_loss
+            simulation_manager_copy.reset()
 
             for step in range(int(self.simulation_manager.simulation.model.tick_rate * self.simulation_manager.simulation.model.lights[0].red_amber_time)):
                 action_probabilities = model(simulation_manager_copy.get_state().reshape(1, -1))[0].numpy()
