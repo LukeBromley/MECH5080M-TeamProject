@@ -5,7 +5,7 @@ headers = ['Run Type', 'Junction', 'CPM', 'Delay Mean Average', 'Delay Standard 
            'Delay Minimum', 'Delay Number Of Cars', 'Backup Mean Average', 'Backup Standard Deviation', 'Backup Maximum',
            'Backup Time', 'Kinetic Energy Waste Average', 'Kinetic Energy Waste Standard Deviation',
            'Kinetic Energy Waste Maximum', 'Kinetic Energy Waste Time']
-wb_name = "./TestExample.xlsx"
+wb_name = "./TrialTest.xlsx"
 def main(all_results):
     # create a new workbook
     wb = openpyxl.Workbook()
@@ -78,13 +78,14 @@ def get_data(all_results):
 
 def get_entry(result):
     entry = []
-    paths = []
+    paths = [3, 5, 10]
     run_type = (result["RunType"])
     junction = (result["Junction"])[:-5]
-    cpm = int(result["RunUID"].split("_")[-1][:-3])
+    # cpm = float(result["RunUID"].split("_")[-1][:-3])
+    cpm = float(result["RunUID"].split("_")[-1])
     entry += [run_type,junction,cpm]
-    for path in result["ActionPaths"]:
-        paths.append(path[0])
+    # for path in result["ActionPaths"]:
+    #     paths.append(path[0])
     dma = (result["Delay Mean Average"])
     dsd = (result["Delay Standard Deviation"])
     dmx = (result["Delay Maximum"])
