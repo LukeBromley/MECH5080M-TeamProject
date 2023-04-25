@@ -664,4 +664,6 @@ def main(junction_name: str = "scale_library_pub_junction"):
         visualiser.open()
 
 if __name__ == "__main__":
-    main(junction_name="complex_Y_junction")
+    junction_name = "complex_Y_junction"
+    print(junction_name)
+    main(junction_name)
