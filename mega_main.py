@@ -22,5 +22,5 @@ if __name__ == "__main__":
     # iterations = MachineLearningManager(iteration_file)
     # tester_file = "ml_testing_plan.json"
     # testing = TrainedModelTester(tester_file)
-    tester_file = "test.plan"
+    tester_file = "legacy_control_even_spawning.plan"
     testing = FixedTimingsTester(tester_file)

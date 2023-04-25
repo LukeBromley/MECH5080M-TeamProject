@@ -76,7 +76,6 @@ class Simulation:
             coord_x, coord_y = self.model.get_vehicle_coordinates(vehicle.uid)
             curvature = self.model.get_vehicle_path_curvature(vehicle.uid)
             angle = self.model.get_vehicle_direction(vehicle.uid)
-
             object_ahead, delta_distance_ahead = self.model.get_object_ahead(vehicle.uid)
             vehicle.update(self.model.tick_time, object_ahead, delta_distance_ahead, curvature)
             vehicle.update_position_data([coord_x, coord_y])
