@@ -1,4 +1,5 @@
 import itertools
+import os
 import random
 from platform import system
 
@@ -8,6 +9,7 @@ from itertools import chain
 
 if system() == 'Windows':
     import sys
+
     sys.path.append('../')
 
 # from gym.spaces import Discrete, Box
@@ -40,7 +42,7 @@ class SimulationManager:
         # Inputs / States
         self.features_per_vehicle_state = 4
         self.features_per_traffic_light_state = 0
-        self.number_of_tracked_vehicles_per_light_controlled_path = 6
+        self.number_of_tracked_vehicles_per_light_controlled_path = 7
         self.number_of_tracked_vehicles_per_light_path = 2
         self.observation_space_size = self.features_per_vehicle_state * (
                 len(self.light_controlled_path_uids) * self.number_of_tracked_vehicles_per_light_controlled_path +
@@ -53,12 +55,29 @@ class SimulationManager:
         # self.observation_space = Box(0, 75, shape=(1, self.observation_space_size), dtype=float)
         self.reset()
 
-    def create_simulation(self):
-        simulation = Simulation(self.junction_file_path, self.config_file_path, self.visualiser_update_function)
+    def create_simulation(self, config_file_path=None):
+        if config_file_path is None:
+            simulation = Simulation(self.junction_file_path, self.config_file_path, self.visualiser_update_function)
+        else:
+            simulation = Simulation(self.junction_file_path, config_file_path, self.visualiser_update_function)
+
         return simulation
 
-    def reset(self):
-        self.simulation = self.create_simulation()
+    def reset(self, change_spawning: bool = False):
+        if change_spawning:
+            mean_spawn_time = str(random.choice([3, 6, 12, 24]))
+            config_file_path = os.path.join(
+                os.path.dirname(os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))))),
+                "configurations",
+                "simulation_config",
+                "final_testing",
+                "even_spawning",
+                "autonomous",
+                "seed_null",
+                mean_spawn_time + "cpm.config")
+            self.simulation = self.create_simulation(config_file_path)
+        else:
+            self.simulation = self.create_simulation()
 
         while len(self.network_latency_buffer) < self.network_latency:
             self.network_latency_buffer.append(self.simulation)
@@ -70,7 +89,7 @@ class SimulationManager:
         # TODO: Sparse actions
         # Avoid do nothing action if not using RNN
         self.action_table = list(itertools.product([-1, 1], repeat=len(self.simulation.model.lights)))
-        self.action_table = [action for action in self.action_table if action.count(1) <= 3]
+        self.action_table = [action for action in self.action_table if action.count(1) <= 2]
         # self.action_table.pop(self.action_table.index(tuple([-1 for _ in self.simulation.model.lights])))
         # self.action_table.pop(self.action_table.index(tuple([1 for _ in self.simulation.model.lights])))
 
@@ -154,11 +173,14 @@ class SimulationManager:
 
         for vehicle in simulation.model.vehicles:
             if self.human_drivers_visible or vehicle.driver_type == "autonomous":
-                if random.choices([0, 1], weights=[self.packet_loss, 1 - self.packet_loss], cum_weights=None, k=1)[0] == 1:
+                if random.choices([0, 1], weights=[self.packet_loss, 1 - self.packet_loss], cum_weights=None, k=1)[
+                    0] == 1:
                     route = self.simulation.model.get_route(vehicle.get_route_uid())
                     path_uid = route.get_path_uid(vehicle.get_path_index())
                     if path_uid in self.light_controlled_path_uids:
-                        path_inputs[self.light_controlled_path_uids.index(path_uid)].append(self.get_vehicle_state(vehicle, simulation))  # TODO: use if route_uid is disabled #+ [path_uid])
+                        path_inputs[self.light_controlled_path_uids.index(path_uid)].append(
+                            self.get_vehicle_state(vehicle,
+                                                   simulation))  # TODO: use if route_uid is disabled #+ [path_uid])
 
         # Sort and flatten the inputs by distance travelled
         for index, path_input in enumerate(path_inputs):
@@ -200,15 +222,16 @@ class SimulationManager:
             sum_coeff = 0
 
             for index, value in enumerate(wait_times):
-                sum_coeff += (index + 1)**2
-                dot_product += value * (index+1)**2
+                sum_coeff += (index + 1) ** 2
+                dot_product += value * (index + 1) ** 2
             return dot_product / sum_coeff
         else:
             return 0.0
 
     def get_state_value(self):
         # TODO: unsquare
-        return sum([self.simulation.model.get_delay(vehicle.uid)**2 - vehicle.get_speed() for vehicle in self.simulation.model.vehicles if vehicle.get_path_index() == 0])
+        return sum([self.simulation.model.get_delay(vehicle.uid) ** 2 - vehicle.get_speed() for vehicle in
+                    self.simulation.model.vehicles if vehicle.get_path_index() == 0])
 
     def get_sum_wait_time(self):
         return sum([vehicle.wait_time for vehicle in self.simulation.model.vehicles])
@@ -232,7 +255,7 @@ class SimulationManager:
         return sum([vehicle.wait_time for vehicle in self.simulation.model.vehicles])
 
     def get_total_vehicle_wait_time_exp(self, exponent):
-        return self.get_total_vehicle_wait_time()**exponent
+        return self.get_total_vehicle_wait_time() ** exponent
 
     def get_summed_speed_of_all_vehicles(self):
         sum_car_speed = 0

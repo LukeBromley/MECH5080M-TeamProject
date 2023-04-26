@@ -2,9 +2,7 @@ import matplotlib.pyplot as plt
 
 
 class Graph:
-    def __init__(self, num_episodes_displayed: object, max_steps_displayed: object, random_seed: str) -> object:
-        self.num_episodes_displayed = num_episodes_displayed
-
+    def __init__(self) -> object:
         self.figure, self.ax = plt.subplots()
 
         self.ax.set_xlabel('Number of actions')
