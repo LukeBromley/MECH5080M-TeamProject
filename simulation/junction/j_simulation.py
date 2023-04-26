@@ -86,19 +86,19 @@ class Simulation:
         self.delays = self.delays + self.model.get_vehicle_delays()
 
         # Backup
-        path_backup_total, path_backup = self.model.get_backed_up_paths(4, 5)
-        print(self.path_backup_total)
-        for path_uid in path_backup_total:
-            if str(path_uid) in self.path_backup_total:
-                self.path_backup_total[str(path_uid)] += self.model.tick_time
-            else:
-                self.path_backup_total[str(path_uid)] = self.model.tick_time
+        path_backup = self.model.get_backed_up_paths(5)
 
         for path_uid in path_backup:
             if path_uid in self.path_backup:
                 self.path_backup[path_uid].append(path_backup[path_uid])
             else:
                 self.path_backup[path_uid] = [path_backup[path_uid]]
+
+            if path_uid not in self.path_backup_total:
+                self.path_backup_total[str(path_uid)] = 0
+
+            if path_backup[path_uid] > 4:
+                self.path_backup_total[str(path_uid)] += self.model.tick_time
 
         # Kinetic energy waste
         kinetic_energy, kinetic_energy_waste = self.model.get_vehicle_kinetic_energy_change()

@@ -73,12 +73,13 @@ class TrainedModelTester:
         time_begin = time.perf_counter()
         for run in self.testing_runs:
             # MEGAMAINTEST - run_testing_runs must also be passed all parameters from the iteration file.
-            time_taken, \
+            time_taken, number_of_vehicles_spawned,\
             delay_mean_average, delay_standard_deviation, delay_maximum, delay_minimum, delay_num_vehicles, delays, \
             backup_mean_average, backup_standard_deviation, backup_maximum, backup_time, backup, \
             kinetic_energy_waste_mean_average, kinetic_energy_waste_standard_deviation, kinetic_energy_waste_maximum, kinetic_energy_waste_minimum, kinetic_energy = self.run_testing_run(run["RunUID"], run["RunType"], run["Junction"], run["SimulationConfig"], run["MachineLearningModel"], run["Steps"], run["HumanDriversVisible"], run["NetworkLatency"], run["PacketLoss"])
             # MEGAMAINTEST - make sure any results are returned here and 'run' is updated with them in dictionary format.
             run.update({"Time Taken": time_taken,
+                        "Number Of Vehicles Spawned": number_of_vehicles_spawned,
                         "Delay Mean Average": delay_mean_average,
                         "Delay Standard Deviation": delay_standard_deviation,
                         "Delay Maximum": delay_maximum,
@@ -90,8 +91,7 @@ class TrainedModelTester:
                         "Backup Time": backup_time,
                         "Kinetic Energy Waste Average": kinetic_energy_waste_mean_average,
                         "Kinetic Energy Waste Standard Deviation": kinetic_energy_waste_standard_deviation,
-                        "Kinetic Energy Waste Maximum": kinetic_energy_waste_maximum,
-                        "Kinetic Energy Waste Time": kinetic_energy_waste_minimum,
+                        "Kinetic Energy Waste Maximum": kinetic_energy_waste_maximum
                         })
             self.make_results_directory(run, delays, backup, kinetic_energy)
         time_taken = time.perf_counter() - time_begin
@@ -126,8 +126,12 @@ class TrainedModelTester:
         print("\nTesting Complete."
               + "\n    Time Taken To Test: " + str(time_taken))
 
+        number_of_vehicles_spawned = simulation_manager.simulation.number_of_vehicles_spawned
+
+        print("\n Number Vehicles Spawned:" + str(number_of_vehicles_spawned))
+
         # Determine results for delay
-        delay_mean_average = mean(simulation_manager.simulation.delays)
+        delay_mean_average = mean(simulation_manager.simulation.delays + simulation_manager.simulation.model.get_remaining_vehicle_delays())
         delay_standard_deviation = stdev(simulation_manager.simulation.delays)
         delay_maximum = max(simulation_manager.simulation.delays)
         delay_minimum = min(simulation_manager.simulation.delays)
@@ -180,7 +184,7 @@ class TrainedModelTester:
               + "\n    Kinetic Energy Waste Maximum Delay:" + str(kinetic_energy_waste_maximum)
               + "\n    Kinetic Energy Waste Minimum Delay: " + str(kinetic_energy_waste_minimum))
 
-        return time_taken, \
+        return time_taken, number_of_vehicles_spawned, \
             delay_mean_average, delay_standard_deviation, delay_maximum, delay_minimum, delay_num_vehicles, simulation_manager.simulation.delays, \
             backup_mean_average, backup_standard_deviation, backup_maximum, backup_time, simulation_manager.simulation.path_backup, \
             kinetic_energy_waste_mean_average, kinetic_energy_waste_standard_deviation, kinetic_energy_waste_maximum, kinetic_energy_waste_minimum, simulation_manager.simulation.kinetic_energy
