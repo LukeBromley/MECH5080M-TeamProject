@@ -1,1 +1,123 @@
-{"0": {"RunUID": "simple_T_junction.junc_1788621521_90", "RunType": "junction", "Junction": "simple_T_junction.junc", "SimulationConfig": "final_testing/even_spawning/autonomous/seed_1788621521/0.67cpm.config", "MachineLearningModel": "saved_model_simple_T_junction", "Steps": 4500, "HumanDriversVisible": true, "NetworkLatency": 0, "PacketLoss": 0}, "1": {"RunUID": "simple_T_junction.junc_1788621521_60", "RunType": "junction", "Junction": "simple_T_junction.junc", "SimulationConfig": "final_testing/even_spawning/autonomous/seed_1788621521/1.0cpm.config", "MachineLearningModel": "saved_model_simple_T_junction", "Steps": 4500, "HumanDriversVisible": true, "NetworkLatency": 0, "PacketLoss": 0}, "2": {"RunUID": "simple_T_junction.junc_1788621521_45", "RunType": "junction", "Junction": "simple_T_junction.junc", "SimulationConfig": "final_testing/even_spawning/autonomous/seed_1788621521/1.33cpm.config", "MachineLearningModel": "saved_model_simple_T_junction", "Steps": 4500, "HumanDriversVisible": true, "NetworkLatency": 0, "PacketLoss": 0}, "3": {"RunUID": "simple_T_junction.junc_1788621521_30", "RunType": "junction", "Junction": "simple_T_junction.junc", "SimulationConfig": "final_testing/even_spawning/autonomous/seed_1788621521/2.0cpm.config", "MachineLearningModel": "saved_model_simple_T_junction", "Steps": 4500, "HumanDriversVisible": true, "NetworkLatency": 0, "PacketLoss": 0}, "4": {"RunUID": "simple_T_junction.junc_1788621521_20", "RunType": "junction", "Junction": "simple_T_junction.junc", "SimulationConfig": "final_testing/even_spawning/autonomous/seed_1788621521/3.0cpm.config", "MachineLearningModel": "saved_model_simple_T_junction", "Steps": 4500, "HumanDriversVisible": true, "NetworkLatency": 0, "PacketLoss": 0}, "5": {"RunUID": "simple_T_junction.junc_1788621521_15", "RunType": "junction", "Junction": "simple_T_junction.junc", "SimulationConfig": "final_testing/even_spawning/autonomous/seed_1788621521/4.0cpm.config", "MachineLearningModel": "saved_model_simple_T_junction", "Steps": 4500, "HumanDriversVisible": true, "NetworkLatency": 0, "PacketLoss": 0}, "6": {"RunUID": "simple_T_junction.junc_1788621521_10", "RunType": "junction", "Junction": "simple_T_junction.junc", "SimulationConfig": "final_testing/even_spawning/autonomous/seed_1788621521/6.0cpm.config", "MachineLearningModel": "saved_model_simple_T_junction", "Steps": 4500, "HumanDriversVisible": true, "NetworkLatency": 0, "PacketLoss": 0}, "7": {"RunUID": "simple_T_junction.junc_1788621521_5", "RunType": "junction", "Junction": "simple_T_junction.junc", "SimulationConfig": "final_testing/even_spawning/autonomous/seed_1788621521/12.0cpm.config", "MachineLearningModel": "saved_model_simple_T_junction", "Steps": 4500, "HumanDriversVisible": true, "NetworkLatency": 0, "PacketLoss": 0}, "8": {"RunUID": "simple_T_junction.junc_1788621521_4", "RunType": "junction", "Junction": "simple_T_junction.junc", "SimulationConfig": "final_testing/even_spawning/autonomous/seed_1788621521/15.0cpm.config", "MachineLearningModel": "saved_model_simple_T_junction", "Steps": 4500, "HumanDriversVisible": true, "NetworkLatency": 0, "PacketLoss": 0}, "9": {"RunUID": "simple_T_junction.junc_1788621521_3", "RunType": "junction", "Junction": "simple_T_junction.junc", "SimulationConfig": "final_testing/even_spawning/autonomous/seed_1788621521/20.0cpm.config", "MachineLearningModel": "saved_model_simple_T_junction", "Steps": 4500, "HumanDriversVisible": true, "NetworkLatency": 0, "PacketLoss": 0}, "10": {"RunUID": "simple_T_junction.junc_1788621521_2", "RunType": "junction", "Junction": "simple_T_junction.junc", "SimulationConfig": "final_testing/even_spawning/autonomous/seed_1788621521/30.0cpm.config", "MachineLearningModel": "saved_model_simple_T_junction", "Steps": 4500, "HumanDriversVisible": true, "NetworkLatency": 0, "PacketLoss": 0}, "11": {"RunUID": "simple_T_junction.junc_1774553582_90", "RunType": "junction", "Junction": "simple_T_junction.junc", "SimulationConfig": "final_testing/even_spawning/autonomous/seed_1774553582/0.67cpm.config", "MachineLearningModel": "saved_model_simple_T_junction", "Steps": 4500, "HumanDriversVisible": true, "NetworkLatency": 0, "PacketLoss": 0}, "12": {"RunUID": "simple_T_junction.junc_1774553582_60", "RunType": "junction", "Junction": "simple_T_junction.junc", "SimulationConfig": "final_testing/even_spawning/autonomous/seed_1774553582/1.0cpm.config", "MachineLearningModel": "saved_model_simple_T_junction", "Steps": 4500, "HumanDriversVisible": true, "NetworkLatency": 0, "PacketLoss": 0}, "13": {"RunUID": "simple_T_junction.junc_1774553582_45", "RunType": "junction", "Junction": "simple_T_junction.junc", "SimulationConfig": "final_testing/even_spawning/autonomous/seed_1774553582/1.33cpm.config", "MachineLearningModel": "saved_model_simple_T_junction", "Steps": 4500, "HumanDriversVisible": true, "NetworkLatency": 0, "PacketLoss": 0}, "14": {"RunUID": "simple_T_junction.junc_1774553582_30", "RunType": "junction", "Junction": "simple_T_junction.junc", "SimulationConfig": "final_testing/even_spawning/autonomous/seed_1774553582/2.0cpm.config", "MachineLearningModel": "saved_model_simple_T_junction", "Steps": 4500, "HumanDriversVisible": true, "NetworkLatency": 0, "PacketLoss": 0}, "15": {"RunUID": "simple_T_junction.junc_1774553582_20", "RunType": "junction", "Junction": "simple_T_junction.junc", "SimulationConfig": "final_testing/even_spawning/autonomous/seed_1774553582/3.0cpm.config", "MachineLearningModel": "saved_model_simple_T_junction", "Steps": 4500, "HumanDriversVisible": true, "NetworkLatency": 0, "PacketLoss": 0}, "16": {"RunUID": "simple_T_junction.junc_1774553582_15", "RunType": "junction", "Junction": "simple_T_junction.junc", "SimulationConfig": "final_testing/even_spawning/autonomous/seed_1774553582/4.0cpm.config", "MachineLearningModel": "saved_model_simple_T_junction", "Steps": 4500, "HumanDriversVisible": true, "NetworkLatency": 0, "PacketLoss": 0}, "17": {"RunUID": "simple_T_junction.junc_1774553582_10", "RunType": "junction", "Junction": "simple_T_junction.junc", "SimulationConfig": "final_testing/even_spawning/autonomous/seed_1774553582/6.0cpm.config", "MachineLearningModel": "saved_model_simple_T_junction", "Steps": 4500, "HumanDriversVisible": true, "NetworkLatency": 0, "PacketLoss": 0}, "18": {"RunUID": "simple_T_junction.junc_1774553582_5", "RunType": "junction", "Junction": "simple_T_junction.junc", "SimulationConfig": "final_testing/even_spawning/autonomous/seed_1774553582/12.0cpm.config", "MachineLearningModel": "saved_model_simple_T_junction", "Steps": 4500, "HumanDriversVisible": true, "NetworkLatency": 0, "PacketLoss": 0}, "19": {"RunUID": "simple_T_junction.junc_1774553582_4", "RunType": "junction", "Junction": "simple_T_junction.junc", "SimulationConfig": "final_testing/even_spawning/autonomous/seed_1774553582/15.0cpm.config", "MachineLearningModel": "saved_model_simple_T_junction", "Steps": 4500, "HumanDriversVisible": true, "NetworkLatency": 0, "PacketLoss": 0}, "20": {"RunUID": "simple_T_junction.junc_1774553582_3", "RunType": "junction", "Junction": "simple_T_junction.junc", "SimulationConfig": "final_testing/even_spawning/autonomous/seed_1774553582/20.0cpm.config", "MachineLearningModel": "saved_model_simple_T_junction", "Steps": 4500, "HumanDriversVisible": true, "NetworkLatency": 0, "PacketLoss": 0}, "21": {"RunUID": "simple_T_junction.junc_1774553582_2", "RunType": "junction", "Junction": "simple_T_junction.junc", "SimulationConfig": "final_testing/even_spawning/autonomous/seed_1774553582/30.0cpm.config", "MachineLearningModel": "saved_model_simple_T_junction", "Steps": 4500, "HumanDriversVisible": true, "NetworkLatency": 0, "PacketLoss": 0}, "22": {"RunUID": "simple_T_junction.junc_1490597230_90", "RunType": "junction", "Junction": "simple_T_junction.junc", "SimulationConfig": "final_testing/even_spawning/autonomous/seed_1490597230/0.67cpm.config", "MachineLearningModel": "saved_model_simple_T_junction", "Steps": 4500, "HumanDriversVisible": true, "NetworkLatency": 0, "PacketLoss": 0}, "23": {"RunUID": "simple_T_junction.junc_1490597230_60", "RunType": "junction", "Junction": "simple_T_junction.junc", "SimulationConfig": "final_testing/even_spawning/autonomous/seed_1490597230/1.0cpm.config", "MachineLearningModel": "saved_model_simple_T_junction", "Steps": 4500, "HumanDriversVisible": true, "NetworkLatency": 0, "PacketLoss": 0}, "24": {"RunUID": "simple_T_junction.junc_1490597230_45", "RunType": "junction", "Junction": "simple_T_junction.junc", "SimulationConfig": "final_testing/even_spawning/autonomous/seed_1490597230/1.33cpm.config", "MachineLearningModel": "saved_model_simple_T_junction", "Steps": 4500, "HumanDriversVisible": true, "NetworkLatency": 0, "PacketLoss": 0}, "25": {"RunUID": "simple_T_junction.junc_1490597230_30", "RunType": "junction", "Junction": "simple_T_junction.junc", "SimulationConfig": "final_testing/even_spawning/autonomous/seed_1490597230/2.0cpm.config", "MachineLearningModel": "saved_model_simple_T_junction", "Steps": 4500, "HumanDriversVisible": true, "NetworkLatency": 0, "PacketLoss": 0}, "26": {"RunUID": "simple_T_junction.junc_1490597230_20", "RunType": "junction", "Junction": "simple_T_junction.junc", "SimulationConfig": "final_testing/even_spawning/autonomous/seed_1490597230/3.0cpm.config", "MachineLearningModel": "saved_model_simple_T_junction", "Steps": 4500, "HumanDriversVisible": true, "NetworkLatency": 0, "PacketLoss": 0}, "27": {"RunUID": "simple_T_junction.junc_1490597230_15", "RunType": "junction", "Junction": "simple_T_junction.junc", "SimulationConfig": "final_testing/even_spawning/autonomous/seed_1490597230/4.0cpm.config", "MachineLearningModel": "saved_model_simple_T_junction", "Steps": 4500, "HumanDriversVisible": true, "NetworkLatency": 0, "PacketLoss": 0}, "28": {"RunUID": "simple_T_junction.junc_1490597230_10", "RunType": "junction", "Junction": "simple_T_junction.junc", "SimulationConfig": "final_testing/even_spawning/autonomous/seed_1490597230/6.0cpm.config", "MachineLearningModel": "saved_model_simple_T_junction", "Steps": 4500, "HumanDriversVisible": true, "NetworkLatency": 0, "PacketLoss": 0}, "29": {"RunUID": "simple_T_junction.junc_1490597230_5", "RunType": "junction", "Junction": "simple_T_junction.junc", "SimulationConfig": "final_testing/even_spawning/autonomous/seed_1490597230/12.0cpm.config", "MachineLearningModel": "saved_model_simple_T_junction", "Steps": 4500, "HumanDriversVisible": true, "NetworkLatency": 0, "PacketLoss": 0}, "30": {"RunUID": "simple_T_junction.junc_1490597230_4", "RunType": "junction", "Junction": "simple_T_junction.junc", "SimulationConfig": "final_testing/even_spawning/autonomous/seed_1490597230/15.0cpm.config", "MachineLearningModel": "saved_model_simple_T_junction", "Steps": 4500, "HumanDriversVisible": true, "NetworkLatency": 0, "PacketLoss": 0}, "31": {"RunUID": "simple_T_junction.junc_1490597230_3", "RunType": "junction", "Junction": "simple_T_junction.junc", "SimulationConfig": "final_testing/even_spawning/autonomous/seed_1490597230/20.0cpm.config", "MachineLearningModel": "saved_model_simple_T_junction", "Steps": 4500, "HumanDriversVisible": true, "NetworkLatency": 0, "PacketLoss": 0}, "32": {"RunUID": "simple_T_junction.junc_1490597230_2", "RunType": "junction", "Junction": "simple_T_junction.junc", "SimulationConfig": "final_testing/even_spawning/autonomous/seed_1490597230/30.0cpm.config", "MachineLearningModel": "saved_model_simple_T_junction", "Steps": 4500, "HumanDriversVisible": true, "NetworkLatency": 0, "PacketLoss": 0}, "33": {"RunUID": "simple_T_junction.junc_997415346_90", "RunType": "junction", "Junction": "simple_T_junction.junc", "SimulationConfig": "final_testing/even_spawning/autonomous/seed_997415346/0.67cpm.config", "MachineLearningModel": "saved_model_simple_T_junction", "Steps": 4500, "HumanDriversVisible": true, "NetworkLatency": 0, "PacketLoss": 0}, "34": {"RunUID": "simple_T_junction.junc_997415346_60", "RunType": "junction", "Junction": "simple_T_junction.junc", "SimulationConfig": "final_testing/even_spawning/autonomous/seed_997415346/1.0cpm.config", "MachineLearningModel": "saved_model_simple_T_junction", "Steps": 4500, "HumanDriversVisible": true, "NetworkLatency": 0, "PacketLoss": 0}, "35": {"RunUID": "simple_T_junction.junc_997415346_45", "RunType": "junction", "Junction": "simple_T_junction.junc", "SimulationConfig": "final_testing/even_spawning/autonomous/seed_997415346/1.33cpm.config", "MachineLearningModel": "saved_model_simple_T_junction", "Steps": 4500, "HumanDriversVisible": true, "NetworkLatency": 0, "PacketLoss": 0}, "36": {"RunUID": "simple_T_junction.junc_997415346_30", "RunType": "junction", "Junction": "simple_T_junction.junc", "SimulationConfig": "final_testing/even_spawning/autonomous/seed_997415346/2.0cpm.config", "MachineLearningModel": "saved_model_simple_T_junction", "Steps": 4500, "HumanDriversVisible": true, "NetworkLatency": 0, "PacketLoss": 0}, "37": {"RunUID": "simple_T_junction.junc_997415346_20", "RunType": "junction", "Junction": "simple_T_junction.junc", "SimulationConfig": "final_testing/even_spawning/autonomous/seed_997415346/3.0cpm.config", "MachineLearningModel": "saved_model_simple_T_junction", "Steps": 4500, "HumanDriversVisible": true, "NetworkLatency": 0, "PacketLoss": 0}, "38": {"RunUID": "simple_T_junction.junc_997415346_15", "RunType": "junction", "Junction": "simple_T_junction.junc", "SimulationConfig": "final_testing/even_spawning/autonomous/seed_997415346/4.0cpm.config", "MachineLearningModel": "saved_model_simple_T_junction", "Steps": 4500, "HumanDriversVisible": true, "NetworkLatency": 0, "PacketLoss": 0}, "39": {"RunUID": "simple_T_junction.junc_997415346_10", "RunType": "junction", "Junction": "simple_T_junction.junc", "SimulationConfig": "final_testing/even_spawning/autonomous/seed_997415346/6.0cpm.config", "MachineLearningModel": "saved_model_simple_T_junction", "Steps": 4500, "HumanDriversVisible": true, "NetworkLatency": 0, "PacketLoss": 0}, "40": {"RunUID": "simple_T_junction.junc_997415346_5", "RunType": "junction", "Junction": "simple_T_junction.junc", "SimulationConfig": "final_testing/even_spawning/autonomous/seed_997415346/12.0cpm.config", "MachineLearningModel": "saved_model_simple_T_junction", "Steps": 4500, "HumanDriversVisible": true, "NetworkLatency": 0, "PacketLoss": 0}, "41": {"RunUID": "simple_T_junction.junc_997415346_4", "RunType": "junction", "Junction": "simple_T_junction.junc", "SimulationConfig": "final_testing/even_spawning/autonomous/seed_997415346/15.0cpm.config", "MachineLearningModel": "saved_model_simple_T_junction", "Steps": 4500, "HumanDriversVisible": true, "NetworkLatency": 0, "PacketLoss": 0}, "42": {"RunUID": "simple_T_junction.junc_997415346_3", "RunType": "junction", "Junction": "simple_T_junction.junc", "SimulationConfig": "final_testing/even_spawning/autonomous/seed_997415346/20.0cpm.config", "MachineLearningModel": "saved_model_simple_T_junction", "Steps": 4500, "HumanDriversVisible": true, "NetworkLatency": 0, "PacketLoss": 0}, "43": {"RunUID": "simple_T_junction.junc_997415346_2", "RunType": "junction", "Junction": "simple_T_junction.junc", "SimulationConfig": "final_testing/even_spawning/autonomous/seed_997415346/30.0cpm.config", "MachineLearningModel": "saved_model_simple_T_junction", "Steps": 4500, "HumanDriversVisible": true, "NetworkLatency": 0, "PacketLoss": 0}, "44": {"RunUID": "simple_T_junction.junc_1433874439_90", "RunType": "junction", "Junction": "simple_T_junction.junc", "SimulationConfig": "final_testing/even_spawning/autonomous/seed_1433874439/0.67cpm.config", "MachineLearningModel": "saved_model_simple_T_junction", "Steps": 4500, "HumanDriversVisible": true, "NetworkLatency": 0, "PacketLoss": 0}, "45": {"RunUID": "simple_T_junction.junc_1433874439_60", "RunType": "junction", "Junction": "simple_T_junction.junc", "SimulationConfig": "final_testing/even_spawning/autonomous/seed_1433874439/1.0cpm.config", "MachineLearningModel": "saved_model_simple_T_junction", "Steps": 4500, "HumanDriversVisible": true, "NetworkLatency": 0, "PacketLoss": 0}, "46": {"RunUID": "simple_T_junction.junc_1433874439_45", "RunType": "junction", "Junction": "simple_T_junction.junc", "SimulationConfig": "final_testing/even_spawning/autonomous/seed_1433874439/1.33cpm.config", "MachineLearningModel": "saved_model_simple_T_junction", "Steps": 4500, "HumanDriversVisible": true, "NetworkLatency": 0, "PacketLoss": 0}, "47": {"RunUID": "simple_T_junction.junc_1433874439_30", "RunType": "junction", "Junction": "simple_T_junction.junc", "SimulationConfig": "final_testing/even_spawning/autonomous/seed_1433874439/2.0cpm.config", "MachineLearningModel": "saved_model_simple_T_junction", "Steps": 4500, "HumanDriversVisible": true, "NetworkLatency": 0, "PacketLoss": 0}, "48": {"RunUID": "simple_T_junction.junc_1433874439_20", "RunType": "junction", "Junction": "simple_T_junction.junc", "SimulationConfig": "final_testing/even_spawning/autonomous/seed_1433874439/3.0cpm.config", "MachineLearningModel": "saved_model_simple_T_junction", "Steps": 4500, "HumanDriversVisible": true, "NetworkLatency": 0, "PacketLoss": 0}, "49": {"RunUID": "simple_T_junction.junc_1433874439_15", "RunType": "junction", "Junction": "simple_T_junction.junc", "SimulationConfig": "final_testing/even_spawning/autonomous/seed_1433874439/4.0cpm.config", "MachineLearningModel": "saved_model_simple_T_junction", "Steps": 4500, "HumanDriversVisible": true, "NetworkLatency": 0, "PacketLoss": 0}, "50": {"RunUID": "simple_T_junction.junc_1433874439_10", "RunType": "junction", "Junction": "simple_T_junction.junc", "SimulationConfig": "final_testing/even_spawning/autonomous/seed_1433874439/6.0cpm.config", "MachineLearningModel": "saved_model_simple_T_junction", "Steps": 4500, "HumanDriversVisible": true, "NetworkLatency": 0, "PacketLoss": 0}, "51": {"RunUID": "simple_T_junction.junc_1433874439_5", "RunType": "junction", "Junction": "simple_T_junction.junc", "SimulationConfig": "final_testing/even_spawning/autonomous/seed_1433874439/12.0cpm.config", "MachineLearningModel": "saved_model_simple_T_junction", "Steps": 4500, "HumanDriversVisible": true, "NetworkLatency": 0, "PacketLoss": 0}, "52": {"RunUID": "simple_T_junction.junc_1433874439_4", "RunType": "junction", "Junction": "simple_T_junction.junc", "SimulationConfig": "final_testing/even_spawning/autonomous/seed_1433874439/15.0cpm.config", "MachineLearningModel": "saved_model_simple_T_junction", "Steps": 4500, "HumanDriversVisible": true, "NetworkLatency": 0, "PacketLoss": 0}, "53": {"RunUID": "simple_T_junction.junc_1433874439_3", "RunType": "junction", "Junction": "simple_T_junction.junc", "SimulationConfig": "final_testing/even_spawning/autonomous/seed_1433874439/20.0cpm.config", "MachineLearningModel": "saved_model_simple_T_junction", "Steps": 4500, "HumanDriversVisible": true, "NetworkLatency": 0, "PacketLoss": 0}, "54": {"RunUID": "simple_T_junction.junc_1433874439_2", "RunType": "junction", "Junction": "simple_T_junction.junc", "SimulationConfig": "final_testing/even_spawning/autonomous/seed_1433874439/30.0cpm.config", "MachineLearningModel": "saved_model_simple_T_junction", "Steps": 4500, "HumanDriversVisible": true, "NetworkLatency": 0, "PacketLoss": 0}}
+{
+  "0": {
+    "RunUID": "simple_T_junction.junc_1788621521_90",
+    "RunType": "junction",
+    "Junction": "simple_T_junction.junc",
+    "SimulationConfig": "final_testing/even_spawning/autonomous/seed_1788621521/0.67cpm.config",
+    "MachineLearningModel": "saved_model_simple_T_junction",
+    "Steps": 4500,
+    "HumanDriversVisible": true,
+    "NetworkLatency": 0,
+    "PacketLoss": 0
+  },
+  "1": {
+    "RunUID": "simple_T_junction.junc_1788621521_60",
+    "RunType": "junction",
+    "Junction": "simple_T_junction.junc",
+    "SimulationConfig": "final_testing/even_spawning/autonomous/seed_1788621521/1.0cpm.config",
+    "MachineLearningModel": "saved_model_simple_T_junction",
+    "Steps": 4500,
+    "HumanDriversVisible": true,
+    "NetworkLatency": 0,
+    "PacketLoss": 0
+  },
+  "2": {
+    "RunUID": "simple_T_junction.junc_1788621521_45",
+    "RunType": "junction",
+    "Junction": "simple_T_junction.junc",
+    "SimulationConfig": "final_testing/even_spawning/autonomous/seed_1788621521/1.33cpm.config",
+    "MachineLearningModel": "saved_model_simple_T_junction",
+    "Steps": 4500,
+    "HumanDriversVisible": true,
+    "NetworkLatency": 0,
+    "PacketLoss": 0
+  },
+  "3": {
+    "RunUID": "simple_T_junction.junc_1788621521_30",
+    "RunType": "junction",
+    "Junction": "simple_T_junction.junc",
+    "SimulationConfig": "final_testing/even_spawning/autonomous/seed_1788621521/2.0cpm.config",
+    "MachineLearningModel": "saved_model_simple_T_junction",
+    "Steps": 4500,
+    "HumanDriversVisible": true,
+    "NetworkLatency": 0,
+    "PacketLoss": 0
+  },
+  "4": {
+    "RunUID": "simple_T_junction.junc_1788621521_20",
+    "RunType": "junction",
+    "Junction": "simple_T_junction.junc",
+    "SimulationConfig": "final_testing/even_spawning/autonomous/seed_1788621521/3.0cpm.config",
+    "MachineLearningModel": "saved_model_simple_T_junction",
+    "Steps": 4500,
+    "HumanDriversVisible": true,
+    "NetworkLatency": 0,
+    "PacketLoss": 0
+  },
+  "5": {
+    "RunUID": "simple_T_junction.junc_1788621521_15",
+    "RunType": "junction",
+    "Junction": "simple_T_junction.junc",
+    "SimulationConfig": "final_testing/even_spawning/autonomous/seed_1788621521/4.0cpm.config",
+    "MachineLearningModel": "saved_model_simple_T_junction",
+    "Steps": 4500,
+    "HumanDriversVisible": true,
+    "NetworkLatency": 0,
+    "PacketLoss": 0
+  },
+  "6": {
+    "RunUID": "simple_T_junction.junc_1788621521_10",
+    "RunType": "junction",
+    "Junction": "simple_T_junction.junc",
+    "SimulationConfig": "final_testing/even_spawning/autonomous/seed_1788621521/6.0cpm.config",
+    "MachineLearningModel": "saved_model_simple_T_junction",
+    "Steps": 4500,
+    "HumanDriversVisible": true,
+    "NetworkLatency": 0,
+    "PacketLoss": 0
+  },
+  "7": {
+    "RunUID": "simple_T_junction.junc_1788621521_5",
+    "RunType": "junction",
+    "Junction": "simple_T_junction.junc",
+    "SimulationConfig": "final_testing/even_spawning/autonomous/seed_1788621521/12.0cpm.config",
+    "MachineLearningModel": "saved_model_simple_T_junction",
+    "Steps": 4500,
+    "HumanDriversVisible": true,
+    "NetworkLatency": 0,
+    "PacketLoss": 0
+  },
+  "8": {
+    "RunUID": "simple_T_junction.junc_1788621521_4",
+    "RunType": "junction",
+    "Junction": "simple_T_junction.junc",
+    "SimulationConfig": "final_testing/even_spawning/autonomous/seed_1788621521/15.0cpm.config",
+    "MachineLearningModel": "saved_model_simple_T_junction",
+    "Steps": 4500,
+    "HumanDriversVisible": true,
+    "NetworkLatency": 0,
+    "PacketLoss": 0
+  },
+  "9": {
+    "RunUID": "simple_T_junction.junc_1788621521_3",
+    "RunType": "junction",
+    "Junction": "simple_T_junction.junc",
+    "SimulationConfig": "final_testing/even_spawning/autonomous/seed_1788621521/20.0cpm.config",
+    "MachineLearningModel": "saved_model_simple_T_junction",
+    "Steps": 4500,
+    "HumanDriversVisible": true,
+    "NetworkLatency": 0,
+    "PacketLoss": 0
+  },
+  "10": {
+    "RunUID": "simple_T_junction.junc_1788621521_2",
+    "RunType": "junction",
+    "Junction": "simple_T_junction.junc",
+    "SimulationConfig": "final_testing/even_spawning/autonomous/seed_1788621521/30.0cpm.config",
+    "MachineLearningModel": "saved_model_simple_T_junction",
+    "Steps": 4500,
+    "HumanDriversVisible": true,
+    "NetworkLatency": 0,
+    "PacketLoss": 0
+  }
+}

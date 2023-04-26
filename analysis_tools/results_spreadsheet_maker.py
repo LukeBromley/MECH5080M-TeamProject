@@ -105,7 +105,7 @@ def get_entry(result):
     kwa = (result["Kinetic Energy Waste Average"])
     kwd = (result["Kinetic Energy Waste Standard Deviation"])
     kwm = (result["Kinetic Energy Waste Maximum"])
-    kwt = (result["Kinetic Energy Waste Time"])
+    kwt = 0  # (result["Kinetic Energy Waste Time"])
     entry += [[kwa], [kwd], [kwm], [kwt]]
     uid = str(run_type)+str(junction)+str(cpm)
     data = [uid, paths, entry]

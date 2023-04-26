@@ -1,11 +1,13 @@
 import copy
 import math
 import random
+from statistics import mean
 from math import sqrt
 import matplotlib
 matplotlib.use("Qt5agg")
 from platform import system
 import sys
+from functools import partial
 
 from pynput import keyboard
 
@@ -574,6 +576,7 @@ class MachineLearning:
     def test(self, number_of_iterations: int = 10000, model_file_path: str = "saved_model", human_drivers_visible: bool = True, network_latency: int = 0, packet_loss: float = 0):
         model = keras.models.load_model(model_file_path)
         # Reset the environment
+        print(model_file_path)
         self.simulation_manager.reset()
         episode_reward = 0
         episode_steps = 0
@@ -618,7 +621,7 @@ class MachineLearning:
 
             if self.end_episode(episode_reward, episode_steps):
                 break
-            #
+
             sys.stdout.write("\r{0}s - step: {1} / reward: {2}".format(str(round(episode_steps*tick_time, 1)), str(episode_steps), str(round(episode_reward, 2))))
             sys.stdout.flush()
 
@@ -657,10 +660,10 @@ if __name__ == "__main__":
     # Reference Files
     junction_file_path = os.path.join(
         os.path.dirname(os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))))), "junctions",
-        "scale_library_pub_junction.junc")
+        "simple_T_junction.junc")
     configuration_file_path = os.path.join(
-        os.path.dirname(os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))))), "configurations",
-        "simulation_config", "cross_road.config")
+        os.path.dirname(os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))))), "configurations/simulation_config/final_testing/even_spawning/autonomous",
+        "seed_997415346", "30.0cpm.config")
 
     # Settings
     scale = 30
@@ -686,9 +689,9 @@ if __name__ == "__main__":
         machine_learning = MachineLearning(simulation, machine_learning_config=None)
 
         # Visualiser Setup
-        visualiser.define_main(machine_learning.test)
+        visualiser.define_main(partial(machine_learning.test, 4500, "saved_model_simple_T_junction"))
         visualiser.load_junction(junction_file_path)
         visualiser.set_scale(scale)
-        #
+
         # Run Simulation
         visualiser.open()

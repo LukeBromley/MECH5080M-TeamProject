@@ -126,7 +126,7 @@ class TrainedModelTester:
               + "\n    Time Taken To Test: " + str(time_taken))
 
         # Determine results for delay
-        delay_mean_average = mean(simulation_manager.simulation.delays)
+        delay_mean_average = mean(simulation_manager.simulation.delays + simulation_manager.simulation.model.get_remaining_vehicle_delays())
         delay_standard_deviation = stdev(simulation_manager.simulation.delays)
         delay_maximum = max(simulation_manager.simulation.delays)
         delay_minimum = min(simulation_manager.simulation.delays)

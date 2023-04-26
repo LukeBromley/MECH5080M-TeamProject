@@ -64,7 +64,7 @@ class SimulationManager:
             self.network_latency_buffer.append(self.simulation)
             self.simulation.compute_single_iteration()
 
-        self.freeze_traffic()
+        # self.freeze_traffic()
 
         return self.get_state()
 
