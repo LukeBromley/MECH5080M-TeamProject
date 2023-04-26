@@ -3,7 +3,7 @@
     "RunUID": "fixed_timings_straight_line_1788621521_0.67cpm",
     "RunType": "fixed timings",
     "Junction": "straight_line.junc",
-    "SimulationConfig": "final_testing/even_spawning/autonomous/seed_1788621521/0.67cpm.config",
+    "SimulationConfig": "final_testing/even_spawning/autonomous/seed_1788621521/30.0cpm.config",
     "Steps": 4500,
     "Actions": [
       1

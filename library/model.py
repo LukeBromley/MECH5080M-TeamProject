@@ -651,16 +651,13 @@ class Model:
         r2y = half_length * s_theta + half_width * c_theta
         return [(x + r1x, y + r1y), (x + r2x, y + r2y), (x - r1x, y - r1y), (x - r2x, y - r2y)]
 
-    def get_backed_up_paths(self, backup_threshold, speed_threshold):
-        path_uids = []
+    def get_backed_up_paths(self, speed_threshold):
         path_backup = {}
         for route in self.routes:
             path_uid = route.get_path_uid(0)
             number_vehicles_backed_up = self.get_path_backup_length(path_uid, speed_threshold)
             path_backup[path_uid] = number_vehicles_backed_up
-            if number_vehicles_backed_up > backup_threshold:
-                path_uids.append(path_uid)
-        return path_uids, path_backup
+        return path_backup
 
     def get_path_backup_length(self, path_uid, speed_threshold):
         number_vehicles_backed_up = 0
