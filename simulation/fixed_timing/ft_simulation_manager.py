@@ -113,7 +113,7 @@ class SimulationManager:
 
 if __name__ == "__main__":
     # Reference Files
-    junction_file_path = os.path.join(os.path.dirname(os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))))), "junctions", "straight_line.junc")
+    junction_file_path = os.path.join(os.path.dirname(os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))))), "junctions", "simple_X_junction.junc")
     configuration_file_path = os.path.join(os.path.dirname(os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))))), "configurations/simulation_config/final_testing/even_spawning/autonomous/seed_997415346", "30.0cpm.config")
 
     # Settings
@@ -122,11 +122,11 @@ if __name__ == "__main__":
     # Visualiser Init
     visualiser = JunctionVisualiser()
 
-    simulation_manager = SimulationManager(junction_file_path, configuration_file_path, visualiser_update_function=None)  # visualiser.update
+    simulation_manager = SimulationManager(junction_file_path, configuration_file_path, visualiser_update_function=visualiser.update)  # visualiser.update
     simulation_manager.print_possible_actions()
 
     # Visualiser Setup
-    visualiser.define_main(partial(simulation_manager.run, 4500, [1], [50], visualiser_delay=False))
+    visualiser.define_main(partial(simulation_manager.run, 4500, [2, 1, 8, 4], [300, 300, 300], visualiser_delay=False))
     visualiser.load_junction(junction_file_path)
     visualiser.set_scale(scale)
 

@@ -59,11 +59,12 @@ class SimulationManager:
 
     def reset(self):
         self.simulation = self.create_simulation()
-        self.freeze_traffic()
 
         while len(self.network_latency_buffer) < self.network_latency:
             self.network_latency_buffer.append(self.simulation)
             self.simulation.compute_single_iteration()
+
+        # self.freeze_traffic()
 
         return self.get_state()
 

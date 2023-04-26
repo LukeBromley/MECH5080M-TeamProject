@@ -421,6 +421,21 @@ class Model:
                     delays.append(self.get_delay(vehicle.uid))
         return delays
 
+    def get_remaining_vehicle_delays(self):
+        delays = []
+        for vehicle in self.vehicles:
+            route = self.get_route(vehicle.get_route_uid())
+            if vehicle.get_path_index() == 0:
+                delays.append(self.get_delay(vehicle.uid))
+        for spawner in self.spawners:
+            current_seconds = self.calculate_seconds_elapsed()
+            for vehicle_to_be_spawned in spawner.backup_buffer:
+                delays.append(current_seconds - vehicle_to_be_spawned[0])
+
+
+
+        return delays
+
     def get_delay(self, vehicle_uid):
         vehicle = self.get_vehicle(vehicle_uid)
         time_to_light = self.calculate_seconds_elapsed() - vehicle.start_time
