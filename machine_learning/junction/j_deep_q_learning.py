@@ -7,6 +7,7 @@ import matplotlib
 # matplotlib.use("Qt5agg")
 from platform import system
 import sys
+from functools import partial
 
 if system() == 'Windows':
     sys.path.append('./')
@@ -554,6 +555,7 @@ class MachineLearning:
             simulation_manager_copy = self.create_simulation_manager_copy()
             simulation_manager_copy.human_drivers_visible = human_drivers_visible
             simulation_manager_copy.network_latency = network_latency
+            simulation_manager_copy.packet_loss = packet_loss
 
             for step in range(int(self.simulation_manager.simulation.model.tick_rate * self.simulation_manager.simulation.model.lights[0].red_amber_time)):
                 action_probabilities = model(simulation_manager_copy.get_state().reshape(1, -1))[0].numpy()
@@ -631,7 +633,7 @@ def main(junction_name: str = "scale_library_pub_junction"):
     # Settings
     scale = 30
 
-    disable_visualiser = True
+    disable_visualiser = False
 
     if disable_visualiser:
         simulation = SimulationManager(junction_file_path, configuration_file_path, None)
@@ -656,7 +658,7 @@ def main(junction_name: str = "scale_library_pub_junction"):
             spawner.spawning_stats.mean_spawn_time_per_hour = [mean_spawn_time_per_hour for _ in spawner.spawning_stats.mean_spawn_time_per_hour]
 
         # Visualiser Setup
-        visualiser.define_main(machine_learning.test)
+        visualiser.define_main(partial(machine_learning.test, 4500, "saved_model_" + junction_name))
         visualiser.load_junction(junction_file_path)
         visualiser.set_scale(scale)
         #
@@ -664,4 +666,6 @@ def main(junction_name: str = "scale_library_pub_junction"):
         visualiser.open()
 
 if __name__ == "__main__":
-    main(junction_name="complex_Y_junction")
+    junction_name = "simple_X_junction"
+    print(junction_name)
+    main(junction_name)
