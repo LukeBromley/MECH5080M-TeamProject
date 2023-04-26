@@ -1,0 +1,15 @@
+{
+  "0": {
+    "RunUID": "ML_EvenSpawning_AllAI_StableNet_junction_simple_Y_junction.junc_seed_1788621521_spawn_rate_0.67cpm",
+    "RunType": "junction",
+    "Junction": "simple_T_junction.junc",
+    "SimulationConfig": "final_testing/even_spawning/autonomous/seed_1788621521/0.67cpm.config",
+    "MachineLearningModel": "saved_model_simple_T_junction",
+    "Steps": 4500,
+    "RandomSeed": 1788621521,
+    "CPM": 0.67,
+    "HumanDriversVisible": true,
+    "NetworkLatency": 0,
+    "PacketLoss": 0
+  }
+}
