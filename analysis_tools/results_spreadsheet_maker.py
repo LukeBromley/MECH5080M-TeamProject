@@ -1,7 +1,7 @@
 import openpyxl
 
 # write headers to first row
-headers = ['Run Type', 'Junction', 'CPM', 'Autonomous Percentage', 'Network Latency',
+headers = ['Run Type', 'Junction', 'CPM', "Number Of Vehicles Spawned", 'Autonomous Percentage', 'Network Latency',
            'Packet Loss Probability', 'Delay Mean Average', 'Delay Standard Deviation', 'Delay Maximum',
            'Delay Minimum', 'Delay Number Of Cars', 'Backup Mean Average', 'Backup Standard Deviation', 'Backup Maximum',
            'Backup Time', 'Kinetic Energy Waste Average', 'Kinetic Energy Waste Standard Deviation',
@@ -36,7 +36,7 @@ def write_spreadsheet(ws, headers, paths):
     ws.append(subheaders)
     for j in range(len(splitters)):
         column = splitters[j] + j*(len(paths)-1)
-        ws.merge_cells(start_row=1, start_column=column+1, end_row=1, end_column=column+len(paths))
+        #ws.merge_cells(start_row=1, start_column=column+1, end_row=1, end_column=column+len(paths))
 
 def get_data(all_results):
     paths = []
@@ -85,6 +85,7 @@ def get_entry(result):
     run_type = (result["RunType"])
     junction = (result["Junction"])[:-5]
     cpm = (result["CPM"])
+    nvs = (result["Number Of Vehicles Spawned"])
     if "AutonomousPercentage" in result:
         apt = (result["AutonomousPercentage"])
     else:
@@ -97,7 +98,7 @@ def get_entry(result):
         pkl = (result["PacketLoss"])
     else:
         pkl = 0
-    entry += [run_type,junction,cpm,apt,nwl,pkl]
+    entry += [run_type,junction,cpm,nvs,apt,nwl,pkl]
     for path in list(result["Backup Mean Average"].keys()):
         paths.append(int(path))
     dma = (result["Delay Mean Average"])
