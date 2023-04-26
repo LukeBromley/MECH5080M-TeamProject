@@ -4,7 +4,7 @@ import openpyxl
 headers = ['Run Type', 'Junction', 'CPM', 'Delay Mean Average', 'Delay Standard Deviation', 'Delay Maximum',
            'Delay Minimum', 'Delay Number Of Cars', 'Backup Mean Average', 'Backup Standard Deviation', 'Backup Maximum',
            'Backup Time', 'Kinetic Energy Waste Average', 'Kinetic Energy Waste Standard Deviation',
-           'Kinetic Energy Waste Maximum', 'Kinetic Energy Waste Minimum']
+           'Kinetic Energy Waste Maximum']
 def main(all_results, wb_name):
     # create a new workbook
     wb = openpyxl.Workbook()
@@ -107,7 +107,7 @@ def get_entry(result):
     kwd = (result["Kinetic Energy Waste Standard Deviation"])
     kwm = (result["Kinetic Energy Waste Maximum"])
     kwt = (result["Kinetic Energy Waste Time"])
-    entry += [[kwa], [kwd], [kwm], [kwt]]
+    entry += [[kwa], [kwd], [kwm]]
     uid = str(run_type)+str(junction)+str(cpm)
     data = [uid, paths, entry]
     return data
