@@ -40,7 +40,7 @@ class Simulation:
 
     def freeze_traffic(self, n: int = None):
         if n is None:
-            n = random.randint(5, 30)
+            n = random.randint(5, 25)
 
         for light in self.model.lights:
             if random.random() > 0.5:
