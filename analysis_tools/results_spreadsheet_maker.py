@@ -4,9 +4,8 @@ import openpyxl
 headers = ['Run Type', 'Junction', 'CPM', 'Delay Mean Average', 'Delay Standard Deviation', 'Delay Maximum',
            'Delay Minimum', 'Delay Number Of Cars', 'Backup Mean Average', 'Backup Standard Deviation', 'Backup Maximum',
            'Backup Time', 'Kinetic Energy Waste Average', 'Kinetic Energy Waste Standard Deviation',
-           'Kinetic Energy Waste Maximum', 'Kinetic Energy Waste Time']
-wb_name = "./TrialTest.xlsx"
-def main(all_results):
+           'Kinetic Energy Waste Maximum']
+def main(all_results, wb_name):
     # create a new workbook
     wb = openpyxl.Workbook()
     # select the active worksheet
@@ -14,7 +13,7 @@ def main(all_results):
     csv, paths = get_data(all_results)
     write_spreadsheet(ws, headers, paths)
     add_data(ws, csv)
-    ws.freeze_panes = 'X3'
+    ws.freeze_panes = 'A3'
     # save the workbook
     wb.save(wb_name)
     wb.close()
@@ -39,10 +38,11 @@ def write_spreadsheet(ws, headers, paths):
         ws.merge_cells(start_row=1, start_column=column+1, end_row=1, end_column=column+len(paths))
 
 def get_data(all_results):
-    existing_seeds = []
-    paths = [6]
+    paths = []
     data_list = []
-    for result in all_results:
+    print("Getting from file...")
+    for i,result in enumerate(all_results):
+        print(str(i) + "/" + str(len(all_results)) + "\n")
         data = get_entry(result)
         data_list.append(data)
         for path in data[1]:
@@ -50,7 +50,9 @@ def get_data(all_results):
                 paths.append(path)
     paths.sort()
     merge_seeds = []
-    for dataline in data_list:
+    print("Extracting...")
+    for t, dataline in enumerate(data_list):
+        print(str(t) + "/" + str(len(data_list)) + "\n")
         uid = dataline[0]
         path_index = dataline[1]
         entry = dataline[2]
@@ -66,7 +68,7 @@ def get_data(all_results):
                         line[2][j][pos].append(entry[j][path_index.index(k)][0])
                 for l in range(12,15):
                     line[2][l].append(entry[l][0])
-        if matching == False:
+        if not matching:
             for i in range(8,12):
                 buffer = [[""]]*len(paths)
                 for p, path in enumerate(path_index):
@@ -78,14 +80,13 @@ def get_data(all_results):
 
 def get_entry(result):
     entry = []
-    paths = [3, 5, 10]
+    paths = []
     run_type = (result["RunType"])
     junction = (result["Junction"])[:-5]
-    # cpm = float(result["RunUID"].split("_")[-1][:-3])
-    cpm = float(result["RunUID"].split("_")[-1])
+    cpm = int(result["RunUID"].split("_")[-1][:-3])
     entry += [run_type,junction,cpm]
-    # for path in result["ActionPaths"]:
-    #     paths.append(path[0])
+    for path in list(result["Backup Mean Average"].keys()):
+        paths.append(int(path))
     dma = (result["Delay Mean Average"])
     dsd = (result["Delay Standard Deviation"])
     dmx = (result["Delay Maximum"])
@@ -105,15 +106,17 @@ def get_entry(result):
     kwa = (result["Kinetic Energy Waste Average"])
     kwd = (result["Kinetic Energy Waste Standard Deviation"])
     kwm = (result["Kinetic Energy Waste Maximum"])
-    kwt = 0  # (result["Kinetic Energy Waste Time"])
-    entry += [[kwa], [kwd], [kwm], [kwt]]
+    kwt = (result["Kinetic Energy Waste Time"])
+    entry += [[kwa], [kwd], [kwm]]
     uid = str(run_type)+str(junction)+str(cpm)
     data = [uid, paths, entry]
     return data
 
 
 def add_data(ws, csv):
-    for line in csv:
+    print("Writing...")
+    for t, line in enumerate(csv):
+        print(str(t) + "/" + str(len(csv)) + "\n")
         to_write = []
         for data in line[2]:
             if type(data) == list:

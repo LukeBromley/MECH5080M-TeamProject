@@ -1,0 +1,49 @@
+{
+  "RunUID": "fixed_timings_simple_Y_junction_1774553582_4cpm",
+  "RunType": "fixed timings",
+  "Junction": "simple_Y_junction.junc",
+  "SimulationConfig": "final_testing/even_spawning/autonomous/seed_1774553582/4cpm.config",
+  "Steps": 9000,
+  "Actions": [
+    2,
+    1
+  ],
+  "ActionDurations": [
+    300,
+    300
+  ],
+  "ActionPaths": [
+    [
+      5
+    ],
+    [
+      7
+    ]
+  ],
+  "Time Taken": 4.382081632999984,
+  "Delay Mean Average": 16.71674869752039,
+  "Delay Standard Deviation": 19.750628259743632,
+  "Delay Maximum": 61.15584182710632,
+  "Delay Minimum": -0.007779209432523526,
+  "Delay Number Of Cars": 251,
+  "Backup Mean Average": {
+    "5": 1.2701111111111112,
+    "7": 1.2153333333333334
+  },
+  "Backup Standard Deviation": {
+    "5": 1.5284231513490725,
+    "7": 1.4780192654340918
+  },
+  "Backup Maximum": {
+    "5": 5,
+    "7": 6
+  },
+  "Backup Time": {
+    "5": 0,
+    "7": 0
+  },
+  "Kinetic Energy Waste Average": 20931.283185043943,
+  "Kinetic Energy Waste Standard Deviation": 20451.242553782056,
+  "Kinetic Energy Waste Maximum": 53967.95058648909,
+  "Kinetic Energy Waste Time": 0
+}

@@ -87,7 +87,7 @@ class Simulation:
 
         # Backup
         path_backup_total, path_backup = self.model.get_backed_up_paths(4, 5)
-
+        print(self.path_backup_total)
         for path_uid in path_backup_total:
             if str(path_uid) in self.path_backup_total:
                 self.path_backup_total[str(path_uid)] += self.model.tick_time
