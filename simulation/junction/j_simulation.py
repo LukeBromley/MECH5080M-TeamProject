@@ -31,8 +31,9 @@ class Simulation:
         self.kinetic_energy = {}
         self.kinetic_energy_waste = {}
         self.collision = False
-        self.freeze_traffic()
         self.number_of_vehicles_spawned = 0
+
+        self.freeze_traffic()
 
         # Visualiser
         self.visualiser_update_function = visualiser_update_function

@@ -7,6 +7,7 @@ import matplotlib
 # matplotlib.use("Qt5agg")
 from platform import system
 import sys
+from functools import partial
 
 if system() == 'Windows':
     sys.path.append('./')
@@ -632,7 +633,7 @@ def main(junction_name: str = "scale_library_pub_junction"):
     # Settings
     scale = 30
 
-    disable_visualiser = True
+    disable_visualiser = False
 
     if disable_visualiser:
         simulation = SimulationManager(junction_file_path, configuration_file_path, None)
@@ -657,7 +658,7 @@ def main(junction_name: str = "scale_library_pub_junction"):
             spawner.spawning_stats.mean_spawn_time_per_hour = [mean_spawn_time_per_hour for _ in spawner.spawning_stats.mean_spawn_time_per_hour]
 
         # Visualiser Setup
-        visualiser.define_main(machine_learning.test)
+        visualiser.define_main(partial(machine_learning.test, 4500, "saved_model_" + junction_name))
         visualiser.load_junction(junction_file_path)
         visualiser.set_scale(scale)
         #
@@ -665,6 +666,6 @@ def main(junction_name: str = "scale_library_pub_junction"):
         visualiser.open()
 
 if __name__ == "__main__":
-    junction_name = "scale_library_pub_junction"
+    junction_name = "simple_X_junction"
     print(junction_name)
     main(junction_name)
