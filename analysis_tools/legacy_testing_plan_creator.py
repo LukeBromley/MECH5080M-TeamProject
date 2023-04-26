@@ -42,7 +42,7 @@ for control_method in control_methods:
                 print(spawn_time_delta_value)
 
                 plan[str(uid)] = {
-                    "RunUID": control_method.replace(" ", "_") + "_" + junction[:-5] + "_" + str(random_seed_value) + "_" + str(round(60/spawn_time_delta_value, 2)) + "cpm",
+                    "RunUID": "legacy_" + control_method.replace(" ", "_") + "_" + junction[:-5] + "_" + str(random_seed_value) + "_" + str(round(60/spawn_time_delta_value, 2)) + "cpm",
                     "RunType": control_method,
                     "Junction": junction,
                     "SimulationConfig": "final_testing/even_spawning/autonomous/seed_" + str(random_seed_value) + "/" + str(round(60/spawn_time_delta_value, 2)) + "cpm.config",
@@ -50,6 +50,8 @@ for control_method in control_methods:
                     "Actions": actions[index],
                     "ActionDurations": action_durations[index],
                     "ActionPaths": action_paths[index],
+                    "RandomSeed": random_seed_value,
+                    "CPM": (round(60/spawn_time_delta_value, 2))
                 }
 
                 uid += 1
