@@ -19,7 +19,7 @@ if __name__ == "__main__":
 
     # iteration_file = "ml_training_plan.csv"
     # iterations = MachineLearningManager(iteration_file)
-    tester_file = "trial_test_ml.plan"
+    tester_file = "test_plan.plan"
     testing = TrainedModelTester(tester_file)
-    # tester_file = "trial_test_ml.plan"
+    # tester_file = "test_plan.plan"
     # testing = FixedTimingsTester(tester_file)
