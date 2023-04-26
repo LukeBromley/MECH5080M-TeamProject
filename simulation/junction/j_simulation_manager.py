@@ -1,6 +1,7 @@
 import itertools
 import os
 import random
+import re
 from platform import system
 
 from library.infrastructure import TrafficLight
@@ -28,21 +29,22 @@ class SimulationManager:
 
         # Simulations
         self.simulation = Simulation(self.junction_file_path, self.config_file_path, self.visualiser_update_function)
+        self.cars_per_minute = self.get_cpm_from_config_path(config_file_path)
 
         # Actions
         self.number_of_possible_actions = self.calculate_actions()
         self.light_controlled_path_uids, self.light_path_uids = self.simulation.model.get_traffic_light_controlled_path_uids()
         self.human_drivers_visible = True
         self.network_latency = 0
+        self.packet_loss = 0.0
         self.network_latency_buffer = []
-        self.packet_loss = 0.2
 
         # TODO: Try combining both and using route_distance_travelled for input oir distance to the traffic light?
 
         # Inputs / States
         self.features_per_vehicle_state = 4
         self.features_per_traffic_light_state = 0
-        self.number_of_tracked_vehicles_per_light_controlled_path = 7
+        self.number_of_tracked_vehicles_per_light_controlled_path = 6
         self.number_of_tracked_vehicles_per_light_path = 2
         self.observation_space_size = self.features_per_vehicle_state * (
                 len(self.light_controlled_path_uids) * self.number_of_tracked_vehicles_per_light_controlled_path +
@@ -65,7 +67,7 @@ class SimulationManager:
 
     def reset(self, change_spawning: bool = False):
         if change_spawning:
-            mean_spawn_time = str(random.choice([3, 6, 12, 24]))
+            self.cars_per_minute = random.choice([6, 12, 24])
             config_file_path = os.path.join(
                 os.path.dirname(os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))))),
                 "configurations",
@@ -74,7 +76,7 @@ class SimulationManager:
                 "even_spawning",
                 "autonomous",
                 "seed_null",
-                mean_spawn_time + "cpm.config")
+                str(self.cars_per_minute) + "cpm.config")
             self.simulation = self.create_simulation(config_file_path)
         else:
             self.simulation = self.create_simulation()
@@ -89,6 +91,8 @@ class SimulationManager:
         # TODO: Sparse actions
         # Avoid do nothing action if not using RNN
         self.action_table = list(itertools.product([-1, 1], repeat=len(self.simulation.model.lights)))
+
+        # TODO: indexes might change
         self.action_table = [action for action in self.action_table if action.count(1) <= 2]
         # self.action_table.pop(self.action_table.index(tuple([-1 for _ in self.simulation.model.lights])))
         # self.action_table.pop(self.action_table.index(tuple([1 for _ in self.simulation.model.lights])))
@@ -173,8 +177,7 @@ class SimulationManager:
 
         for vehicle in simulation.model.vehicles:
             if self.human_drivers_visible or vehicle.driver_type == "autonomous":
-                if random.choices([0, 1], weights=[self.packet_loss, 1 - self.packet_loss], cum_weights=None, k=1)[
-                    0] == 1:
+                if random.choices([0, 1], weights=[self.packet_loss, 1 - self.packet_loss], cum_weights=None, k=1)[0] == 1:
                     route = self.simulation.model.get_route(vehicle.get_route_uid())
                     path_uid = route.get_path_uid(vehicle.get_path_index())
                     if path_uid in self.light_controlled_path_uids:
@@ -229,9 +232,8 @@ class SimulationManager:
             return 0.0
 
     def get_state_value(self):
-        # TODO: unsquare
-        return sum([self.simulation.model.get_delay(vehicle.uid) ** 2 - vehicle.get_speed() for vehicle in
-                    self.simulation.model.vehicles if vehicle.get_path_index() == 0])
+        # TODO: unsquare and add - (speed ** 2)
+        return sum([self.simulation.model.get_delay(vehicle.uid) ** 2 for vehicle in self.simulation.model.vehicles if vehicle.get_path_index() == 0])
 
     def get_sum_wait_time(self):
         return sum([vehicle.wait_time for vehicle in self.simulation.model.vehicles])
@@ -262,6 +264,13 @@ class SimulationManager:
         for vehicle in self.simulation.model.vehicles:
             sum_car_speed += vehicle.get_speed()
         return sum_car_speed
+
+    def get_cpm_from_config_path(self, config_file_path: str):
+        cars_per_minute = ""
+        for char in os.path.basename(config_file_path):
+            if char.isdigit():
+                cars_per_minute += char
+        return int(cars_per_minute)
 
     def get_delays(self):
         return self.simulation.delays
