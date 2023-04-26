@@ -10,7 +10,6 @@ from machine_learning.machine_learning_manager import MachineLearningManager
 from machine_learning.trained_model_tester import TrainedModelTester
 from machine_learning.fixed_timings_tester import FixedTimingsTester
 
-
 # MEGAMAIN - Choose between automated training and automated testing of pretrained models.
 # MEGAMAINTEST - Choose between automated training and automated testing of pretrained models.
 if __name__ == "__main__":
@@ -20,7 +19,7 @@ if __name__ == "__main__":
 
     # iteration_file = "ml_training_plan.csv"
     # iterations = MachineLearningManager(iteration_file)
-    tester_file = "trial_test_ml.plan"
+    tester_file = "ML_EvenSpawning_AllAI_PacketLossNet.plan"
     testing = TrainedModelTester(tester_file)
     # tester_file = "trial_test_ml.plan"
     # testing = FixedTimingsTester(tester_file)
