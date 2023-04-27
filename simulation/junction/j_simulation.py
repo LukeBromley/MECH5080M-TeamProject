@@ -15,7 +15,7 @@ from functools import partial
 
 
 class Simulation:
-    def __init__(self, junction_file_path: str, config_file_path, visualiser_update_function=None):
+    def __init__(self, junction_file_path: str, config_file_path, visualiser_update_function=None, freeze: bool = False):
         self.uid = 0
 
         # Model
@@ -33,7 +33,8 @@ class Simulation:
         self.collision = False
         self.number_of_vehicles_spawned = 0
 
-        self.freeze_traffic()
+        if freeze:
+            self.freeze_traffic()
 
         # Visualiser
         self.visualiser_update_function = visualiser_update_function
