@@ -1,7 +1,7 @@
 import copy
 import math
 import random
-import time
+from time import sleep
 from math import sqrt
 import matplotlib
 # matplotlib.use("Qt5agg")
@@ -595,6 +595,8 @@ class MachineLearning:
             if self.end_episode(episode_reward, episode_steps):
                 break
 
+            sleep(0.01)
+
             sys.stdout.write("\r{0}s - step: {1}".format(str(round(episode_steps * tick_time, 1)), str(episode_steps)))
             sys.stdout.flush()
 
@@ -635,10 +637,10 @@ def main(junction_name: str = "simple_T_junction", enable_graph: bool = False, t
 
     configuration_file_path = os.path.join(
         os.path.dirname(os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))))), "configurations",
-        "simulation_config", "demand_mean_12.config")
+        "simulation_config/final_testing/even_spawning/autonomous/seed_997415346", "30cpm.config")
 
     # Settings
-    scale = 30
+    scale = 50
 
     if train:
         simulation = SimulationManager(junction_file_path, configuration_file_path, None)
@@ -660,4 +662,4 @@ def main(junction_name: str = "simple_T_junction", enable_graph: bool = False, t
 
 
 if __name__ == "__main__":
-    main(junction_name="simple_T_junction", enable_graph=True, train=True)
+    main(junction_name="simple_T_junction", enable_graph=False, train=False)

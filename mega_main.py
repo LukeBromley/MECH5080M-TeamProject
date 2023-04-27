@@ -15,7 +15,7 @@ from machine_learning.fixed_timings_tester import FixedTimingsTester
 if __name__ == "__main__":
     # iteration_file = "ml_training_plan.csv"
     # iterations = MachineLearningManager(iteration_file)
-    tester_file = "test_plan.plan"
+    tester_file = "ml_control_even_spawning_simple_T.plan"
     testing = TrainedModelTester(tester_file)
     # tester_file = "test_plan.plan"
     # testing = FixedTimingsTester(tester_file)

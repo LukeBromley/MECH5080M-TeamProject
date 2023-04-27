@@ -130,6 +130,8 @@ class Simulation:
         # Remove finished vehicles
         self.model.remove_finished_vehicles()
 
+        self.collision = self.model.detect_collisions()
+
         # Increment Time
         self.model.tock()
 
