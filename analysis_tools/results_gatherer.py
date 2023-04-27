@@ -2,7 +2,7 @@ import os
 import json
 import results_spreadsheet_maker
 
-results_location = "../results/test_TESTED(1)"
+results_location = "../results/legacy_control_uneven_spawning_TESTED"
 run_folders = [x[0] for x in os.walk(results_location)]
 
 all_results = []
