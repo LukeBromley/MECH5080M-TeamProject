@@ -82,6 +82,7 @@ class MachineLearning:
     def __init__(self, simulation_manager: SimulationManager, machine_learning_config=None, graph_num_episodes=20,
                  graph_max_step=30000, enable_graph: bool = False):
 
+        self.response_rate = None
         self.saved_model = None
         self.enable_graph = enable_graph
 
@@ -569,7 +570,8 @@ class MachineLearning:
         self.simulation_manager.network_latency = network_latency
         self.simulation_manager.packet_loss = packet_loss
         self.max_steps_per_episode = number_of_iterations
-
+        self.response_rate = 4 + 0.25 * self.simulation_manager.cars_per_minute
+        
         episode_steps = 0
         # Run steps in episode
         while True:
@@ -585,7 +587,7 @@ class MachineLearning:
             sys.stdout.flush()
 
     def step_simulation(self, simulation_manager: SimulationManager):
-        if simulation_manager.step_index % (5 * simulation_manager.simulation.model.tick_rate) == 0 or simulation_manager.step_index == 0:
+        if simulation_manager.step_index % int(self.response_rate * simulation_manager.simulation.model.tick_rate) == 0 or simulation_manager.step_index == 0:
             action_probabilities = self.saved_model(simulation_manager.get_state().reshape(1, -1), training=False)[0].numpy()
             action_index = np.nanargmax(action_probabilities)
             simulation_manager.take_action(action_index)
