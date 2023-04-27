@@ -661,4 +661,4 @@ def main(junction_name: str = "simple_T_junction", enable_graph: bool = False, t
 
 
 if __name__ == "__main__":
-    main(junction_name="simple_T_junction", enable_graph=True, train=False)
+    main(junction_name="simple_T_junction", enable_graph=True, train=True)

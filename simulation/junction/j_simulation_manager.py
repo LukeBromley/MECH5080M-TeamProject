@@ -59,11 +59,11 @@ class SimulationManager:
         # self.observation_space = Box(0, 75, shape=(1, self.observation_space_size), dtype=float)
         self.reset()
 
-    def create_simulation(self, config_file_path=None):
+    def create_simulation(self, config_file_path=None, freeze: bool = False):
         if config_file_path is None:
-            simulation = Simulation(self.junction_file_path, self.config_file_path, self.visualiser_update_function)
+            simulation = Simulation(self.junction_file_path, self.config_file_path, self.visualiser_update_function, freeze)
         else:
-            simulation = Simulation(self.junction_file_path, config_file_path, self.visualiser_update_function)
+            simulation = Simulation(self.junction_file_path, config_file_path, self.visualiser_update_function, freeze)
 
         return simulation
 
@@ -80,7 +80,7 @@ class SimulationManager:
                 "autonomous",
                 "seed_null",
                 str(self.cars_per_minute) + "cpm.config")
-            self.simulation = self.create_simulation(config_file_path)
+            self.simulation = self.create_simulation(config_file_path, freeze=True)
         else:
             self.simulation = self.create_simulation()
 
