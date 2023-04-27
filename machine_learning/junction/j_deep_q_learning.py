@@ -571,7 +571,7 @@ class MachineLearning:
         self.simulation_manager.packet_loss = packet_loss
         self.max_steps_per_episode = number_of_iterations
         self.response_rate = 4 + 0.25 * self.simulation_manager.cars_per_minute
-        
+
         episode_steps = 0
         # Run steps in episode
         while True:
@@ -582,8 +582,6 @@ class MachineLearning:
 
             if self.end_episode(episode_reward, episode_steps):
                 break
-
-            sleep(0.01)
 
             sys.stdout.write("\r{0}s - step: {1}".format(str(round(episode_steps * tick_time, 1)), str(episode_steps)))
             sys.stdout.flush()
@@ -625,7 +623,7 @@ def main(junction_name: str = "simple_T_junction", enable_graph: bool = False, t
 
     configuration_file_path = os.path.join(
         os.path.dirname(os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))))), "configurations",
-        "simulation_config", "demand_mean_12.config")
+        "simulation_config/final_testing/even_spawning/autonomous/seed_997415346", "30cpm.config")
 
     # Settings
     scale = 50
