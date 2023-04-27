@@ -41,10 +41,10 @@ class Simulation:
 
     def freeze_traffic(self, n: int = None):
         if n is None:
-            n = random.randint(5, 20)
+            n = random.randint(5, 30)
 
         for light in self.model.lights:
-            if random.random() > 0.75:
+            if random.random() > 0.5:
                 light.set_red()
 
         for step in range(n * self.model.tick_rate):
