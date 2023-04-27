@@ -123,20 +123,20 @@ class MachineLearning:
         self.reward_history_limit = 50
         # Number of steps of just random actions before the network can make some decisions
         # TODO: Better than using episodes because the episode length can change which enables more uneven freeze
-        self.number_of_random_actions = 500
+        self.number_of_random_actions = 516
         # Number of steps over which epsilon greedy decays
-        self.number_of_exploration_actions = self.number_of_random_actions + 10000
+        self.number_of_exploration_actions = self.number_of_random_actions + 15000
 
         # GRAPH
         if self.enable_graph:
             self.graph = Graph()
-            self.graph.set_title(os.path.basename(simulation_manager.junction_file_path))
+            self.graph.set_title(os.path.basename(simulation_manager.junction_file_path) + "0.95 gamma")
             self.graph.add_vline(self.number_of_random_actions)
             self.graph.add_vline(self.number_of_exploration_actions)
             self.graph.add_vline(int(self.temporal_difference_threshold * self.number_of_exploration_actions))
 
         # Train the model after 4 actions
-        self.update_after_actions = 5
+        self.update_after_actions = 4
         # Penalty for collision
         self.collision_penalty = 1000
 
@@ -152,11 +152,11 @@ class MachineLearning:
         self.number_of_temporal_difference_steps = int(10 * self.simulation_manager.simulation.model.tick_rate)
 
         # Discount factor TODO: Hyperparameter
-        self.gamma = 0.97  # Discount factor for past rewards
+        self.gamma = 0.95  # Discount factor for past rewards
 
         # Sample Size
         # TODO: Implement soft update
-        self.sample_size = 124  # Size of batch taken from replay buffer
+        self.sample_size = 128  # Size of batch taken from replay buffer
 
         # Maximum replay buffer length
         # Note: The Deepmind paper suggests 1000000 however this causes memory issues
@@ -164,7 +164,7 @@ class MachineLearning:
 
         # OPTIMISING
         # Note: In the Deepmind paper they use RMSProp however then Adam optimizer TODO: Hyperparameter
-        self.learning_rate = 0.00001  # 0.00025
+        self.learning_rate = 0.0001  # 0.00025
         self.optimizer = keras.optimizers.legacy.Adam(learning_rate=self.learning_rate, clipnorm=1.0)
 
         # OTHER
@@ -173,7 +173,7 @@ class MachineLearning:
 
         # MACHINE LEARNING MODELS
         n = self.simulation_manager.observation_space_size
-        self.ml_model_hidden_layers = [n, int(n/2), len(self.simulation_manager.action_table)]
+        self.ml_model_hidden_layers = [64, 32, 8]
 
         # Change configurations to ones supplied in machine_learning_config
         if machine_learning_config is not None:
@@ -409,8 +409,8 @@ class MachineLearning:
             # TODO: Try model decision making enabled after exploration !!!
             # TODO: Could even use active learning with a pre-trained target_network weights
             # TODO: Taking action at random rather is worse than after half-way exploration
-            if (self.number_of_actions_taken > self.temporal_difference_threshold * self.number_of_exploration_actions):
-                simulation_manager.take_action(self.select_action(simulation_manager.get_state(), target=True))
+            # if (self.number_of_actions_taken > self.temporal_difference_threshold * self.number_of_exploration_actions):
+            #     simulation_manager.take_action(self.select_action(simulation_manager.get_state(), target=True))
 
             simulation_manager.simulation.compute_single_iteration()
 
@@ -522,7 +522,6 @@ class MachineLearning:
             del self.state_history[:1]
             # del self.state_next_history[:1]
             del self.action_history[:1]
-            del self.done_history[:1]
 
     def update_reward_history(self, reward: float):
         if self.episode_reward_history:
@@ -664,4 +663,4 @@ def main(junction_name: str = "simple_T_junction", enable_graph: bool = False, t
 
 
 if __name__ == "__main__":
-    main(junction_name="simple_T_junction", enable_graph=True, train=False)
+    main(junction_name="simple_T_junction", enable_graph=True, train=True)
