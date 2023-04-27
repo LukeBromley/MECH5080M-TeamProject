@@ -596,7 +596,6 @@ class MachineLearning:
 
             self.step_simulation(self.simulation_manager)
 
-            time.sleep(0.05)
             if self.end_episode(episode_reward, episode_steps):
                 break
 
