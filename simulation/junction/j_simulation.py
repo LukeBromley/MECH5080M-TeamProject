@@ -31,6 +31,7 @@ class Simulation:
         self.kinetic_energy = {}
         self.kinetic_energy_waste = {}
         self.collision = False
+        self.collision_ticks = 0
         self.number_of_vehicles_spawned = 0
 
         if freeze:
@@ -131,6 +132,8 @@ class Simulation:
         self.model.remove_finished_vehicles()
 
         self.collision = self.model.detect_collisions()
+        if self.collision:
+            self.collision_ticks += 1
 
         # Increment Time
         self.model.tock()
