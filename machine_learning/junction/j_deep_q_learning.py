@@ -592,7 +592,8 @@ class MachineLearning:
             simulation_manager_copy.reset()
 
             for step in range(int(self.simulation_manager.simulation.model.tick_rate * self.simulation_manager.simulation.model.lights[0].red_amber_time)):
-                action_probabilities = model(simulation_manager_copy.get_state().reshape(1, -1))[0].numpy()
+                x = simulation_manager_copy.get_state().reshape(1, -1)
+                action_probabilities = model(x)[0].numpy()
                 action_index = np.nanargmax(action_probabilities)
                 simulation_manager_copy.take_action(action_index)
                 simulation_manager_copy.simulation.compute_single_iteration()

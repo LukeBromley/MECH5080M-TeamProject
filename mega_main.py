@@ -10,7 +10,6 @@ from machine_learning.machine_learning_manager import MachineLearningManager
 from machine_learning.trained_model_tester import TrainedModelTester
 from machine_learning.fixed_timings_tester import FixedTimingsTester
 
-
 # MEGAMAIN - Choose between automated training and automated testing of pretrained models.
 # MEGAMAINTEST - Choose between automated training and automated testing of pretrained models.
 if __name__ == "__main__":
