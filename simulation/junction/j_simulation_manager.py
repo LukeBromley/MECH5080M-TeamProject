@@ -195,12 +195,12 @@ class SimulationManager:
 
         for index, path_input in enumerate(path_inputs):
             if index < len(self.light_controlled_path_uids) - len(self.light_path_uids):
-                inputs += self.pad_state_input(path_input, index, self.number_of_tracked_vehicles_per_light_controlled_path)
+                inputs += self.pad_state_input(path_input, self.number_of_tracked_vehicles_per_light_controlled_path)
             else:
-                inputs += self.pad_state_input(path_input, index, self.number_of_tracked_vehicles_per_light_path)
+                inputs += self.pad_state_input(path_input, self.number_of_tracked_vehicles_per_light_path)
         return np.array(inputs)
 
-    def pad_state_input(self, state_input: list, path_index: int, n: int):
+    def pad_state_input(self, state_input: list, n: int):
         if len(state_input) > self.features_per_vehicle_state * n:
             state_input = state_input[:self.features_per_vehicle_state * n]
         else:
@@ -234,7 +234,7 @@ class SimulationManager:
 
     def get_state_value(self):
         # TODO: unsquare and add - (speed ** 2)
-        return sum([self.simulation.model.get_delay(vehicle.uid) ** 2 - vehicle.get_speed() for vehicle in self.simulation.model.vehicles if vehicle.get_path_index() == 0])
+        return sum([self.simulation.model.get_delay(vehicle.uid) ** 2 for vehicle in self.simulation.model.vehicles if vehicle.get_path_index() == 0])
 
     def get_sum_wait_time(self):
         return sum([vehicle.wait_time for vehicle in self.simulation.model.vehicles])

@@ -421,6 +421,21 @@ class Model:
                     delays.append(self.get_delay(vehicle.uid))
         return delays
 
+    def get_remaining_vehicle_delays(self):
+        delays = []
+        for vehicle in self.vehicles:
+            route = self.get_route(vehicle.get_route_uid())
+            if vehicle.get_path_index() == 0:
+                delays.append(self.get_delay(vehicle.uid))
+        for spawner in self.spawners:
+            current_seconds = self.calculate_seconds_elapsed()
+            for vehicle_to_be_spawned in spawner.backup_buffer:
+                delays.append(current_seconds - vehicle_to_be_spawned[0])
+
+
+
+        return delays
+
     def get_delay(self, vehicle_uid):
         vehicle = self.get_vehicle(vehicle_uid)
         time_to_light = self.calculate_seconds_elapsed() - vehicle.start_time
@@ -636,16 +651,13 @@ class Model:
         r2y = half_length * s_theta + half_width * c_theta
         return [(x + r1x, y + r1y), (x + r2x, y + r2y), (x - r1x, y - r1y), (x - r2x, y - r2y)]
 
-    def get_backed_up_paths(self, backup_threshold, speed_threshold):
-        path_uids = []
+    def get_backed_up_paths(self, speed_threshold):
         path_backup = {}
         for route in self.routes:
             path_uid = route.get_path_uid(0)
             number_vehicles_backed_up = self.get_path_backup_length(path_uid, speed_threshold)
             path_backup[path_uid] = number_vehicles_backed_up
-            if number_vehicles_backed_up > backup_threshold:
-                path_uids.append(path_uid)
-        return path_uids, path_backup
+        return path_backup
 
     def get_path_backup_length(self, path_uid, speed_threshold):
         number_vehicles_backed_up = 0

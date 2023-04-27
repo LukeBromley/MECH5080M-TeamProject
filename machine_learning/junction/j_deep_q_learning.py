@@ -177,7 +177,7 @@ class MachineLearning:
 
         # MACHINE LEARNING MODELS
         n = self.simulation_manager.observation_space_size
-        self.ml_model_hidden_layers = [128, 64, 16]
+        self.ml_model_hidden_layers = [n, int(n/2), len(self.simulation_manager.action_table)]
 
         # Change configurations to ones supplied in machine_learning_config
         if machine_learning_config is not None:
@@ -418,8 +418,7 @@ class MachineLearning:
             # TODO: Could even use active learning with a pre-trained target_network weights
             # TODO: Taking action at random rather is worse than after half-way exploration
             if (
-                    (
-                            self.number_of_actions_taken > self.temporal_difference_threshold * self.number_of_exploration_actions) and
+                    self.number_of_actions_taken > self.temporal_difference_threshold * self.number_of_exploration_actions and
                     index % self.steps_to_skip
             ):
                 simulation_manager.take_action(self.select_action(simulation_manager.get_state(), target=True))
@@ -445,8 +444,7 @@ class MachineLearning:
             action = self.select_best_action(state, target)
         else:
             # Exploration vs Exploitation
-            if self.number_of_actions_taken < self.number_of_random_actions or self.epsilon_greedy > np.random.rand(1)[
-                0]:
+            if self.number_of_actions_taken < self.number_of_random_actions or self.epsilon_greedy > np.random.rand(1)[0]:
                 # Take random action
                 action = self.select_random_action()
             else:
@@ -490,8 +488,7 @@ class MachineLearning:
 
     def update_epsilon_greedy(self):
         if self.epsilon_greedy >= self.epsilon_greedy_min:
-            self.epsilon_greedy -= (
-                                           self.epsilon_greedy_max - self.epsilon_greedy_min) / self.number_of_exploration_actions
+            self.epsilon_greedy -= (self.epsilon_greedy_max - self.epsilon_greedy_min) / self.number_of_exploration_actions
 
     def take_action(self, action_index):
         self.simulation_manager.take_action(action_index)

@@ -1,10 +1,11 @@
 import openpyxl
 
 # write headers to first row
-headers = ['Run Type', 'Junction', 'CPM', 'Delay Mean Average', 'Delay Standard Deviation', 'Delay Maximum',
+headers = ['Run Type', 'Junction', 'CPM', 'Autonomous Percentage', 'Network Latency',
+           'Packet Loss Probability', 'Delay Mean Average', 'Delay Standard Deviation', 'Delay Maximum',
            'Delay Minimum', 'Delay Number Of Cars', 'Backup Mean Average', 'Backup Standard Deviation', 'Backup Maximum',
            'Backup Time', 'Kinetic Energy Waste Average', 'Kinetic Energy Waste Standard Deviation',
-           'Kinetic Energy Waste Maximum', 'Kinetic Energy Waste Minimum']
+           'Kinetic Energy Waste Maximum']
 def main(all_results, wb_name):
     # create a new workbook
     wb = openpyxl.Workbook()
@@ -60,16 +61,16 @@ def get_data(all_results):
         for line in merge_seeds:
             if uid == line[0]:
                 matching = True
-                for i in range(3, 8):
+                for i in range(headers.index('Delay Mean Average'), headers.index('Backup Mean Average')):
                     line[2][i].append(entry[i][0])
-                for j in range(8,12):
+                for j in range(headers.index('Backup Mean Average'), headers.index('Kinetic Energy Waste Average')):
                     for k in path_index:
                         pos = paths.index(k)
                         line[2][j][pos].append(entry[j][path_index.index(k)][0])
-                for l in range(12,15):
+                for l in range(headers.index('Kinetic Energy Waste Average'), headers.index('Kinetic Energy Waste Maximum')):
                     line[2][l].append(entry[l][0])
         if not matching:
-            for i in range(8,12):
+            for i in range(headers.index('Backup Mean Average'), headers.index('Kinetic Energy Waste Average')):
                 buffer = [[""]]*len(paths)
                 for p, path in enumerate(path_index):
                     buffer[paths.index(path)] = dataline[2][i][p]
@@ -83,8 +84,20 @@ def get_entry(result):
     paths = []
     run_type = (result["RunType"])
     junction = (result["Junction"])[:-5]
-    cpm = int(result["RunUID"].split("_")[-1][:-3])
-    entry += [run_type,junction,cpm]
+    cpm = (result["CPM"])
+    if "AutonomousPercentage" in result:
+        apt = (result["AutonomousPercentage"])
+    else:
+        apt = 0
+    if "NetworkLatency" in result:
+        nwl = (result["NetworkLatency"])
+    else:
+        nwl = 0
+    if "PacketLoss" in result:
+        pkl = (result["PacketLoss"])
+    else:
+        pkl = 0
+    entry += [run_type,junction,cpm,apt,nwl,pkl]
     for path in list(result["Backup Mean Average"].keys()):
         paths.append(int(path))
     dma = (result["Delay Mean Average"])
@@ -106,9 +119,8 @@ def get_entry(result):
     kwa = (result["Kinetic Energy Waste Average"])
     kwd = (result["Kinetic Energy Waste Standard Deviation"])
     kwm = (result["Kinetic Energy Waste Maximum"])
-    kwt = (result["Kinetic Energy Waste Time"])
-    entry += [[kwa], [kwd], [kwm], [kwt]]
-    uid = str(run_type)+str(junction)+str(cpm)
+    entry += [[kwa], [kwd], [kwm]]
+    uid = str(run_type)+str(junction)+str(cpm)+str(apt)+str(nwl)+str(pkl)
     data = [uid, paths, entry]
     return data
 
