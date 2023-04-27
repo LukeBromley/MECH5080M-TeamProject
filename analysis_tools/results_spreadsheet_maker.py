@@ -1,7 +1,7 @@
 import openpyxl
 
 # write headers to first row
-headers = ['Run Type', 'Junction', 'CPM', "Number Of Vehicles Spawned", 'Autonomous Percentage', 'Network Latency',
+headers = ['Run Type', 'Junction', 'CPM', 'Number of Seeds', "Number Of Vehicles Spawned", 'Autonomous Percentage', 'Spawning Change', 'Network Latency',
            'Packet Loss Probability', 'Delay Mean Average', 'Delay Standard Deviation', 'Delay Maximum',
            'Delay Minimum', 'Delay Number Of Cars', 'Backup Mean Average', 'Backup Standard Deviation', 'Backup Maximum',
            'Backup Time', 'Kinetic Energy Waste Average', 'Kinetic Energy Waste Standard Deviation',
@@ -18,6 +18,7 @@ def main(all_results, wb_name):
     # save the workbook
     wb.save(wb_name)
     wb.close()
+    print("Saved to: ", wb_name)
 def write_spreadsheet(ws, headers, paths):
     headerTitles = []
     subheaders = []
@@ -36,7 +37,7 @@ def write_spreadsheet(ws, headers, paths):
     ws.append(subheaders)
     for j in range(len(splitters)):
         column = splitters[j] + j*(len(paths)-1)
-        #ws.merge_cells(start_row=1, start_column=column+1, end_row=1, end_column=column+len(paths))
+        ws.merge_cells(start_row=1, start_column=column+1, end_row=1, end_column=column+len(paths))
 
 def get_data(all_results):
     paths = []
@@ -61,6 +62,8 @@ def get_data(all_results):
         for line in merge_seeds:
             if uid == line[0]:
                 matching = True
+                line[2][headers.index('Number of Seeds')] += 1
+                line[2][headers.index("Number Of Vehicles Spawned")].append(entry[headers.index("Number Of Vehicles Spawned")][0])
                 for i in range(headers.index('Delay Mean Average'), headers.index('Backup Mean Average')):
                     line[2][i].append(entry[i][0])
                 for j in range(headers.index('Backup Mean Average'), headers.index('Kinetic Energy Waste Average')):
@@ -85,11 +88,17 @@ def get_entry(result):
     run_type = (result["RunType"])
     junction = (result["Junction"])[:-5]
     cpm = (result["CPM"])
+    nos = 1
     nvs = (result["Number Of Vehicles Spawned"])
+    print(nvs)
     if "AutonomousPercentage" in result:
         apt = (result["AutonomousPercentage"])
     else:
         apt = 0
+    if "SpawningChange" in result:
+        spc = (result["SpawningChange"])
+    else:
+        spc = "None"
     if "NetworkLatency" in result:
         nwl = (result["NetworkLatency"])
     else:
@@ -98,7 +107,7 @@ def get_entry(result):
         pkl = (result["PacketLoss"])
     else:
         pkl = 0
-    entry += [run_type,junction,cpm,nvs,apt,nwl,pkl]
+    entry += [run_type,junction,cpm,nos,[nvs],apt,spc,nwl,pkl]
     for path in list(result["Backup Mean Average"].keys()):
         paths.append(int(path))
     dma = (result["Delay Mean Average"])
@@ -121,7 +130,7 @@ def get_entry(result):
     kwd = (result["Kinetic Energy Waste Standard Deviation"])
     kwm = (result["Kinetic Energy Waste Maximum"])
     entry += [[kwa], [kwd], [kwm]]
-    uid = str(run_type)+str(junction)+str(cpm)+str(apt)+str(nwl)+str(pkl)
+    uid = str(run_type)+str(junction)+str(cpm)+str(apt)+str(spc)+str(nwl)+str(pkl)
     data = [uid, paths, entry]
     return data
 
