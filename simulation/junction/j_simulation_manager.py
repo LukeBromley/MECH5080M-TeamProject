@@ -22,10 +22,12 @@ from simulation.junction.j_simulation import Simulation
 
 class SimulationManager:
     def __init__(self, junction_file_path, config_file_path, visualiser_update_function=None):
+        self.action_index = None
         self.action_table = None
         self.junction_file_path = junction_file_path
         self.config_file_path = config_file_path
         self.visualiser_update_function = visualiser_update_function
+        self.step_index = 0
 
         # Simulations
         self.simulation = Simulation(self.junction_file_path, self.config_file_path, self.visualiser_update_function)
@@ -66,8 +68,9 @@ class SimulationManager:
         return simulation
 
     def reset(self, change_spawning: bool = False):
+        self.step_index = 0
         if change_spawning:
-            self.cars_per_minute = random.choice([6, 10, 14])
+            self.cars_per_minute = random.choice([3, 6, 12, 24])
             config_file_path = os.path.join(
                 os.path.dirname(os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))))),
                 "configurations",
@@ -128,6 +131,7 @@ class SimulationManager:
         return [index for index in range(len(self.action_table)) if index not in self.get_legal_actions()]
 
     def take_action(self, action_index):
+        self.action_index = action_index
         action = self.action_table[action_index]
         for light_index, light in enumerate(self.simulation.model.lights):
             if action[light_index] == 1:

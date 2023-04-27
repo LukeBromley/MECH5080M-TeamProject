@@ -82,6 +82,7 @@ class MachineLearning:
     def __init__(self, simulation_manager: SimulationManager, machine_learning_config=None, graph_num_episodes=20,
                  graph_max_step=30000, enable_graph: bool = False):
 
+        self.saved_model = None
         self.enable_graph = enable_graph
 
         # SIMULATION MANAGER
@@ -101,7 +102,8 @@ class MachineLearning:
         # TRAINING LIMITS
         self.max_episode_length_in_seconds = 60
         self.max_steps_per_episode = self.max_episode_length_in_seconds * self.simulation_manager.simulation.model.tick_rate  # Maximum number of steps allowed per episode
-        self.episode_end_reward = -float("inf")  # Single episode total reward minimum threshold to end episode. Should be low to allow exploration
+        self.episode_end_reward = -float(
+            "inf")  # Single episode total reward minimum threshold to end episode. Should be low to allow exploration
         self.solved_mean_reward = float("inf")  # Single episode total reward minimum threshold to consider ML trained
         self.max_mean_reward_solved = self.episode_end_reward
 
@@ -110,7 +112,7 @@ class MachineLearning:
         self.epsilon_greedy_min = 0.1  # Minimum probability of selecting a random action
         self.epsilon_greedy_max = 1.0  # Maximum probability of selecting a random action
         self.epsilon_greedy = self.epsilon_greedy_max  # Current probability of selecting a random action
-        self.temporal_difference_threshold = 0.7
+        self.temporal_difference_threshold = 0.4
 
         # Exploration
         # TODO: The algorithm should explore as many different scenarios as possible. It is quite clear that the learning
@@ -120,12 +122,12 @@ class MachineLearning:
         self.steps_to_skip = self.simulation_manager.simulation.model.tick_rate
 
         # Number of episode to consider for mean reward
-        self.reward_history_limit = 50
+        self.reward_history_limit = 15
         # Number of steps of just random actions before the network can make some decisions
         # TODO: Better than using episodes because the episode length can change which enables more uneven freeze
-        self.number_of_random_actions = 516
+        self.number_of_random_actions = 1000
         # Number of steps over which epsilon greedy decays
-        self.number_of_exploration_actions = self.number_of_random_actions + 15000
+        self.number_of_exploration_actions = self.number_of_random_actions + 20000
 
         # GRAPH
         if self.enable_graph:
@@ -136,7 +138,9 @@ class MachineLearning:
             self.graph.add_vline(int(self.temporal_difference_threshold * self.number_of_exploration_actions))
 
         # Train the model after 4 actions
-        self.update_after_actions = 4
+        self.update_after_actions = 5
+
+        self.update_target_after_actions = 5000
         # Penalty for collision
         self.collision_penalty = 1000
 
@@ -164,7 +168,7 @@ class MachineLearning:
 
         # OPTIMISING
         # Note: In the Deepmind paper they use RMSProp however then Adam optimizer TODO: Hyperparameter
-        self.learning_rate = 0.0001  # 0.00025
+        self.learning_rate = 0.000001  # 0.00025
         self.optimizer = keras.optimizers.legacy.Adam(learning_rate=self.learning_rate, clipnorm=1.0)
 
         # OTHER
@@ -173,7 +177,7 @@ class MachineLearning:
 
         # MACHINE LEARNING MODELS
         n = self.simulation_manager.observation_space_size
-        self.ml_model_hidden_layers = [64, 32, 8]
+        self.ml_model_hidden_layers = [128, 64, 16]
 
         # Change configurations to ones supplied in machine_learning_config
         if machine_learning_config is not None:
@@ -310,7 +314,7 @@ class MachineLearning:
                 self.number_of_actions_taken += 1
 
                 # Update
-                if self.number_of_actions_taken % self.update_after_actions == 0 and self.number_of_actions_taken > self.number_of_random_actions:
+                if self.number_of_actions_taken % self.update_after_actions == 0 and self.number_of_actions_taken > 2 * self.sample_size:
                     state_sample, state_next_sample, rewards_sample, action_sample = self.sample_replay_buffers()
 
                     # Create a mask so we only calculate loss on the updated Q-values
@@ -331,6 +335,17 @@ class MachineLearning:
                     self.optimizer.apply_gradients(zip(grads, self.ml_model.trainable_variables))
 
                 if (
+                        self.number_of_actions_taken % self.update_target_after_actions == 0 or
+                        self.get_mean_reward() > self.max_mean_reward_solved
+                ):
+                    # TODO: mean reward should contain as much information as possible about the last update of model
+                    if self.get_mean_reward() > self.max_mean_reward_solved:
+                        self.max_mean_reward_solved = self.get_mean_reward()
+                    self.ml_model_target.set_weights(self.ml_model.get_weights())
+                    self.ml_model_target.save("saved_model_" + junction_name)
+                    print(f'{tm.strftime("%H:%M:%S", tm.localtime())}  -  SavedModel recorded.')
+
+                if (
                         self.number_of_actions_taken > self.number_of_random_actions and
                         self.number_of_actions_taken % int(self.max_steps_per_episode / self.steps_to_skip) == 0
                 ):
@@ -340,14 +355,6 @@ class MachineLearning:
                     print(
                         f'{tm.strftime("%H:%M:%S", tm.localtime())}  ({junction_name})  -  {self.get_mean_reward():.2f} / {self.solved_mean_reward:.2f} at ε: {round(self.epsilon_greedy, 2)}; E: {self.episode_count}; A: {self.number_of_actions_taken}.')
 
-                    # TODO: Update at peak is not a good idea
-                    if self.get_mean_reward() > self.max_mean_reward_solved:
-                        # TODO: mean reward should contains as much information as possible about the last update of model
-                        self.max_mean_reward_solved = self.get_mean_reward()
-                        self.ml_model_target.set_weights(self.ml_model.get_weights())
-                        self.ml_model_target.save("saved_model_" + junction_name)
-                        print(f'{tm.strftime("%H:%M:%S", tm.localtime())}  -  SavedModel recorded.')
-
                 # Delete old buffer values
                 self.delete_old_replay_buffer_values()
 
@@ -356,6 +363,7 @@ class MachineLearning:
 
                 if done:
                     break
+
             self.update_reward_history(episode_reward / self.simulation_manager.simulation.number_of_vehicles_spawned)
             self.episode_count += 1
 
@@ -409,8 +417,12 @@ class MachineLearning:
             # TODO: Try model decision making enabled after exploration !!!
             # TODO: Could even use active learning with a pre-trained target_network weights
             # TODO: Taking action at random rather is worse than after half-way exploration
-            # if (self.number_of_actions_taken > self.temporal_difference_threshold * self.number_of_exploration_actions):
-            #     simulation_manager.take_action(self.select_action(simulation_manager.get_state(), target=True))
+            if (
+                    (
+                            self.number_of_actions_taken > self.temporal_difference_threshold * self.number_of_exploration_actions) and
+                    index % self.steps_to_skip
+            ):
+                simulation_manager.take_action(self.select_action(simulation_manager.get_state(), target=True))
 
             simulation_manager.simulation.compute_single_iteration()
 
@@ -433,7 +445,8 @@ class MachineLearning:
             action = self.select_best_action(state, target)
         else:
             # Exploration vs Exploitation
-            if self.number_of_actions_taken < self.number_of_random_actions or self.epsilon_greedy > np.random.rand(1)[0]:
+            if self.number_of_actions_taken < self.number_of_random_actions or self.epsilon_greedy > np.random.rand(1)[
+                0]:
                 # Take random action
                 action = self.select_random_action()
             else:
@@ -477,7 +490,8 @@ class MachineLearning:
 
     def update_epsilon_greedy(self):
         if self.epsilon_greedy >= self.epsilon_greedy_min:
-            self.epsilon_greedy -= (self.epsilon_greedy_max - self.epsilon_greedy_min) / self.number_of_exploration_actions
+            self.epsilon_greedy -= (
+                                           self.epsilon_greedy_max - self.epsilon_greedy_min) / self.number_of_exploration_actions
 
     def take_action(self, action_index):
         self.simulation_manager.take_action(action_index)
@@ -520,7 +534,6 @@ class MachineLearning:
         if len(self.rewards_history) > self.max_replay_buffer_length:
             del self.rewards_history[:1]
             del self.state_history[:1]
-            # del self.state_next_history[:1]
             del self.action_history[:1]
 
     def update_reward_history(self, reward: float):
@@ -530,10 +543,13 @@ class MachineLearning:
             self.episode_reward_history = [reward for _ in range(self.reward_history_limit)]
 
     def get_mean_reward(self):
-        if self.episode_count > 0:
+        if len(self.episode_reward_history) >= self.reward_history_limit:
             return np.mean(self.episode_reward_history[-self.reward_history_limit:])
-        else:
+        elif len(self.episode_reward_history) == 0:
             return -float("inf")
+        else:
+            mean_reward = np.mean(self.episode_reward_history)
+            self.episode_reward_history = [mean_reward for _ in range(self.reward_history_limit)]
 
     def solved(self, mean_reward):
         if mean_reward > self.solved_mean_reward:  # Condition to consider the task solved
@@ -546,11 +562,10 @@ class MachineLearning:
              human_drivers_visible: bool = True, network_latency: int = 0, packet_loss: float = 0):
 
         episode_reward = 0
-        episode_steps = 0
         tick_time = 1 / self.simulation_manager.simulation.model.tick_rate
 
         # Load the model
-        model = keras.models.load_model(model_file_path)
+        self.saved_model = keras.models.load_model(model_file_path)
 
         # Reset the environment
         self.simulation_manager.reset(change_spawning=True)
@@ -559,55 +574,42 @@ class MachineLearning:
         self.simulation_manager.packet_loss = packet_loss
         self.max_steps_per_episode = number_of_iterations
 
-        # simulation_manager_copy = self.create_simulation_manager_copy()
-        # for step in range(int(self.simulation_manager.simulation.model.tick_rate * self.simulation_manager.simulation.model.lights[0].red_amber_time)):
-        #     if episode_steps % (6 * self.simulation_manager.simulation.model.tick_rate) == 0 or episode_steps == 0:
-        #         action_probabilities = model(simulation_manager_copy.get_state().reshape(1, -1))[0].numpy()
-        #         action_index = np.nanargmax(action_probabilities)
-        #         simulation_manager_copy.take_action(action_index)
-        #     simulation_manager_copy.simulation.compute_single_iteration()
+        simulation_manager_copy = self.create_simulation_manager_copy()
+        lights = simulation_manager_copy.simulation.model.lights
+        for index in range(len(lights)):
+            lights[index].include_amber = False
 
+        for step in range(int(self.simulation_manager.simulation.model.tick_rate *
+                              self.simulation_manager.simulation.model.lights[0].red_amber_time)):
+            self.step_simulation(simulation_manager_copy)
+
+        episode_steps = 0
         # Run steps in episode
         while True:
             # Increment the total number of steps taken by the AI in total.
             episode_steps += 1
 
-            # if episode_steps % (6 * self.simulation_manager.simulation.model.tick_rate) == 0 or episode_steps == 0:
-            #     # TODO: Make amber_red allow traffic
-            #     self.predict(model, simulation_manager_copy)
-            #
-            #     # Remove illegal actions
-            #     action_probabilities = model(self.simulation_manager.get_state().reshape(1, -1))[0].numpy()
-            #     action_index = np.nanargmax(action_probabilities)
-            #
-            #     self.simulation_manager.take_action(action_index)
-            #     simulation_manager_copy.take_action(action_index)
-            #
-            # # Step the simulation
-            #
-            # self.simulation_manager.simulation.compute_single_iteration()
-            # simulation_manager_copy.simulation.compute_single_iteration()
-            # if episode_steps % (5 * self.simulation_manager.simulation.model.tick_rate) == 0 or episode_steps == 1:
-            action_probabilities = model(self.simulation_manager.get_state().reshape(1, -1), training=False)[0].numpy()
-            action_index = int(np.nanargmax(action_probabilities))
+            self.step_simulation(simulation_manager_copy)
+            for index, state in enumerate(self.simulation_manager.action_table[simulation_manager_copy.action_index]):
+                if state == 1:
+                    self.simulation_manager.simulation.model.lights[index].set_green()
 
-            self.step(action_index, td=False)
+            self.step_simulation(self.simulation_manager)
 
-            time.sleep(0.005)
+            time.sleep(0.05)
             if self.end_episode(episode_reward, episode_steps):
                 break
 
             sys.stdout.write("\r{0}s - step: {1}".format(str(round(episode_steps * tick_time, 1)), str(episode_steps)))
             sys.stdout.flush()
 
-    def predict(self, model: keras.Model, simulation_manager_copy: SimulationManager):
-        action_probabilities = model(simulation_manager_copy.get_state().reshape(1, -1))[0].numpy()
-        action_index = np.nanargmax(action_probabilities)
-        simulation_manager_copy.take_action(action_index)
-
-        for index, state in enumerate(self.simulation_manager.action_table[action_index]):
-            if state == 1:
-                self.simulation_manager.simulation.model.lights[index].set_green()
+    def step_simulation(self, simulation_manager: SimulationManager):
+        if simulation_manager.step_index % (5 * simulation_manager.simulation.model.tick_rate) == 0 or simulation_manager.step_index == 0:
+            action_probabilities = self.saved_model(simulation_manager.get_state().reshape(1, -1), training=False)[0].numpy()
+            action_index = np.nanargmax(action_probabilities)
+            simulation_manager.take_action(action_index)
+        simulation_manager.step_index += 1
+        simulation_manager.simulation.run_single_iteration()
 
     def save_model_weights(self, file_location, save_name):
         if os.path.isdir(file_location + "/" + save_name):
@@ -654,7 +656,7 @@ def main(junction_name: str = "simple_T_junction", enable_graph: bool = False, t
         simulation = SimulationManager(junction_file_path, configuration_file_path, visualiser_update_function)
         machine_learning = MachineLearning(simulation, machine_learning_config=None, enable_graph=False)
         # Visualiser Setup
-        visualiser.define_main(partial(machine_learning.test, 1500, "saved_model_" + junction_name))
+        visualiser.define_main(partial(machine_learning.test, 10000, "saved_model_" + junction_name))
         visualiser.load_junction(junction_file_path)
         visualiser.set_scale(scale)
         #
@@ -663,4 +665,4 @@ def main(junction_name: str = "simple_T_junction", enable_graph: bool = False, t
 
 
 if __name__ == "__main__":
-    main(junction_name="simple_T_junction", enable_graph=True, train=True)
+    main(junction_name="simple_T_junction", enable_graph=True, train=False)
