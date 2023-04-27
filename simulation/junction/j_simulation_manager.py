@@ -70,7 +70,7 @@ class SimulationManager:
     def reset(self, change_spawning: bool = False):
         self.step_index = 0
         if change_spawning:
-            self.cars_per_minute = random.choice([3, 6, 12, 24])
+            self.cars_per_minute = random.choice([6, 12, 24])
             config_file_path = os.path.join(
                 os.path.dirname(os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))))),
                 "configurations",
@@ -94,7 +94,7 @@ class SimulationManager:
         self.action_table = list(itertools.product([-1, 1], repeat=len(self.simulation.model.lights)))
 
         # TODO: indexes might change
-        self.action_table = [action for action in self.action_table if action.count(1) <= 2]
+        self.action_table = [action for action in self.action_table if action.count(1) <= 3]
         # self.action_table.pop(self.action_table.index(tuple([-1 for _ in self.simulation.model.lights])))
         # self.action_table.pop(self.action_table.index(tuple([1 for _ in self.simulation.model.lights])))
 
