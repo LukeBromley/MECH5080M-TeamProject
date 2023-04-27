@@ -102,8 +102,7 @@ class MachineLearning:
         # TRAINING LIMITS
         self.max_episode_length_in_seconds = 60
         self.max_steps_per_episode = self.max_episode_length_in_seconds * self.simulation_manager.simulation.model.tick_rate  # Maximum number of steps allowed per episode
-        self.episode_end_reward = -float(
-            "inf")  # Single episode total reward minimum threshold to end episode. Should be low to allow exploration
+        self.episode_end_reward = -float("inf")  # Single episode total reward minimum threshold to end episode. Should be low to allow exploration
         self.solved_mean_reward = float("inf")  # Single episode total reward minimum threshold to consider ML trained
         self.max_mean_reward_solved = self.episode_end_reward
 
@@ -112,7 +111,7 @@ class MachineLearning:
         self.epsilon_greedy_min = 0.1  # Minimum probability of selecting a random action
         self.epsilon_greedy_max = 1.0  # Maximum probability of selecting a random action
         self.epsilon_greedy = self.epsilon_greedy_max  # Current probability of selecting a random action
-        self.temporal_difference_threshold = 0.4
+        self.temporal_difference_threshold = 0.5
 
         # Exploration
         # TODO: The algorithm should explore as many different scenarios as possible. It is quite clear that the learning
@@ -127,7 +126,7 @@ class MachineLearning:
         # TODO: Better than using episodes because the episode length can change which enables more uneven freeze
         self.number_of_random_actions = 1000
         # Number of steps over which epsilon greedy decays
-        self.number_of_exploration_actions = self.number_of_random_actions + 20000
+        self.number_of_exploration_actions = self.number_of_random_actions + 50000
 
         # GRAPH
         if self.enable_graph:
@@ -153,7 +152,7 @@ class MachineLearning:
         self.episode_reward_history = []
 
         # Steps to look into the future to determine the mean reward. Should match n = 1/(1-gamma)
-        self.number_of_temporal_difference_steps = int(10 * self.simulation_manager.simulation.model.tick_rate)
+        self.number_of_temporal_difference_steps = int(7 * self.simulation_manager.simulation.model.tick_rate)
 
         # Discount factor TODO: Hyperparameter
         self.gamma = 0.95  # Discount factor for past rewards
@@ -168,7 +167,7 @@ class MachineLearning:
 
         # OPTIMISING
         # Note: In the Deepmind paper they use RMSProp however then Adam optimizer TODO: Hyperparameter
-        self.learning_rate = 0.000001  # 0.00025
+        self.learning_rate = 0.00001  # 0.00025
         self.optimizer = keras.optimizers.legacy.Adam(learning_rate=self.learning_rate, clipnorm=1.0)
 
         # OTHER
@@ -259,7 +258,7 @@ class MachineLearning:
         # self.graph.set_title(junction_name)
         mean_reward = 0
         while True:  # Run until solved
-            self.simulation_manager.reset(change_spawning=True)
+            self.simulation_manager.reset(change_spawning=False)
             episode_reward = 0
             episode_step = 0
 
@@ -334,16 +333,16 @@ class MachineLearning:
                     grads = tape.gradient(loss, self.ml_model.trainable_variables)
                     self.optimizer.apply_gradients(zip(grads, self.ml_model.trainable_variables))
 
-                if (
-                        self.number_of_actions_taken % self.update_target_after_actions == 0 or
-                        self.get_mean_reward() > self.max_mean_reward_solved
-                ):
-                    # TODO: mean reward should contain as much information as possible about the last update of model
                     if self.get_mean_reward() > self.max_mean_reward_solved:
                         self.max_mean_reward_solved = self.get_mean_reward()
+                        self.ml_model_target.save("saved_model_" + junction_name)
+                        print(f'{tm.strftime("%H:%M:%S", tm.localtime())}  -  SavedModel recorded.')
+
+                if (
+                        self.number_of_actions_taken % self.update_target_after_actions == 0
+                ):
                     self.ml_model_target.set_weights(self.ml_model.get_weights())
-                    self.ml_model_target.save("saved_model_" + junction_name)
-                    print(f'{tm.strftime("%H:%M:%S", tm.localtime())}  -  SavedModel recorded.')
+                    print(f'{tm.strftime("%H:%M:%S", tm.localtime())}  -  TargetModel updated.')
 
                 if (
                         self.number_of_actions_taken > self.number_of_random_actions and
@@ -565,7 +564,7 @@ class MachineLearning:
         self.saved_model = keras.models.load_model(model_file_path)
 
         # Reset the environment
-        self.simulation_manager.reset(change_spawning=True)
+        self.simulation_manager.reset(change_spawning=False)
         self.simulation_manager.human_drivers_visible = human_drivers_visible
         self.simulation_manager.network_latency = network_latency
         self.simulation_manager.packet_loss = packet_loss
