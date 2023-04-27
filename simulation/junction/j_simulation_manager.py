@@ -44,8 +44,8 @@ class SimulationManager:
         # Inputs / States
         self.features_per_vehicle_state = 4
         self.features_per_traffic_light_state = 0
-        self.number_of_tracked_vehicles_per_light_controlled_path = 6
-        self.number_of_tracked_vehicles_per_light_path = 2
+        self.number_of_tracked_vehicles_per_light_controlled_path = 5
+        self.number_of_tracked_vehicles_per_light_path = 1
         self.observation_space_size = self.features_per_vehicle_state * (
                 len(self.light_controlled_path_uids) * self.number_of_tracked_vehicles_per_light_controlled_path +
                 len(self.light_path_uids) * self.number_of_tracked_vehicles_per_light_path
@@ -67,7 +67,7 @@ class SimulationManager:
 
     def reset(self, change_spawning: bool = False):
         if change_spawning:
-            self.cars_per_minute = random.choice([3, 6, 12])
+            self.cars_per_minute = random.choice([6, 10, 14])
             config_file_path = os.path.join(
                 os.path.dirname(os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))))),
                 "configurations",
@@ -84,8 +84,6 @@ class SimulationManager:
         while len(self.network_latency_buffer) < self.network_latency:
             self.network_latency_buffer.append(self.simulation)
             self.simulation.compute_single_iteration()
-
-        return self.get_state()
 
     def calculate_actions(self):
         # TODO: Sparse actions
@@ -141,11 +139,12 @@ class SimulationManager:
 
     def get_vehicle_state(self, vehicle: Vehicle, simulation):
         # x, y = self.simulation.model.get_vehicle_coordinates(vehicle.uid)
+        # TODO: Use max values for normalisation from config
         return [
             vehicle.get_route_uid(),
-            vehicle.get_route_distance_travelled(),
-            vehicle.get_speed(),
-            simulation.model.get_delay(vehicle.uid)
+            vehicle.get_route_distance_travelled() / 50,
+            vehicle.get_speed() / 15,
+            simulation.model.get_delay(vehicle.uid) / 120
             # x,
             # y
             # vehicle.wait_time,
@@ -181,31 +180,27 @@ class SimulationManager:
                     route = self.simulation.model.get_route(vehicle.get_route_uid())
                     path_uid = route.get_path_uid(vehicle.get_path_index())
                     if path_uid in self.light_controlled_path_uids:
-                        path_inputs[self.light_controlled_path_uids.index(path_uid)].append(
-                            self.get_vehicle_state(vehicle,
-                                                   simulation))  # TODO: use if route_uid is disabled #+ [path_uid])
+                        path_inputs[self.light_controlled_path_uids.index(path_uid)].append(self.get_vehicle_state(vehicle, simulation))  # TODO: use if route_uid is disabled #+ [path_uid])
 
         # Sort and flatten the inputs by distance travelled
         for index, path_input in enumerate(path_inputs):
             # Sorted adds more weight to the neural inputs of vehicles close to the traffic light
             sorted_path_input = sorted(path_input, key=lambda features: features[1], reverse=True)
-            print([feature[1] for feature in path_input])
-
             flattened_path_input = list(chain.from_iterable(sorted_path_input))
             path_inputs[index] = flattened_path_input
 
         for index, path_input in enumerate(path_inputs):
             if index < len(self.light_controlled_path_uids) - len(self.light_path_uids):
-                inputs += self.pad_state_input(path_input, self.number_of_tracked_vehicles_per_light_controlled_path)
+                inputs += self.pad_state_input(path_input, index, self.number_of_tracked_vehicles_per_light_controlled_path)
             else:
-                inputs += self.pad_state_input(path_input, self.number_of_tracked_vehicles_per_light_path)
+                inputs += self.pad_state_input(path_input, index, self.number_of_tracked_vehicles_per_light_path)
         return np.array(inputs)
 
-    def pad_state_input(self, state_input: list, n: int):
+    def pad_state_input(self, state_input: list, path_index: int, n: int):
         if len(state_input) > self.features_per_vehicle_state * n:
             state_input = state_input[:self.features_per_vehicle_state * n]
         else:
-            state_input += [0.0] * (self.features_per_vehicle_state * n - len(state_input))
+            state_input += [0, 0.0, 0.0, 0.0] * (n - int(len(state_input) / self.features_per_vehicle_state))
 
         # # TODO: Implement shuffling
         # tupled_state_input = []
@@ -235,7 +230,7 @@ class SimulationManager:
 
     def get_state_value(self):
         # TODO: unsquare and add - (speed ** 2)
-        return sum([self.simulation.model.get_delay(vehicle.uid) ** 2 for vehicle in self.simulation.model.vehicles if vehicle.get_path_index() == 0])
+        return sum([self.simulation.model.get_delay(vehicle.uid) ** 2 - vehicle.get_speed() for vehicle in self.simulation.model.vehicles if vehicle.get_path_index() == 0])
 
     def get_sum_wait_time(self):
         return sum([vehicle.wait_time for vehicle in self.simulation.model.vehicles])

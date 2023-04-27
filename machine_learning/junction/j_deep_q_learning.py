@@ -110,7 +110,7 @@ class MachineLearning:
         self.epsilon_greedy_min = 0.1  # Minimum probability of selecting a random action
         self.epsilon_greedy_max = 1.0  # Maximum probability of selecting a random action
         self.epsilon_greedy = self.epsilon_greedy_max  # Current probability of selecting a random action
-        self.temporal_difference_threshold = 0.75
+        self.temporal_difference_threshold = 0.7
 
         # Exploration
         # TODO: The algorithm should explore as many different scenarios as possible. It is quite clear that the learning
@@ -123,9 +123,9 @@ class MachineLearning:
         self.reward_history_limit = 50
         # Number of steps of just random actions before the network can make some decisions
         # TODO: Better than using episodes because the episode length can change which enables more uneven freeze
-        self.number_of_random_actions = 5000
+        self.number_of_random_actions = 500
         # Number of steps over which epsilon greedy decays
-        self.number_of_exploration_actions = 100000
+        self.number_of_exploration_actions = self.number_of_random_actions + 10000
 
         # GRAPH
         if self.enable_graph:
@@ -136,7 +136,7 @@ class MachineLearning:
             self.graph.add_vline(int(self.temporal_difference_threshold * self.number_of_exploration_actions))
 
         # Train the model after 4 actions
-        self.update_after_actions = 4
+        self.update_after_actions = 5
         # Penalty for collision
         self.collision_penalty = 1000
 
@@ -152,7 +152,7 @@ class MachineLearning:
         self.number_of_temporal_difference_steps = int(10 * self.simulation_manager.simulation.model.tick_rate)
 
         # Discount factor TODO: Hyperparameter
-        self.gamma = 0.96  # Discount factor for past rewards
+        self.gamma = 0.97  # Discount factor for past rewards
 
         # Sample Size
         # TODO: Implement soft update
@@ -164,7 +164,7 @@ class MachineLearning:
 
         # OPTIMISING
         # Note: In the Deepmind paper they use RMSProp however then Adam optimizer TODO: Hyperparameter
-        self.learning_rate = 0.00005  # 0.00025
+        self.learning_rate = 0.00001  # 0.00025
         self.optimizer = keras.optimizers.legacy.Adam(learning_rate=self.learning_rate, clipnorm=1.0)
 
         # OTHER
@@ -173,7 +173,7 @@ class MachineLearning:
 
         # MACHINE LEARNING MODELS
         n = self.simulation_manager.observation_space_size
-        self.ml_model_hidden_layers = [2*n, n, len(self.simulation_manager.action_table)]
+        self.ml_model_hidden_layers = [n, int(n/2), len(self.simulation_manager.action_table)]
 
         # Change configurations to ones supplied in machine_learning_config
         if machine_learning_config is not None:
@@ -310,8 +310,7 @@ class MachineLearning:
                 self.number_of_actions_taken += 1
 
                 # Update
-                if self.number_of_actions_taken % self.update_after_actions == 0 and len(
-                        self.done_history) > self.sample_size:
+                if self.number_of_actions_taken % self.update_after_actions == 0 and self.number_of_actions_taken > self.number_of_random_actions:
                     state_sample, state_next_sample, rewards_sample, action_sample = self.sample_replay_buffers()
 
                     # Create a mask so we only calculate loss on the updated Q-values
@@ -339,7 +338,7 @@ class MachineLearning:
                     if self.enable_graph:
                         self.graph.update(self.number_of_actions_taken, self.get_mean_reward())
                     print(
-                        f'{tm.strftime("%H:%M:%S", tm.localtime())}  ({junction_name})  -  {self.get_mean_reward():.2f} / {self.solved_mean_reward:.2f} at episode {self.episode_count}; action count: {self.number_of_actions_taken}.')
+                        f'{tm.strftime("%H:%M:%S", tm.localtime())}  ({junction_name})  -  {self.get_mean_reward():.2f} / {self.solved_mean_reward:.2f} at ε: {round(self.epsilon_greedy, 2)}; E: {self.episode_count}; A: {self.number_of_actions_taken}.')
 
                     # TODO: Update at peak is not a good idea
                     if self.get_mean_reward() > self.max_mean_reward_solved:
@@ -410,10 +409,7 @@ class MachineLearning:
             # TODO: Try model decision making enabled after exploration !!!
             # TODO: Could even use active learning with a pre-trained target_network weights
             # TODO: Taking action at random rather is worse than after half-way exploration
-            if (
-                    self.number_of_actions_taken > self.temporal_difference_threshold * self.number_of_exploration_actions and
-                    index % self.steps_to_skip == 0
-            ):
+            if (self.number_of_actions_taken > self.temporal_difference_threshold * self.number_of_exploration_actions):
                 simulation_manager.take_action(self.select_action(simulation_manager.get_state(), target=True))
 
             simulation_manager.simulation.compute_single_iteration()
@@ -437,15 +433,15 @@ class MachineLearning:
             action = self.select_best_action(state, target)
         else:
             # Exploration vs Exploitation
-            if self.number_of_actions_taken < self.number_of_random_actions or self.epsilon_greedy > np.random.rand(1)[
-                0]:
+            if self.number_of_actions_taken < self.number_of_random_actions or self.epsilon_greedy > np.random.rand(1)[0]:
                 # Take random action
                 action = self.select_random_action()
             else:
                 # Take best action
                 action = self.select_best_action(state)
 
-            self.update_epsilon_greedy()
+            if self.number_of_actions_taken > self.number_of_random_actions:
+                self.update_epsilon_greedy()
         return action
 
     def select_random_action(self):
@@ -481,8 +477,7 @@ class MachineLearning:
 
     def update_epsilon_greedy(self):
         if self.epsilon_greedy >= self.epsilon_greedy_min:
-            self.epsilon_greedy -= (
-                                           self.epsilon_greedy_max - self.epsilon_greedy_min) / self.number_of_exploration_actions
+            self.epsilon_greedy -= (self.epsilon_greedy_max - self.epsilon_greedy_min) / self.number_of_exploration_actions
 
     def take_action(self, action_index):
         self.simulation_manager.take_action(action_index)
@@ -518,7 +513,7 @@ class MachineLearning:
         return state_sample, state_next_sample, rewards_sample, action_sample
 
     def get_sample_replay_buffer_indices(self):
-        return np.random.choice(range(len(self.done_history)), size=self.sample_size)
+        return np.random.choice(range(len(self.action_history)), size=self.sample_size)
 
     def delete_old_replay_buffer_values(self):
         # Limit the state and reward history
@@ -593,9 +588,9 @@ class MachineLearning:
             #
             # self.simulation_manager.simulation.compute_single_iteration()
             # simulation_manager_copy.simulation.compute_single_iteration()
-            if episode_steps % (5 * self.simulation_manager.simulation.model.tick_rate) == 0 or episode_steps == 1:
-                action_probabilities = model(self.simulation_manager.get_state().reshape(1, -1), training=False)[0].numpy()
-                action_index = int(np.nanargmax(action_probabilities))
+            # if episode_steps % (5 * self.simulation_manager.simulation.model.tick_rate) == 0 or episode_steps == 1:
+            action_probabilities = model(self.simulation_manager.get_state().reshape(1, -1), training=False)[0].numpy()
+            action_index = int(np.nanargmax(action_probabilities))
 
             self.step(action_index, td=False)
 
@@ -669,4 +664,4 @@ def main(junction_name: str = "simple_T_junction", enable_graph: bool = False, t
 
 
 if __name__ == "__main__":
-    main(junction_name="scale_library_pub_junction", enable_graph=True, train=False)
+    main(junction_name="simple_T_junction", enable_graph=True, train=False)
