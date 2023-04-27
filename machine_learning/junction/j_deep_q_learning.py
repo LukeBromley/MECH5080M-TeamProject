@@ -669,4 +669,4 @@ def main(junction_name: str = "simple_T_junction", enable_graph: bool = False, t
 
 
 if __name__ == "__main__":
-    main(junction_name="scale_library_pub_junction", enable_graph=False, train=True)
+    main(junction_name="scale_library_pub_junction", enable_graph=True, train=False)

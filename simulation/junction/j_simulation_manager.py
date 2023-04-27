@@ -67,7 +67,7 @@ class SimulationManager:
 
     def reset(self, change_spawning: bool = False):
         if change_spawning:
-            self.cars_per_minute = random.choice([6, 12, 24])
+            self.cars_per_minute = random.choice([3, 6, 12])
             config_file_path = os.path.join(
                 os.path.dirname(os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))))),
                 "configurations",
@@ -188,7 +188,9 @@ class SimulationManager:
         # Sort and flatten the inputs by distance travelled
         for index, path_input in enumerate(path_inputs):
             # Sorted adds more weight to the neural inputs of vehicles close to the traffic light
-            sorted_path_input = sorted(path_input, key=lambda features: features[0], reverse=True)
+            sorted_path_input = sorted(path_input, key=lambda features: features[1], reverse=True)
+            print([feature[1] for feature in path_input])
+
             flattened_path_input = list(chain.from_iterable(sorted_path_input))
             path_inputs[index] = flattened_path_input
 
