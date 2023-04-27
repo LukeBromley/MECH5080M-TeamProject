@@ -32,7 +32,8 @@ for index, junction in enumerate(junctions):
                 "CPM": (round(60 / spawn_time_delta_value, 2)),
                 "HumanDriversVisible": human_drivers_visible,
                 "NetworkLatency": network_latency,
-                "PacketLoss": packet_loss_perc
+                "PacketLoss": packet_loss_perc,
+                "SpawningChange": "even"
             }
 
             uid += 1
@@ -47,6 +48,7 @@ save_plan_file_name = "../testing_plans/ml_control_uneven_spawning.plan"
 junctions = ["simple_T_junction.junc", "simple_X_junction.junc"]
 ml_model = ["saved_model_simple_T_junction", "saved_model_simple_X_junction"]
 config_folders = [["simple_T/bottom/", "simple_T/side/"], ["simple_X/single/", "simple_X/double/"]]
+spawning_change = [["bottom", "side"], ["single", "double"]]
 random_seed_values = [1788621521, 1774553582, 1490597230, 997415346, 1433874439]
 spawn_time_delta_values = [90, 60, 45, 30, 20, 15, 10, 5, 4, 3, 2]
 
@@ -58,8 +60,8 @@ packet_loss_perc = 0
 plan = {}
 uid = 0
 
-for index, junction in enumerate(junctions):
-    for config_folder in config_folders[index]:
+for junction_index, junction in enumerate(junctions):
+    for spawning_change_index, config_folder in enumerate(config_folders[junction_index]):
         for random_seed_value in random_seed_values:
             for spawn_time_delta_value in spawn_time_delta_values:
 
@@ -68,13 +70,14 @@ for index, junction in enumerate(junctions):
                     "RunType": "junction",
                     "Junction": junction,
                     "SimulationConfig": "final_testing/uneven_spawning/" + config_folder + "seed_" + str(random_seed_value) + "/" + str(round(60 / spawn_time_delta_value, 2)) + "cpm.config",
-                    "MachineLearningModel": ml_model[index],
+                    "MachineLearningModel": ml_model[junction_index],
                     "Steps": steps,
                     "RandomSeed": random_seed_value,
                     "CPM": (round(60 / spawn_time_delta_value, 2)),
                     "HumanDriversVisible": human_drivers_visible,
                     "NetworkLatency": network_latency,
-                    "PacketLoss": packet_loss_perc
+                    "PacketLoss": packet_loss_perc,
+                    "SpawningChange": spawning_change[junction_index][spawning_change_index]
                 }
 
                 uid += 1

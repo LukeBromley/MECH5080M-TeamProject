@@ -19,6 +19,7 @@ def main(all_results, wb_name):
     wb.save(wb_name)
     wb.close()
     print("Saved to: ", wb_name)
+
 def write_spreadsheet(ws, headers, paths):
     headerTitles = []
     subheaders = []
@@ -91,8 +92,8 @@ def get_entry(result):
     cpm = (result["CPM"])
     nos = 1
     nvs = (result["Number Of Vehicles Spawned"])
-    if 'Collision Ticks' in result:
-        ctk = (result['Collision Ticks'])
+    if 'CollisionTicks' in result:
+        ctk = (result['CollisionTicks'])
     else:
         ctk = 0
     if "AutonomousPercentage" in result:
