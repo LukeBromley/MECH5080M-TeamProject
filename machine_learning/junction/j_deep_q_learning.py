@@ -570,25 +570,11 @@ class MachineLearning:
         self.simulation_manager.packet_loss = packet_loss
         self.max_steps_per_episode = number_of_iterations
 
-        simulation_manager_copy = self.create_simulation_manager_copy()
-        lights = simulation_manager_copy.simulation.model.lights
-        for index in range(len(lights)):
-            lights[index].include_amber = False
-
-        for step in range(int(self.simulation_manager.simulation.model.tick_rate *
-                              self.simulation_manager.simulation.model.lights[0].red_amber_time)):
-            self.step_simulation(simulation_manager_copy)
-
         episode_steps = 0
         # Run steps in episode
         while True:
             # Increment the total number of steps taken by the AI in total.
             episode_steps += 1
-
-            self.step_simulation(simulation_manager_copy)
-            for index, state in enumerate(self.simulation_manager.action_table[simulation_manager_copy.action_index]):
-                if state == 1:
-                    self.simulation_manager.simulation.model.lights[index].set_green()
 
             self.step_simulation(self.simulation_manager)
 
@@ -660,4 +646,4 @@ def main(junction_name: str = "simple_T_junction", enable_graph: bool = False, t
 
 
 if __name__ == "__main__":
-    main(junction_name="simple_T_junction", enable_graph=True, train=True)
+    main(junction_name="simple_T_junction", enable_graph=True, train=False)
