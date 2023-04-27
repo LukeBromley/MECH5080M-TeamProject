@@ -33,8 +33,21 @@ class Simulation:
         self.collision = False
         self.number_of_vehicles_spawned = 0
 
+        self.freeze_traffic()
+
         # Visualiser
         self.visualiser_update_function = visualiser_update_function
+
+    def freeze_traffic(self, n: int = None):
+        if n is None:
+            n = random.randint(5, 20)
+
+        for light in self.model.lights:
+            if random.random() > 0.75:
+                light.set_red()
+
+        for step in range(n * self.model.tick_rate):
+            self.compute_single_iteration()
 
     def run_continuous(self, speed_multiplier=None):
         for tick in range(self.model.config.simulation_duration):
@@ -48,7 +61,6 @@ class Simulation:
         # Update visualiser
         if self.visualiser_update_function is not None:
             self.visualiser_update_function(self.vehicle_data, self.model.lights, self.model.calculate_time_of_day(), self.collision)
-            sleep(0.05)
 
     def compute_single_iteration(self):
         # Spawn vehicles

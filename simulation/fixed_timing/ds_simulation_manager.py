@@ -4,6 +4,7 @@ if system() == 'Windows':
     sys.path.append('../')
 
 import os
+import sys
 from functools import partial
 from time import sleep
 
@@ -91,9 +92,10 @@ class SimulationManager:
         self.action_duration = action_duration
         self.action_paths = action_paths
 
+        episode_step = 0
         for i in range(number_of_iterations):
+            episode_step += 1
             self.take_action(self.actions[self.current_action_index])
-
             self.simulation.run_single_iteration()
 
             if visualiser_delay:
@@ -126,6 +128,8 @@ class SimulationManager:
                 self.intermdiary_action_counter += 1
                 if self.intermdiary_action_counter > 30:
                     self.intermdiary_action = False
+            sys.stdout.write("\r{0} / {1}".format(str(episode_step), str(number_of_iterations)))
+            sys.stdout.flush()
 
     def check_demand(self):
         for action_index, path_uids in enumerate(self.action_paths):
