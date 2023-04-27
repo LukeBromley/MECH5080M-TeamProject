@@ -37,7 +37,7 @@ class TrainedModelTester:
         :param file_path: Path of the file used to run tests
         :return: None
         """
-        self.get_testing_runs(file_path)
+        self.get_testing_runs(file_path) #("testing_plans/"+file_path)
         # Create test results director
         self.output_directory_path = (self.get_file_path(["results", (file_path[:-5] + "_TESTED")]))
         counter = 1
