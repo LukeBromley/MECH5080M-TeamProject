@@ -91,7 +91,10 @@ def get_entry(result):
     cpm = (result["CPM"])
     nos = 1
     nvs = (result["Number Of Vehicles Spawned"])
-    ctk = (result['Collision Ticks'])
+    if 'Collision Ticks' in result:
+        ctk = (result['Collision Ticks'])
+    else:
+        ctk = 0
     if "AutonomousPercentage" in result:
         apt = (result["AutonomousPercentage"])
     else:
