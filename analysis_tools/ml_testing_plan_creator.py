@@ -22,7 +22,8 @@ for index, junction in enumerate(junctions):
         for spawn_time_delta_value in spawn_time_delta_values:
 
             plan[str(uid)] = {
-                "RunUID": "ML_EvenSpawning_AllAI_StableNet_junction_" + str(junction) + "_seed_" + str(random_seed_value) + "_spawn_rate_" + str(round(60 / spawn_time_delta_value, 2)) + "cpm",
+
+                "RunUID": "ML_even_spawning_junction_" + junction[:-5] + "_seed_" + str(random_seed_value) + "_spawn_rate_" + str(round(60 / spawn_time_delta_value, 2)) + "cpm",
                 "RunType": "junction",
                 "Junction": junction,
                 "SimulationConfig": "final_testing/even_spawning/autonomous/seed_" + str(random_seed_value) + "/" + str(round(60 / spawn_time_delta_value, 2)) + "cpm.config",
@@ -66,7 +67,7 @@ for junction_index, junction in enumerate(junctions):
             for spawn_time_delta_value in spawn_time_delta_values:
 
                 plan[str(uid)] = {
-                    "RunUID": "ML_UnevenSpawning_AllAI_StableNet_junction_" + str(junction) + "_seed_" + str(random_seed_value) + "_spawn_rate_" + str(round(60 / spawn_time_delta_value, 2)) + "cpm",
+                    "RunUID": "ML_uneven_spawning_spawn_change_" + str(spawning_change[junction_index][spawning_change_index]) + "_junction_" + junction[:-5] + "_seed_" + str(random_seed_value) + "_spawn_rate_" + str(round(60 / spawn_time_delta_value, 2)) + "cpm",
                     "RunType": "junction",
                     "Junction": junction,
                     "SimulationConfig": "final_testing/uneven_spawning/" + config_folder + "seed_" + str(random_seed_value) + "/" + str(round(60 / spawn_time_delta_value, 2)) + "cpm.config",
@@ -108,7 +109,7 @@ for autonomous_percentage_value in autonomous_percentage_values:
         for spawn_time_delta_value in spawn_time_delta_values:
 
             plan[str(uid)] = {
-                "RunUID": "ML_EvenSpawning_MixedDriver_StableNet_autonomous_perc_" + str(autonomous_percentage_value) + "_seed_" + str(random_seed_value) + "_spawn_rate_" + str(round(60/spawn_time_delta_value, 2)) + "cpm",
+                "RunUID": "ML_even_spawning_autonomous_perc_" + str(autonomous_percentage_value) + "_seed_" + str(random_seed_value) + "_spawn_rate_" + str(round(60/spawn_time_delta_value, 2)) + "cpm",
                 "RunType": "junction",
                 "Junction": junctions[0],
                 "SimulationConfig": "final_testing/mixed_driver_type/" + str(autonomous_percentage_value) + "_perc_autonomous/seed_" + str(random_seed_value) + "/" + str(round(60/spawn_time_delta_value, 2)) + "cpm.config",
@@ -119,7 +120,8 @@ for autonomous_percentage_value in autonomous_percentage_values:
                 "HumanDriversVisible": human_drivers_visible,
                 "AutonomousPercentage": autonomous_percentage_value,
                 "NetworkLatency": network_latency,
-                "PacketLoss": packet_loss_perc
+                "PacketLoss": packet_loss_perc,
+                "SpawningChange": "even"
             }
 
             uid += 1
@@ -150,7 +152,7 @@ for latency in network_latency:
         for spawn_time_delta_value in spawn_time_delta_values:
 
             plan[str(uid)] = {
-                "RunUID": "ML_EvenSpawning_AllAI_LatencyNet_latency_" + str(latency) + "_seed_" + str(random_seed_value) + "_spawn_rate_" + str(round(60 / spawn_time_delta_value, 2)) + "cpm",
+                "RunUID": "ML_even_spawning_latency_" + str(latency) + "_seed_" + str(random_seed_value) + "_spawn_rate_" + str(round(60 / spawn_time_delta_value, 2)) + "cpm",
                 "RunType": "junction",
                 "Junction": junctions[0],
                 "SimulationConfig": "final_testing/even_spawning/autonomous/seed_" + str(random_seed_value) + "/" + str(round(60 / spawn_time_delta_value, 2)) + "cpm.config",
@@ -160,7 +162,8 @@ for latency in network_latency:
                 "CPM": (round(60 / spawn_time_delta_value, 2)),
                 "HumanDriversVisible": human_drivers_visible,
                 "NetworkLatency": latency,
-                "PacketLoss": packet_loss_perc
+                "PacketLoss": packet_loss_perc,
+                "SpawningChange": "even"
             }
 
             uid += 1
@@ -192,7 +195,7 @@ for packet_loss in packet_loss_perc:
         for spawn_time_delta_value in spawn_time_delta_values:
 
             plan[str(uid)] = {
-                "RunUID": "ML_EvenSpawning_AllAI_PacketLossNet_packet_loss_" + str(packet_loss) + "_seed_" + str(random_seed_value) + "_spawn_rate_" + str(round(60 / spawn_time_delta_value, 2)) + "cpm",
+                "RunUID": "ML_even_spawning_packet_loss_" + str(packet_loss) + "_seed_" + str(random_seed_value) + "_spawn_rate_" + str(round(60 / spawn_time_delta_value, 2)) + "cpm",
                 "RunType": "junction",
                 "Junction": junctions[0],
                 "SimulationConfig": "final_testing/even_spawning/autonomous/seed_" + str(random_seed_value) + "/" + str(round(60 / spawn_time_delta_value, 2)) + "cpm.config",
@@ -202,7 +205,8 @@ for packet_loss in packet_loss_perc:
                 "CPM": (round(60 / spawn_time_delta_value, 2)),
                 "HumanDriversVisible": human_drivers_visible,
                 "NetworkLatency": network_latency,
-                "PacketLoss": packet_loss
+                "PacketLoss": packet_loss,
+                "SpawningChange": "even"
             }
 
             uid += 1
