@@ -70,7 +70,7 @@ class SimulationManager:
     def reset(self, change_spawning: bool = False):
         self.step_index = 0
         if change_spawning:
-            self.cars_per_minute = random.choice([6, 12, 24])
+            self.cars_per_minute = random.choice([48])
             config_file_path = os.path.join(
                 os.path.dirname(os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))))),
                 "configurations",
