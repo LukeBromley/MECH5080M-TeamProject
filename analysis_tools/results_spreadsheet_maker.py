@@ -1,11 +1,11 @@
 import openpyxl
 
 # write headers to first row
-headers = ['Run Type', 'Junction', 'CPM', 'Number of Seeds', "Number Of Vehicles Spawned", 'Autonomous Percentage', 'Spawning Change', 'Network Latency',
-           'Packet Loss Probability', 'Delay Mean Average', 'Delay Standard Deviation', 'Delay Maximum',
+headers = ['Run Type', 'Junction', 'CPM', 'Number of Seeds', "Number Of Vehicles Spawned", 'Collision Ticks', 'Autonomous Percentage',
+           'Spawning Change', 'Network Latency', 'Packet Loss Probability', 'Delay Mean Average', 'Delay Standard Deviation', 'Delay Maximum',
            'Delay Minimum', 'Delay Number Of Cars', 'Backup Mean Average', 'Backup Standard Deviation', 'Backup Maximum',
-           'Backup Time', 'Kinetic Energy Waste Average', 'Kinetic Energy Waste Standard Deviation',
-           'Kinetic Energy Waste Maximum']
+           'Backup Time', 'Kinetic Energy Waste Average', 'Kinetic Energy Waste Standard Deviation','Kinetic Energy Waste Maximum']
+
 def main(all_results, wb_name):
     # create a new workbook
     wb = openpyxl.Workbook()
@@ -64,6 +64,7 @@ def get_data(all_results):
                 matching = True
                 line[2][headers.index('Number of Seeds')] += 1
                 line[2][headers.index("Number Of Vehicles Spawned")].append(entry[headers.index("Number Of Vehicles Spawned")][0])
+                line[2][headers.index("Collision Ticks")].append(entry[headers.index('Collision Ticks')][0])
                 for i in range(headers.index('Delay Mean Average'), headers.index('Backup Mean Average')):
                     line[2][i].append(entry[i][0])
                 for j in range(headers.index('Backup Mean Average'), headers.index('Kinetic Energy Waste Average')):
@@ -90,7 +91,7 @@ def get_entry(result):
     cpm = (result["CPM"])
     nos = 1
     nvs = (result["Number Of Vehicles Spawned"])
-    print(nvs)
+    ctk = (result['Collision Ticks'])
     if "AutonomousPercentage" in result:
         apt = (result["AutonomousPercentage"])
     else:
@@ -107,7 +108,7 @@ def get_entry(result):
         pkl = (result["PacketLoss"])
     else:
         pkl = 0
-    entry += [run_type,junction,cpm,nos,[nvs],apt,spc,nwl,pkl]
+    entry += [run_type,junction,cpm,nos,[nvs],[ctk],apt,spc,nwl,pkl]
     for path in list(result["Backup Mean Average"].keys()):
         paths.append(int(path))
     dma = (result["Delay Mean Average"])
