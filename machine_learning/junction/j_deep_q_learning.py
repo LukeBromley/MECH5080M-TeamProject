@@ -80,7 +80,7 @@ class MachineLearning:
         self.all_time_reward = 0  # Total reward over all episodes
 
         # TRAINING LIMITS
-        self.max_episode_length_in_seconds = 30
+        self.max_episode_length_in_seconds = 60
         self.max_steps_per_episode = self.max_episode_length_in_seconds * self.simulation_manager.simulation.model.tick_rate  # Maximum number of steps allowed per episode
         self.episode_end_reward = -float("inf")  # Single episode total reward minimum threshold to end episode. Should be low to allow exploration
         self.solved_mean_reward = float("inf")  # Single episode total reward minimum threshold to consider ML trained
@@ -99,7 +99,7 @@ class MachineLearning:
         #  curve is much steering during exploration as compared to exploitation.
 
         # Number of steps of just random actions before the network can make some decisions
-        self.number_of_steps_of_required_exploration = 5000
+        self.number_of_steps_of_required_exploration = 1000
         # Number of steps over which epsilon greedy decays
         self.number_of_steps_of_exploration_reduction = 50000
         # Train the model after 4 actions
@@ -121,7 +121,7 @@ class MachineLearning:
 
         # Steps to look into the future to determine the mean reward. Should match T = 1/(1-gamma)
         self.number_of_temporal_difference_steps = 5 * self.simulation_manager.simulation.model.tick_rate
-
+        self.frames_to_skip = self.simulation_manager.simulation.model.tick_rate
         # Sample Size
         # TODO: Implement soft update
         self.sample_size = 124  # Size of batch taken from replay buffer
@@ -135,7 +135,7 @@ class MachineLearning:
 
         # OPTIMISING
         # Note: In the Deepmind paper they use RMSProp however then Adam optimizer
-        self.learning_rate = 0.0001  # 0.00025
+        self.learning_rate = 0.00001  # 0.00025
         self.optimizer = keras.optimizers.legacy.Adam(learning_rate=self.learning_rate, clipnorm=1.0)
 
         # OTHER
@@ -144,7 +144,7 @@ class MachineLearning:
 
         # MACHINE LEARNING MODELS
         n = len(self.simulation_manager.action_table)
-        self.ml_model_hidden_layers = [24, 12]
+        self.ml_model_hidden_layers = [128, 32]
 
         # Change configurations to ones supplied in machine_learning_config
         if machine_learning_config is not None:
@@ -218,6 +218,9 @@ class MachineLearning:
             episode_reward = 0
             episode_step = 0
 
+            # Select an action
+            action_index = self.select_action(self.simulation_manager.get_state())
+
             # Run steps in episode
             while True:
 
@@ -232,6 +235,10 @@ class MachineLearning:
                 #     self.step(legal_actions[0], td=False)
                 #     self.end_episode(episode_reward, episode_step)
                 #     continue
+
+                if episode_step % self.frames_to_skip != 0:
+                    self.step(action_index, td=False)
+                    continue
 
                 state = self.simulation_manager.get_state()
 
@@ -331,8 +338,6 @@ class MachineLearning:
 
     def calculate_temporal_difference_reward(self, simulation_manager: SimulationManager):
         reward = 0
-        # state_value = simulation_manager.get_sum_wait_time()
-        rewards = []
         # TODO: Try reset after every action
 
         # TODO: Try do_nothing_action or random_action
@@ -349,8 +354,7 @@ class MachineLearning:
 
             temporal_difference_reward += (state_value - simulation_manager.get_state_value())
             reward += math.pow(self.gamma, index) * temporal_difference_reward
-            rewards.append(math.pow(self.gamma, index) * temporal_difference_reward)
-        # print(rewards)
+
         return reward
 
     def detect_collision(self, simulation_manager: SimulationManager):
@@ -527,7 +531,7 @@ class MachineLearning:
     def test(self):
         episode = 1
 
-        model = keras.models.load_model("saved_model_nd-126644")
+        model = keras.models.load_model("saved_model")
         # model = None
         for episode in range(1, episode + 1):
 
@@ -592,7 +596,6 @@ if __name__ == "__main__":
 
     # Settings
     scale = 30
-
     # Visualiser Init
     visualiser = JunctionVisualiser()
     visualiser_update_function = visualiser.update
@@ -600,12 +603,12 @@ if __name__ == "__main__":
     disable_visualiser = False
 
     if disable_visualiser:
-        simulation = SimulationManager(junction_file_path, configuration_file_path, None)
+        simulation = SimulationManager(junction_file_path, configuration_file_path, None, training=True)
         machine_learning = MachineLearning(simulation, machine_learning_config=None)
         machine_learning.train()
         # machine_learning.test()
     else:
-        simulation = SimulationManager(junction_file_path, configuration_file_path, visualiser_update_function)
+        simulation = SimulationManager(junction_file_path, configuration_file_path, visualiser_update_function, training=False)
         machine_learning = MachineLearning(simulation, machine_learning_config=None)
 
         # Visualiser Setup

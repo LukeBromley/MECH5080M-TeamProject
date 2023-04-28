@@ -18,11 +18,12 @@ from simulation.junction.j_simulation import Simulation
 
 
 class SimulationManager:
-    def __init__(self, junction_file_path, config_file_path, visualiser_update_function=None):
+    def __init__(self, junction_file_path, config_file_path, visualiser_update_function=None, training: bool = False):
         self.action_table = None
         self.junction_file_path = junction_file_path
         self.config_file_path = config_file_path
         self.visualiser_update_function = visualiser_update_function
+        self.training = training
 
         # Simulations
         self.simulation = Simulation(self.junction_file_path, self.config_file_path, self.visualiser_update_function)
@@ -36,7 +37,7 @@ class SimulationManager:
         # Inputs / States
         self.features_per_vehicle_state = 4
         self.features_per_traffic_light_state = 0
-        self.number_of_tracked_vehicles_per_light_controlled_path = 6
+        self.number_of_tracked_vehicles_per_light_controlled_path = 5
         self.number_of_tracked_vehicles_per_light_path = 1
         self.observation_space_size = self.features_per_vehicle_state * (
                 len(self.light_controlled_path_uids) * self.number_of_tracked_vehicles_per_light_controlled_path +
@@ -73,6 +74,7 @@ class SimulationManager:
         # TODO: Sparse actions
         # Avoid do nothing action if not using RNN
         self.action_table = list(itertools.product([-1, 1], repeat=len(self.simulation.model.lights)))
+        self.action_table = [action for action in self.action_table if action.count(1) < 3]
         # self.action_table.pop(self.action_table.index(tuple([-1 for _ in self.simulation.model.lights])))
         # self.action_table.pop(self.action_table.index(tuple([1 for _ in self.simulation.model.lights])))
         print(self.action_table)
@@ -150,17 +152,20 @@ class SimulationManager:
             route = self.simulation.model.get_route(vehicle.get_route_uid())
             path_uid = route.get_path_uid(vehicle.get_path_index())
             if path_uid in self.light_controlled_path_uids:
-                if path_uid == 18:
-                    print(self.get_vehicle_state(vehicle))
                 path_inputs[self.light_controlled_path_uids.index(path_uid)].append(self.get_vehicle_state(vehicle)) # TODO: use if route_uid is disabled #+ [path_uid])
 
         # Sort and flatten the inputs by distance travelled
         for index, path_input in enumerate(path_inputs):
             # Sorted adds more weight to the neural inputs of vehicles close to the traffic light
-            sorted_path_input = sorted(path_input, key=lambda features: features[0], reverse=True)
+            # TODO: Shuffle when training, sort when testing
+
+            if self.training:
+                sorted_path_input = path_input
+                random.shuffle(sorted_path_input)
+            else:
+                sorted_path_input = sorted(path_input, key=lambda features: features[1], reverse=True)
             flattened_path_input = list(chain.from_iterable(sorted_path_input))
             path_inputs[index] = flattened_path_input
-
         for index, path_input in enumerate(path_inputs):
             if index < len(self.light_controlled_path_uids) - len(self.light_path_uids):
                 inputs += self.pad_state_input(path_input, self.number_of_tracked_vehicles_per_light_controlled_path)
