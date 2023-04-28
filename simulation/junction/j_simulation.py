@@ -163,7 +163,7 @@ class Simulation:
             )
         )
 
-        self.kinetic_energy_waste[self.uid] = 0.5*mass*((self.model.config.maximum_speed - self.model.config.initial_speed * initial_speed_multiplier)**2)
+        self.kinetic_energy_waste[self.uid] = 0.5*mass*((self.model.config.initial_speed - self.model.config.initial_speed * initial_speed_multiplier)**2)
 
 if __name__ == "__main__":
     # Reference Files

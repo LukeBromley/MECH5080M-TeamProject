@@ -132,7 +132,7 @@ class Model:
         self.tick_time = 1 / self.tick_rate
 
     def calculate_seconds_elapsed(self):
-        return self.tick / self.tick_rate
+        return floor(self.tick / self.tick_rate)
 
     def calculate_milliseconds_elapsed(self):
         return floor(1000 * self.tick / self.tick_rate)
@@ -272,7 +272,7 @@ class Model:
             else:
                 distances.append(distance_ahead)
         return min(distances)
-    
+
     # PATHS
 
     def get_path(self, path_uid) -> Path:
@@ -334,7 +334,7 @@ class Model:
         return vehicle_uids
 
     # LIGHTS
-    
+
     def get_light(self, light_uid) -> TrafficLight:
         index = self.get_light_index(light_uid)
         return self.lights[index]
@@ -380,7 +380,7 @@ class Model:
         return list(dict.fromkeys(paths_preceding_lights)), paths_with_lights
 
     # VEHICLES
-    
+
     def get_vehicle(self, vehicle_uid) -> Vehicle:
         index = self.get_vehicle_index(vehicle_uid)
         return self.vehicles[index]
@@ -395,7 +395,7 @@ class Model:
         velocity_x = speed * sin(angle)
         velocity_y = speed * cos(angle)
         return velocity_x, velocity_y
-    
+
     def remove_finished_vehicles(self):
         vehicle_uids_to_remove = []
         for vehicle in self.vehicles:
@@ -419,7 +419,6 @@ class Model:
             if vehicle.get_path_distance_travelled() >= path.get_length():
                 if vehicle.get_path_index() == 0:
                     delays.append(self.get_delay(vehicle.uid))
-        print(delays)
         return delays
 
     def get_remaining_vehicle_delays(self):
@@ -432,6 +431,9 @@ class Model:
             current_seconds = self.calculate_seconds_elapsed()
             for vehicle_to_be_spawned in spawner.backup_buffer:
                 delays.append(current_seconds - vehicle_to_be_spawned[0])
+
+
+
         return delays
 
     def get_delay(self, vehicle_uid):
@@ -441,8 +443,6 @@ class Model:
         max_speed = vehicle.get_max_speed()
         optimal_time = (distance_travelled/max_speed)
         delay = time_to_light - optimal_time
-        if delay < 0:
-            print(delay)
         return delay
 
     def get_object_ahead(self, vehicle_uid):
