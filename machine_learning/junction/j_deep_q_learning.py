@@ -22,8 +22,8 @@ import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers
 
-np.random.seed(111)
-random.seed(111)
+# np.random.seed(111)
+# random.seed(111)
 
 # https://towardsdatascience.com/a-minimal-working-example-for-deep-q-learning-in-tensorflow-2-0-e0ca8a944d5e
 
@@ -144,7 +144,7 @@ class MachineLearning:
 
         # MACHINE LEARNING MODELS
         n = len(self.simulation_manager.action_table)
-        self.ml_model_hidden_layers = [24, 24]
+        self.ml_model_hidden_layers = [24, 12]
 
         # Change configurations to ones supplied in machine_learning_config
         if machine_learning_config is not None:
@@ -280,11 +280,11 @@ class MachineLearning:
                     # update the target network with new weights
                     self.ml_model_target.set_weights(self.ml_model.get_weights())
                     # Log details
-                    self.graph.update(self.number_of_steps_taken, self.get_mean_reward())
+                    # self.graph.update(self.number_of_steps_taken, self.get_mean_reward())
                     print(f'{tm.strftime("%H:%M:%S", tm.localtime())}  -  {self.get_mean_reward():.2f} / {self.solved_mean_reward:.2f} at episode {self.episode_count}; frame count: {self.number_of_steps_taken}.')
                     if self.get_mean_reward() > self.max_mean_reward_solved:
                         self.max_mean_reward_solved = self.get_mean_reward()
-                        self.ml_model_target.save("saved_model" + str(round(self.get_mean_reward())))
+                        self.ml_model_target.save("saved_model_nd" + str(round(self.get_mean_reward())))
                         print(f'{tm.strftime("%H:%M:%S", tm.localtime())}  -  SavedModel recorded.')
                 # Delete old buffer values
                 self.delete_old_replay_buffer_values()
@@ -527,7 +527,7 @@ class MachineLearning:
     def test(self):
         episode = 1
 
-        model = keras.models.load_model("saved_model")
+        model = keras.models.load_model("saved_model_nd-126644")
         # model = None
         for episode in range(1, episode + 1):
 

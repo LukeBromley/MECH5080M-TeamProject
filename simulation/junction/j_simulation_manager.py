@@ -36,7 +36,7 @@ class SimulationManager:
         # Inputs / States
         self.features_per_vehicle_state = 4
         self.features_per_traffic_light_state = 0
-        self.number_of_tracked_vehicles_per_light_controlled_path = 4
+        self.number_of_tracked_vehicles_per_light_controlled_path = 6
         self.number_of_tracked_vehicles_per_light_path = 1
         self.observation_space_size = self.features_per_vehicle_state * (
                 len(self.light_controlled_path_uids) * self.number_of_tracked_vehicles_per_light_controlled_path +
@@ -150,6 +150,8 @@ class SimulationManager:
             route = self.simulation.model.get_route(vehicle.get_route_uid())
             path_uid = route.get_path_uid(vehicle.get_path_index())
             if path_uid in self.light_controlled_path_uids:
+                if path_uid == 18:
+                    print(self.get_vehicle_state(vehicle))
                 path_inputs[self.light_controlled_path_uids.index(path_uid)].append(self.get_vehicle_state(vehicle)) # TODO: use if route_uid is disabled #+ [path_uid])
 
         # Sort and flatten the inputs by distance travelled
