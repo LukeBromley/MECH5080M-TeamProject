@@ -92,8 +92,8 @@ def get_entry(result):
     cpm = (result["CPM"])
     nos = 1
     nvs = (result["Number Of Vehicles Spawned"])
-    if 'CollisionTicks' in result:
-        ctk = (result['CollisionTicks'])
+    if 'Collision Ticks' in result:
+        ctk = (result['Collision Ticks'])
     else:
         ctk = 0
     if "AutonomousPercentage" in result:

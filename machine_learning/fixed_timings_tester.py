@@ -132,18 +132,6 @@ class FixedTimingsTester:
             simulation_manager = FixedTimingSimulationManager(junction_file_path, simulation_config_file_path)
             simulation_manager.run(steps, actions, action_durations)
         elif run_type.lower() == "demand scheduling":
-            # # Visualiser Setup
-            # visualiser = JunctionVisualiser()
-            # visualiser_update_function = visualiser.update
-            #
-            # simulation_manager = DemandSchedulingSimulationManager(junction_file_path, simulation_config_file_path, visualiser_update_function=visualiser_update_function)
-            #
-            # visualiser.define_main(partial(simulation_manager.run, steps, actions, action_durations, action_paths))
-            # visualiser.load_junction(junction_file_path)
-            # visualiser.set_scale(30)
-            # #
-            # # Run Simulation
-            # visualiser.open()
             simulation_manager = DemandSchedulingSimulationManager(junction_file_path, simulation_config_file_path)
             simulation_manager.run(steps, actions, action_durations, action_paths)
         else:
@@ -189,7 +177,9 @@ class FixedTimingsTester:
             backup_mean_average[path] = mean(simulation_manager.simulation.path_backup[path])
             backup_standard_deviation[path] = stdev(simulation_manager.simulation.path_backup[path])
             backup_maximum[path] = max(simulation_manager.simulation.path_backup[path])
-            backup_time[path] = simulation_manager.simulation.path_backup_total[str(path)]
+            backup_time[path] = 0
+            if path in simulation_manager.simulation.path_backup_total:
+                backup_time[path] = simulation_manager.simulation.path_backup_total[path]
 
             # Print results for backup
             print("\n    Path " + str(path) + ": "
