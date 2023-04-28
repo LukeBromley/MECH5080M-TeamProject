@@ -39,7 +39,7 @@ class FixedTimingsTester:
         """
         self.get_testing_runs(file_path)
         # Create test results director
-        self.output_directory_path = (self.get_file_path(["results", (file_path[:-5] + "_TESTED")]))
+        self.output_directory_path = (self.get_file_path(["results", (file_path[:-5].split("/")[-1] + "_TESTED")]))
         counter = 1
         temp_path = self.output_directory_path
         while os.path.exists(temp_path):
