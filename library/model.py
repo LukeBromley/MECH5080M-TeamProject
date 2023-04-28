@@ -436,8 +436,7 @@ class Model:
 
     def get_delay(self, vehicle_uid):
         vehicle = self.get_vehicle(vehicle_uid)
-        current_time = self.calculate_seconds_elapsed()
-        time_to_light = current_time - vehicle.start_time
+        time_to_light = self.calculate_seconds_elapsed() - vehicle.start_time
         distance_travelled = vehicle.get_path_distance_travelled()
         max_speed = vehicle.get_max_speed()
         optimal_time = (distance_travelled/max_speed)

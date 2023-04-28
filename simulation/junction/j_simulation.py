@@ -86,6 +86,7 @@ class Simulation:
         # Update vehicle position
         self.vehicle_data = []
         for vehicle in self.model.vehicles:
+            # TODO: Comment for better performance
             coord_x, coord_y = self.model.get_vehicle_coordinates(vehicle.uid)
             curvature = self.model.get_vehicle_path_curvature(vehicle.uid)
             angle = self.model.get_vehicle_direction(vehicle.uid)
