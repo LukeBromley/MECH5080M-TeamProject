@@ -55,7 +55,7 @@ class SimulationManager:
 
     def reset(self):
         self.simulation = self.create_simulation()
-        self.freeze_traffic(30)
+        self.freeze_traffic()
         return self.get_state()
 
     def freeze_traffic(self, n: int = None):
