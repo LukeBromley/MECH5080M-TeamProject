@@ -80,7 +80,7 @@ class MachineLearning:
         self.all_time_reward = 0  # Total reward over all episodes
 
         # TRAINING LIMITS
-        self.max_episode_length_in_seconds = 60
+        self.max_episode_length_in_seconds = 45
         self.max_steps_per_episode = self.max_episode_length_in_seconds * self.simulation_manager.simulation.model.tick_rate  # Maximum number of steps allowed per episode
         self.episode_end_reward = -float("inf")  # Single episode total reward minimum threshold to end episode. Should be low to allow exploration
         self.solved_mean_reward = float("inf")  # Single episode total reward minimum threshold to consider ML trained
@@ -99,9 +99,9 @@ class MachineLearning:
         #  curve is much steering during exploration as compared to exploitation.
 
         # Number of steps of just random actions before the network can make some decisions
-        self.number_of_steps_of_required_exploration = 1000
+        self.number_of_steps_of_required_exploration = 3000
         # Number of steps over which epsilon greedy decays
-        self.number_of_steps_of_exploration_reduction = 50000
+        self.number_of_steps_of_exploration_reduction = 30000
         # Train the model after 4 actions
         self.update_after_actions = 4
         # How often to update the target network
@@ -135,7 +135,7 @@ class MachineLearning:
 
         # OPTIMISING
         # Note: In the Deepmind paper they use RMSProp however then Adam optimizer
-        self.learning_rate = 0.00001  # 0.00025
+        self.learning_rate = 0.0001  # 0.00025
         self.optimizer = keras.optimizers.legacy.Adam(learning_rate=self.learning_rate, clipnorm=1.0)
 
         # OTHER
@@ -144,8 +144,7 @@ class MachineLearning:
 
         # MACHINE LEARNING MODELS
         n = len(self.simulation_manager.action_table)
-        self.ml_model_hidden_layers = [128, 32]
-
+        self.ml_model_hidden_layers = [32, 16]
         # Change configurations to ones supplied in machine_learning_config
         if machine_learning_config is not None:
             self.apply_ML_configurations(machine_learning_config)
@@ -291,7 +290,7 @@ class MachineLearning:
                     print(f'{tm.strftime("%H:%M:%S", tm.localtime())}  -  {self.get_mean_reward():.2f} / {self.solved_mean_reward:.2f} at episode {self.episode_count}; frame count: {self.number_of_steps_taken}.')
                     if self.get_mean_reward() > self.max_mean_reward_solved:
                         self.max_mean_reward_solved = self.get_mean_reward()
-                        self.ml_model_target.save("saved_model_nd" + str(round(self.get_mean_reward())))
+                        self.ml_model_target.save("saved_model_scape" + str(round(self.get_mean_reward())))
                         print(f'{tm.strftime("%H:%M:%S", tm.localtime())}  -  SavedModel recorded.')
                 # Delete old buffer values
                 self.delete_old_replay_buffer_values()
@@ -531,7 +530,7 @@ class MachineLearning:
     def test(self):
         episode = 1
 
-        model = keras.models.load_model("saved_model")
+        model = keras.models.load_model("saved_model_simple_X_junction")
         # model = None
         for episode in range(1, episode + 1):
 
@@ -600,8 +599,7 @@ if __name__ == "__main__":
     visualiser = JunctionVisualiser()
     visualiser_update_function = visualiser.update
 
-    disable_visualiser = False
-
+    disable_visualiser = True
     if disable_visualiser:
         simulation = SimulationManager(junction_file_path, configuration_file_path, None, training=True)
         machine_learning = MachineLearning(simulation, machine_learning_config=None)

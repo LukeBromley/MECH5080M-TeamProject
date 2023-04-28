@@ -144,9 +144,6 @@ class SimulationManager:
     def get_state(self):
         inputs = []
 
-        # for light in self.simulation.model.lights:
-        #     inputs += self.get_traffic_light_state(light)
-
         path_inputs = [[] for _ in self.light_controlled_path_uids]
         for vehicle in self.simulation.model.vehicles:
             route = self.simulation.model.get_route(vehicle.get_route_uid())
@@ -154,41 +151,25 @@ class SimulationManager:
             if path_uid in self.light_controlled_path_uids:
                 path_inputs[self.light_controlled_path_uids.index(path_uid)].append(self.get_vehicle_state(vehicle)) # TODO: use if route_uid is disabled #+ [path_uid])
 
-        # Sort and flatten the inputs by distance travelled
-        for index, path_input in enumerate(path_inputs):
-            # Sorted adds more weight to the neural inputs of vehicles close to the traffic light
-            # TODO: Shuffle when training, sort when testing
-
-            if self.training:
-                sorted_path_input = path_input
-                random.shuffle(sorted_path_input)
-            else:
-                sorted_path_input = sorted(path_input, key=lambda features: features[1], reverse=True)
-            flattened_path_input = list(chain.from_iterable(sorted_path_input))
-            path_inputs[index] = flattened_path_input
-        for index, path_input in enumerate(path_inputs):
+        order = list(range(len(path_inputs)))
+        random.shuffle(order)
+        for index in order:
+            path_input = path_inputs[index]
             if index < len(self.light_controlled_path_uids) - len(self.light_path_uids):
-                inputs += self.pad_state_input(path_input, self.number_of_tracked_vehicles_per_light_controlled_path)
+                inputs += self.pad_path_input(path_input, self.number_of_tracked_vehicles_per_light_controlled_path)
             else:
-                inputs += self.pad_state_input(path_input, self.number_of_tracked_vehicles_per_light_path)
+                inputs += self.pad_path_input(path_input, self.number_of_tracked_vehicles_per_light_path)
         return np.array(inputs)
 
-    def pad_state_input(self, state_input: list, n: int):
-        if len(state_input) > self.features_per_vehicle_state * n:
-            state_input = state_input[:self.features_per_vehicle_state * n]
+    def pad_path_input(self, path_input: list, n: int):
+        if len(path_input) > n:
+            sorted_path_input = sorted(path_input, key=lambda features: features[1], reverse=True)
+            path_input = sorted_path_input[:n]
         else:
-            state_input += [0.0] * (self.features_per_vehicle_state * n - len(state_input))
-
-        # # TODO: Implement shuffling
-        # tupled_state_input = []
-        # for index in range(0, len(state_input), 2):
-        #     tupled_state_input.append((state_input[index], state_input[index + 1]))
-        # random.shuffle(tupled_state_input)
-        #
-        # state_input = []
-        # for tuple in tupled_state_input:
-        #     state_input += tuple
-        return state_input
+            path_input += [[0, 0.0, 0.0, 0.0]] * (n - len(path_input))
+        random.shuffle(path_input)
+        flattened_path_input = list(chain.from_iterable(path_input))
+        return flattened_path_input
 
     def get_mean_wait_time(self):
         wait_times = [vehicle.wait_time for vehicle in self.simulation.model.vehicles]
