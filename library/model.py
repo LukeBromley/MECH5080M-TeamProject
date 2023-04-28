@@ -132,7 +132,7 @@ class Model:
         self.tick_time = 1 / self.tick_rate
 
     def calculate_seconds_elapsed(self):
-        return floor(self.tick / self.tick_rate)
+        return self.tick / self.tick_rate
 
     def calculate_milliseconds_elapsed(self):
         return floor(1000 * self.tick / self.tick_rate)
@@ -419,6 +419,7 @@ class Model:
             if vehicle.get_path_distance_travelled() >= path.get_length():
                 if vehicle.get_path_index() == 0:
                     delays.append(self.get_delay(vehicle.uid))
+        print(delays)
         return delays
 
     def get_remaining_vehicle_delays(self):
@@ -431,18 +432,18 @@ class Model:
             current_seconds = self.calculate_seconds_elapsed()
             for vehicle_to_be_spawned in spawner.backup_buffer:
                 delays.append(current_seconds - vehicle_to_be_spawned[0])
-
-
-
         return delays
 
     def get_delay(self, vehicle_uid):
         vehicle = self.get_vehicle(vehicle_uid)
-        time_to_light = self.calculate_seconds_elapsed() - vehicle.start_time
+        current_time = self.calculate_seconds_elapsed()
+        time_to_light = current_time - vehicle.start_time
         distance_travelled = vehicle.get_path_distance_travelled()
         max_speed = vehicle.get_max_speed()
         optimal_time = (distance_travelled/max_speed)
         delay = time_to_light - optimal_time
+        if delay < 0:
+            print(delay)
         return delay
 
     def get_object_ahead(self, vehicle_uid):
