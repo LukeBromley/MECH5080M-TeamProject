@@ -530,7 +530,7 @@ class MachineLearning:
     def test(self):
         episode = 1
 
-        model = keras.models.load_model("saved_model_simple_X_junction")
+        model = keras.models.load_model("saved_model_nd-51959")
         # model = None
         for episode in range(1, episode + 1):
 
@@ -599,7 +599,7 @@ if __name__ == "__main__":
     visualiser = JunctionVisualiser()
     visualiser_update_function = visualiser.update
 
-    disable_visualiser = True
+    disable_visualiser = False
     if disable_visualiser:
         simulation = SimulationManager(junction_file_path, configuration_file_path, None, training=True)
         machine_learning = MachineLearning(simulation, machine_learning_config=None)
