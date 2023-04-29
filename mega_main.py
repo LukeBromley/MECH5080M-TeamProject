@@ -15,8 +15,27 @@ from machine_learning.fixed_timings_tester import FixedTimingsTester
 if __name__ == "__main__":
     # iteration_file = "ml_training_plan.csv"
     # iterations = MachineLearningManager(iteration_file)
-    # tester_file = "ml_control_uneven_spawning_simple_T.plan"
+    # tester_file = "testing_plans/ml_control_uneven_spawning_simple_T.plan"
     # testing = TrainedModelTester(tester_file)
-    tester_file = "testing_plans/legacy_control_even_spawning.plan"
-    testing = FixedTimingsTester(tester_file)
+    # tester_file = "testing_plans/legacy_control_uneven_spawning.plan"
+    # testing = FixedTimingsTester(tester_file)
+
+    tester_file = "testing_plans/ml_control_even_spawning_simple_Y.plan"
+    testing = TrainedModelTester(tester_file)
+
+    tester_file = "testing_plans/ml_control_even_spawning_simple_T.plan"
+    testing = TrainedModelTester(tester_file)
+
+    tester_file = "testing_plans/ml_control_uneven_spawning_simple_T.plan"
+    testing = TrainedModelTester(tester_file)
+
+    tester_file = "testing_plans/ml_control_human.plan"
+    testing = TrainedModelTester(tester_file)
+
+    tester_file = "testing_plans/ml_control_latency.plan"
+    testing = TrainedModelTester(tester_file)
+
+    tester_file = "testing_plans/ml_control_packet_loss.plan"
+    testing = TrainedModelTester(tester_file)
+
 

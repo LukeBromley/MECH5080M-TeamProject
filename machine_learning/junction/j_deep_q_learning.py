@@ -565,10 +565,10 @@ class MachineLearning:
         self.saved_model = keras.models.load_model(model_file_path)
 
         # Reset the environment
-        self.simulation_manager.reset(change_spawning=False)
         self.simulation_manager.human_drivers_visible = human_drivers_visible
         self.simulation_manager.network_latency = network_latency
         self.simulation_manager.packet_loss = packet_loss
+        self.simulation_manager.reset(change_spawning=False)
         self.max_steps_per_episode = number_of_iterations
         self.response_rate = 4 + 0.25 * self.simulation_manager.cars_per_minute
 

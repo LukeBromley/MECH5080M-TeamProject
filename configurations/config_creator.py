@@ -7,7 +7,7 @@ default_config_file_path = "simulation_config/default.config"
 save_config_folder_path = "simulation_config/final_testing/even_spawning/autonomous/"
 
 random_seed_values = [1788621521, 1774553582, 1490597230, 997415346, 1433874439]
-spawn_time_delta_values = [90, 60, 45, 30, 20, 15, 10, 5, 4, 3, 2]
+spawn_time_delta_values = [90, 60, 45, 30, 20, 15, 10, 5, 4, 3, 2, 7.5, 3.75]
 
 file_manager = FileManagement()
 default_config = file_manager.load_sim_config_file(default_config_file_path)

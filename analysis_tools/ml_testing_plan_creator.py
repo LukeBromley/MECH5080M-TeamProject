@@ -2,7 +2,7 @@ import json
 
 # 100% Autonomous - 0% Latency - 0% Packet Loss - Even Spawning
 
-save_plan_file_name = "../testing_plans/ml_control_even_spawning.plan"
+save_plan_file_name = "../testing_plans/ml_control_even_spawning_simple_X.plan"
 
 junctions = ["simple_Y_junction.junc", "simple_T_junction.junc", "simple_X_junction.junc", "scale_library_pub_junction.junc"]
 ml_model = ["saved_model_simple_Y_junction", "saved_model_simple_T_junction", "saved_model_simple_X_junction", "saved_model_scale_library_pub_junction"]
@@ -97,7 +97,7 @@ random_seed_values = [1788621521, 1774553582, 1490597230, 997415346, 1433874439]
 spawn_time_delta_values = [90, 60, 45, 30, 20, 15, 10, 5, 4, 3, 2]
 
 steps = 4500
-human_drivers_visible = True
+human_drivers_visible = False
 network_latency = 0
 packet_loss_perc = 0
 
@@ -112,7 +112,7 @@ for autonomous_percentage_value in autonomous_percentage_values:
                 "RunUID": "ML_even_spawning_autonomous_perc_" + str(autonomous_percentage_value) + "_seed_" + str(random_seed_value) + "_spawn_rate_" + str(round(60/spawn_time_delta_value, 2)) + "cpm",
                 "RunType": "junction",
                 "Junction": junctions[0],
-                "SimulationConfig": "final_testing/mixed_driver_type/" + str(autonomous_percentage_value) + "_perc_autonomous/seed_" + str(random_seed_value) + "/" + str(round(60/spawn_time_delta_value, 2)) + "cpm.config",
+                "SimulationConfig": "final_testing/even_spawning/mixed_driver_type/" + str(autonomous_percentage_value) + "_perc_autonomous/seed_" + str(random_seed_value) + "/" + str(round(60/spawn_time_delta_value, 2)) + "cpm.config",
                 "MachineLearningModel": ml_model[0],
                 "Steps": steps,
                 "RandomSeed": random_seed_value,
@@ -205,7 +205,7 @@ for packet_loss in packet_loss_perc:
                 "CPM": (round(60 / spawn_time_delta_value, 2)),
                 "HumanDriversVisible": human_drivers_visible,
                 "NetworkLatency": network_latency,
-                "PacketLoss": packet_loss,
+                "PacketLoss": packet_loss / 100,
                 "SpawningChange": "even"
             }
 

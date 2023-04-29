@@ -271,6 +271,8 @@ class SimulationManager:
         for char in os.path.basename(config_file_path):
             if char.isdigit():
                 cars_per_minute += char
+            else:
+                break
         return int(cars_per_minute)
 
     def get_delays(self):
