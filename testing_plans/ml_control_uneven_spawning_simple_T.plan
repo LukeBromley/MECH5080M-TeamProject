@@ -462,314 +462,6 @@
     "SpawningChange": "bottom"
   },
   "33": {
-    "RunUID": "ML_uneven_spawning_spawn_change_bottom_junction_simple_T_junction_seed_997415346_spawn_rate_0.67cpm",
-    "RunType": "junction",
-    "Junction": "simple_T_junction.junc",
-    "SimulationConfig": "final_testing/uneven_spawning/simple_T/bottom/seed_997415346/0.67cpm.config",
-    "MachineLearningModel": "saved_model_simple_T_junction",
-    "Steps": 4500,
-    "RandomSeed": 997415346,
-    "CPM": 0.67,
-    "HumanDriversVisible": true,
-    "NetworkLatency": 0,
-    "PacketLoss": 0,
-    "SpawningChange": "bottom"
-  },
-  "34": {
-    "RunUID": "ML_uneven_spawning_spawn_change_bottom_junction_simple_T_junction_seed_997415346_spawn_rate_1.0cpm",
-    "RunType": "junction",
-    "Junction": "simple_T_junction.junc",
-    "SimulationConfig": "final_testing/uneven_spawning/simple_T/bottom/seed_997415346/1.0cpm.config",
-    "MachineLearningModel": "saved_model_simple_T_junction",
-    "Steps": 4500,
-    "RandomSeed": 997415346,
-    "CPM": 1.0,
-    "HumanDriversVisible": true,
-    "NetworkLatency": 0,
-    "PacketLoss": 0,
-    "SpawningChange": "bottom"
-  },
-  "35": {
-    "RunUID": "ML_uneven_spawning_spawn_change_bottom_junction_simple_T_junction_seed_997415346_spawn_rate_1.33cpm",
-    "RunType": "junction",
-    "Junction": "simple_T_junction.junc",
-    "SimulationConfig": "final_testing/uneven_spawning/simple_T/bottom/seed_997415346/1.33cpm.config",
-    "MachineLearningModel": "saved_model_simple_T_junction",
-    "Steps": 4500,
-    "RandomSeed": 997415346,
-    "CPM": 1.33,
-    "HumanDriversVisible": true,
-    "NetworkLatency": 0,
-    "PacketLoss": 0,
-    "SpawningChange": "bottom"
-  },
-  "36": {
-    "RunUID": "ML_uneven_spawning_spawn_change_bottom_junction_simple_T_junction_seed_997415346_spawn_rate_2.0cpm",
-    "RunType": "junction",
-    "Junction": "simple_T_junction.junc",
-    "SimulationConfig": "final_testing/uneven_spawning/simple_T/bottom/seed_997415346/2.0cpm.config",
-    "MachineLearningModel": "saved_model_simple_T_junction",
-    "Steps": 4500,
-    "RandomSeed": 997415346,
-    "CPM": 2.0,
-    "HumanDriversVisible": true,
-    "NetworkLatency": 0,
-    "PacketLoss": 0,
-    "SpawningChange": "bottom"
-  },
-  "37": {
-    "RunUID": "ML_uneven_spawning_spawn_change_bottom_junction_simple_T_junction_seed_997415346_spawn_rate_3.0cpm",
-    "RunType": "junction",
-    "Junction": "simple_T_junction.junc",
-    "SimulationConfig": "final_testing/uneven_spawning/simple_T/bottom/seed_997415346/3.0cpm.config",
-    "MachineLearningModel": "saved_model_simple_T_junction",
-    "Steps": 4500,
-    "RandomSeed": 997415346,
-    "CPM": 3.0,
-    "HumanDriversVisible": true,
-    "NetworkLatency": 0,
-    "PacketLoss": 0,
-    "SpawningChange": "bottom"
-  },
-  "38": {
-    "RunUID": "ML_uneven_spawning_spawn_change_bottom_junction_simple_T_junction_seed_997415346_spawn_rate_4.0cpm",
-    "RunType": "junction",
-    "Junction": "simple_T_junction.junc",
-    "SimulationConfig": "final_testing/uneven_spawning/simple_T/bottom/seed_997415346/4.0cpm.config",
-    "MachineLearningModel": "saved_model_simple_T_junction",
-    "Steps": 4500,
-    "RandomSeed": 997415346,
-    "CPM": 4.0,
-    "HumanDriversVisible": true,
-    "NetworkLatency": 0,
-    "PacketLoss": 0,
-    "SpawningChange": "bottom"
-  },
-  "39": {
-    "RunUID": "ML_uneven_spawning_spawn_change_bottom_junction_simple_T_junction_seed_997415346_spawn_rate_6.0cpm",
-    "RunType": "junction",
-    "Junction": "simple_T_junction.junc",
-    "SimulationConfig": "final_testing/uneven_spawning/simple_T/bottom/seed_997415346/6.0cpm.config",
-    "MachineLearningModel": "saved_model_simple_T_junction",
-    "Steps": 4500,
-    "RandomSeed": 997415346,
-    "CPM": 6.0,
-    "HumanDriversVisible": true,
-    "NetworkLatency": 0,
-    "PacketLoss": 0,
-    "SpawningChange": "bottom"
-  },
-  "40": {
-    "RunUID": "ML_uneven_spawning_spawn_change_bottom_junction_simple_T_junction_seed_997415346_spawn_rate_12.0cpm",
-    "RunType": "junction",
-    "Junction": "simple_T_junction.junc",
-    "SimulationConfig": "final_testing/uneven_spawning/simple_T/bottom/seed_997415346/12.0cpm.config",
-    "MachineLearningModel": "saved_model_simple_T_junction",
-    "Steps": 4500,
-    "RandomSeed": 997415346,
-    "CPM": 12.0,
-    "HumanDriversVisible": true,
-    "NetworkLatency": 0,
-    "PacketLoss": 0,
-    "SpawningChange": "bottom"
-  },
-  "41": {
-    "RunUID": "ML_uneven_spawning_spawn_change_bottom_junction_simple_T_junction_seed_997415346_spawn_rate_15.0cpm",
-    "RunType": "junction",
-    "Junction": "simple_T_junction.junc",
-    "SimulationConfig": "final_testing/uneven_spawning/simple_T/bottom/seed_997415346/15.0cpm.config",
-    "MachineLearningModel": "saved_model_simple_T_junction",
-    "Steps": 4500,
-    "RandomSeed": 997415346,
-    "CPM": 15.0,
-    "HumanDriversVisible": true,
-    "NetworkLatency": 0,
-    "PacketLoss": 0,
-    "SpawningChange": "bottom"
-  },
-  "42": {
-    "RunUID": "ML_uneven_spawning_spawn_change_bottom_junction_simple_T_junction_seed_997415346_spawn_rate_20.0cpm",
-    "RunType": "junction",
-    "Junction": "simple_T_junction.junc",
-    "SimulationConfig": "final_testing/uneven_spawning/simple_T/bottom/seed_997415346/20.0cpm.config",
-    "MachineLearningModel": "saved_model_simple_T_junction",
-    "Steps": 4500,
-    "RandomSeed": 997415346,
-    "CPM": 20.0,
-    "HumanDriversVisible": true,
-    "NetworkLatency": 0,
-    "PacketLoss": 0,
-    "SpawningChange": "bottom"
-  },
-  "43": {
-    "RunUID": "ML_uneven_spawning_spawn_change_bottom_junction_simple_T_junction_seed_997415346_spawn_rate_30.0cpm",
-    "RunType": "junction",
-    "Junction": "simple_T_junction.junc",
-    "SimulationConfig": "final_testing/uneven_spawning/simple_T/bottom/seed_997415346/30.0cpm.config",
-    "MachineLearningModel": "saved_model_simple_T_junction",
-    "Steps": 4500,
-    "RandomSeed": 997415346,
-    "CPM": 30.0,
-    "HumanDriversVisible": true,
-    "NetworkLatency": 0,
-    "PacketLoss": 0,
-    "SpawningChange": "bottom"
-  },
-  "44": {
-    "RunUID": "ML_uneven_spawning_spawn_change_bottom_junction_simple_T_junction_seed_1433874439_spawn_rate_0.67cpm",
-    "RunType": "junction",
-    "Junction": "simple_T_junction.junc",
-    "SimulationConfig": "final_testing/uneven_spawning/simple_T/bottom/seed_1433874439/0.67cpm.config",
-    "MachineLearningModel": "saved_model_simple_T_junction",
-    "Steps": 4500,
-    "RandomSeed": 1433874439,
-    "CPM": 0.67,
-    "HumanDriversVisible": true,
-    "NetworkLatency": 0,
-    "PacketLoss": 0,
-    "SpawningChange": "bottom"
-  },
-  "45": {
-    "RunUID": "ML_uneven_spawning_spawn_change_bottom_junction_simple_T_junction_seed_1433874439_spawn_rate_1.0cpm",
-    "RunType": "junction",
-    "Junction": "simple_T_junction.junc",
-    "SimulationConfig": "final_testing/uneven_spawning/simple_T/bottom/seed_1433874439/1.0cpm.config",
-    "MachineLearningModel": "saved_model_simple_T_junction",
-    "Steps": 4500,
-    "RandomSeed": 1433874439,
-    "CPM": 1.0,
-    "HumanDriversVisible": true,
-    "NetworkLatency": 0,
-    "PacketLoss": 0,
-    "SpawningChange": "bottom"
-  },
-  "46": {
-    "RunUID": "ML_uneven_spawning_spawn_change_bottom_junction_simple_T_junction_seed_1433874439_spawn_rate_1.33cpm",
-    "RunType": "junction",
-    "Junction": "simple_T_junction.junc",
-    "SimulationConfig": "final_testing/uneven_spawning/simple_T/bottom/seed_1433874439/1.33cpm.config",
-    "MachineLearningModel": "saved_model_simple_T_junction",
-    "Steps": 4500,
-    "RandomSeed": 1433874439,
-    "CPM": 1.33,
-    "HumanDriversVisible": true,
-    "NetworkLatency": 0,
-    "PacketLoss": 0,
-    "SpawningChange": "bottom"
-  },
-  "47": {
-    "RunUID": "ML_uneven_spawning_spawn_change_bottom_junction_simple_T_junction_seed_1433874439_spawn_rate_2.0cpm",
-    "RunType": "junction",
-    "Junction": "simple_T_junction.junc",
-    "SimulationConfig": "final_testing/uneven_spawning/simple_T/bottom/seed_1433874439/2.0cpm.config",
-    "MachineLearningModel": "saved_model_simple_T_junction",
-    "Steps": 4500,
-    "RandomSeed": 1433874439,
-    "CPM": 2.0,
-    "HumanDriversVisible": true,
-    "NetworkLatency": 0,
-    "PacketLoss": 0,
-    "SpawningChange": "bottom"
-  },
-  "48": {
-    "RunUID": "ML_uneven_spawning_spawn_change_bottom_junction_simple_T_junction_seed_1433874439_spawn_rate_3.0cpm",
-    "RunType": "junction",
-    "Junction": "simple_T_junction.junc",
-    "SimulationConfig": "final_testing/uneven_spawning/simple_T/bottom/seed_1433874439/3.0cpm.config",
-    "MachineLearningModel": "saved_model_simple_T_junction",
-    "Steps": 4500,
-    "RandomSeed": 1433874439,
-    "CPM": 3.0,
-    "HumanDriversVisible": true,
-    "NetworkLatency": 0,
-    "PacketLoss": 0,
-    "SpawningChange": "bottom"
-  },
-  "49": {
-    "RunUID": "ML_uneven_spawning_spawn_change_bottom_junction_simple_T_junction_seed_1433874439_spawn_rate_4.0cpm",
-    "RunType": "junction",
-    "Junction": "simple_T_junction.junc",
-    "SimulationConfig": "final_testing/uneven_spawning/simple_T/bottom/seed_1433874439/4.0cpm.config",
-    "MachineLearningModel": "saved_model_simple_T_junction",
-    "Steps": 4500,
-    "RandomSeed": 1433874439,
-    "CPM": 4.0,
-    "HumanDriversVisible": true,
-    "NetworkLatency": 0,
-    "PacketLoss": 0,
-    "SpawningChange": "bottom"
-  },
-  "50": {
-    "RunUID": "ML_uneven_spawning_spawn_change_bottom_junction_simple_T_junction_seed_1433874439_spawn_rate_6.0cpm",
-    "RunType": "junction",
-    "Junction": "simple_T_junction.junc",
-    "SimulationConfig": "final_testing/uneven_spawning/simple_T/bottom/seed_1433874439/6.0cpm.config",
-    "MachineLearningModel": "saved_model_simple_T_junction",
-    "Steps": 4500,
-    "RandomSeed": 1433874439,
-    "CPM": 6.0,
-    "HumanDriversVisible": true,
-    "NetworkLatency": 0,
-    "PacketLoss": 0,
-    "SpawningChange": "bottom"
-  },
-  "51": {
-    "RunUID": "ML_uneven_spawning_spawn_change_bottom_junction_simple_T_junction_seed_1433874439_spawn_rate_12.0cpm",
-    "RunType": "junction",
-    "Junction": "simple_T_junction.junc",
-    "SimulationConfig": "final_testing/uneven_spawning/simple_T/bottom/seed_1433874439/12.0cpm.config",
-    "MachineLearningModel": "saved_model_simple_T_junction",
-    "Steps": 4500,
-    "RandomSeed": 1433874439,
-    "CPM": 12.0,
-    "HumanDriversVisible": true,
-    "NetworkLatency": 0,
-    "PacketLoss": 0,
-    "SpawningChange": "bottom"
-  },
-  "52": {
-    "RunUID": "ML_uneven_spawning_spawn_change_bottom_junction_simple_T_junction_seed_1433874439_spawn_rate_15.0cpm",
-    "RunType": "junction",
-    "Junction": "simple_T_junction.junc",
-    "SimulationConfig": "final_testing/uneven_spawning/simple_T/bottom/seed_1433874439/15.0cpm.config",
-    "MachineLearningModel": "saved_model_simple_T_junction",
-    "Steps": 4500,
-    "RandomSeed": 1433874439,
-    "CPM": 15.0,
-    "HumanDriversVisible": true,
-    "NetworkLatency": 0,
-    "PacketLoss": 0,
-    "SpawningChange": "bottom"
-  },
-  "53": {
-    "RunUID": "ML_uneven_spawning_spawn_change_bottom_junction_simple_T_junction_seed_1433874439_spawn_rate_20.0cpm",
-    "RunType": "junction",
-    "Junction": "simple_T_junction.junc",
-    "SimulationConfig": "final_testing/uneven_spawning/simple_T/bottom/seed_1433874439/20.0cpm.config",
-    "MachineLearningModel": "saved_model_simple_T_junction",
-    "Steps": 4500,
-    "RandomSeed": 1433874439,
-    "CPM": 20.0,
-    "HumanDriversVisible": true,
-    "NetworkLatency": 0,
-    "PacketLoss": 0,
-    "SpawningChange": "bottom"
-  },
-  "54": {
-    "RunUID": "ML_uneven_spawning_spawn_change_bottom_junction_simple_T_junction_seed_1433874439_spawn_rate_30.0cpm",
-    "RunType": "junction",
-    "Junction": "simple_T_junction.junc",
-    "SimulationConfig": "final_testing/uneven_spawning/simple_T/bottom/seed_1433874439/30.0cpm.config",
-    "MachineLearningModel": "saved_model_simple_T_junction",
-    "Steps": 4500,
-    "RandomSeed": 1433874439,
-    "CPM": 30.0,
-    "HumanDriversVisible": true,
-    "NetworkLatency": 0,
-    "PacketLoss": 0,
-    "SpawningChange": "bottom"
-  },
-  "55": {
     "RunUID": "ML_uneven_spawning_spawn_change_side_junction_simple_T_junction_seed_1788621521_spawn_rate_0.67cpm",
     "RunType": "junction",
     "Junction": "simple_T_junction.junc",
@@ -783,7 +475,7 @@
     "PacketLoss": 0,
     "SpawningChange": "side"
   },
-  "56": {
+  "34": {
     "RunUID": "ML_uneven_spawning_spawn_change_side_junction_simple_T_junction_seed_1788621521_spawn_rate_1.0cpm",
     "RunType": "junction",
     "Junction": "simple_T_junction.junc",
@@ -797,7 +489,7 @@
     "PacketLoss": 0,
     "SpawningChange": "side"
   },
-  "57": {
+  "35": {
     "RunUID": "ML_uneven_spawning_spawn_change_side_junction_simple_T_junction_seed_1788621521_spawn_rate_1.33cpm",
     "RunType": "junction",
     "Junction": "simple_T_junction.junc",
@@ -811,7 +503,7 @@
     "PacketLoss": 0,
     "SpawningChange": "side"
   },
-  "58": {
+  "36": {
     "RunUID": "ML_uneven_spawning_spawn_change_side_junction_simple_T_junction_seed_1788621521_spawn_rate_2.0cpm",
     "RunType": "junction",
     "Junction": "simple_T_junction.junc",
@@ -825,7 +517,7 @@
     "PacketLoss": 0,
     "SpawningChange": "side"
   },
-  "59": {
+  "37": {
     "RunUID": "ML_uneven_spawning_spawn_change_side_junction_simple_T_junction_seed_1788621521_spawn_rate_3.0cpm",
     "RunType": "junction",
     "Junction": "simple_T_junction.junc",
@@ -839,7 +531,7 @@
     "PacketLoss": 0,
     "SpawningChange": "side"
   },
-  "60": {
+  "38": {
     "RunUID": "ML_uneven_spawning_spawn_change_side_junction_simple_T_junction_seed_1788621521_spawn_rate_4.0cpm",
     "RunType": "junction",
     "Junction": "simple_T_junction.junc",
@@ -853,7 +545,7 @@
     "PacketLoss": 0,
     "SpawningChange": "side"
   },
-  "61": {
+  "39": {
     "RunUID": "ML_uneven_spawning_spawn_change_side_junction_simple_T_junction_seed_1788621521_spawn_rate_6.0cpm",
     "RunType": "junction",
     "Junction": "simple_T_junction.junc",
@@ -867,7 +559,7 @@
     "PacketLoss": 0,
     "SpawningChange": "side"
   },
-  "62": {
+  "40": {
     "RunUID": "ML_uneven_spawning_spawn_change_side_junction_simple_T_junction_seed_1788621521_spawn_rate_12.0cpm",
     "RunType": "junction",
     "Junction": "simple_T_junction.junc",
@@ -881,7 +573,7 @@
     "PacketLoss": 0,
     "SpawningChange": "side"
   },
-  "63": {
+  "41": {
     "RunUID": "ML_uneven_spawning_spawn_change_side_junction_simple_T_junction_seed_1788621521_spawn_rate_15.0cpm",
     "RunType": "junction",
     "Junction": "simple_T_junction.junc",
@@ -895,7 +587,7 @@
     "PacketLoss": 0,
     "SpawningChange": "side"
   },
-  "64": {
+  "42": {
     "RunUID": "ML_uneven_spawning_spawn_change_side_junction_simple_T_junction_seed_1788621521_spawn_rate_20.0cpm",
     "RunType": "junction",
     "Junction": "simple_T_junction.junc",
@@ -909,7 +601,7 @@
     "PacketLoss": 0,
     "SpawningChange": "side"
   },
-  "65": {
+  "43": {
     "RunUID": "ML_uneven_spawning_spawn_change_side_junction_simple_T_junction_seed_1788621521_spawn_rate_30.0cpm",
     "RunType": "junction",
     "Junction": "simple_T_junction.junc",
@@ -923,7 +615,7 @@
     "PacketLoss": 0,
     "SpawningChange": "side"
   },
-  "66": {
+  "44": {
     "RunUID": "ML_uneven_spawning_spawn_change_side_junction_simple_T_junction_seed_1774553582_spawn_rate_0.67cpm",
     "RunType": "junction",
     "Junction": "simple_T_junction.junc",
@@ -937,7 +629,7 @@
     "PacketLoss": 0,
     "SpawningChange": "side"
   },
-  "67": {
+  "45": {
     "RunUID": "ML_uneven_spawning_spawn_change_side_junction_simple_T_junction_seed_1774553582_spawn_rate_1.0cpm",
     "RunType": "junction",
     "Junction": "simple_T_junction.junc",
@@ -951,7 +643,7 @@
     "PacketLoss": 0,
     "SpawningChange": "side"
   },
-  "68": {
+  "46": {
     "RunUID": "ML_uneven_spawning_spawn_change_side_junction_simple_T_junction_seed_1774553582_spawn_rate_1.33cpm",
     "RunType": "junction",
     "Junction": "simple_T_junction.junc",
@@ -965,7 +657,7 @@
     "PacketLoss": 0,
     "SpawningChange": "side"
   },
-  "69": {
+  "47": {
     "RunUID": "ML_uneven_spawning_spawn_change_side_junction_simple_T_junction_seed_1774553582_spawn_rate_2.0cpm",
     "RunType": "junction",
     "Junction": "simple_T_junction.junc",
@@ -979,7 +671,7 @@
     "PacketLoss": 0,
     "SpawningChange": "side"
   },
-  "70": {
+  "48": {
     "RunUID": "ML_uneven_spawning_spawn_change_side_junction_simple_T_junction_seed_1774553582_spawn_rate_3.0cpm",
     "RunType": "junction",
     "Junction": "simple_T_junction.junc",
@@ -993,7 +685,7 @@
     "PacketLoss": 0,
     "SpawningChange": "side"
   },
-  "71": {
+  "49": {
     "RunUID": "ML_uneven_spawning_spawn_change_side_junction_simple_T_junction_seed_1774553582_spawn_rate_4.0cpm",
     "RunType": "junction",
     "Junction": "simple_T_junction.junc",
@@ -1007,7 +699,7 @@
     "PacketLoss": 0,
     "SpawningChange": "side"
   },
-  "72": {
+  "50": {
     "RunUID": "ML_uneven_spawning_spawn_change_side_junction_simple_T_junction_seed_1774553582_spawn_rate_6.0cpm",
     "RunType": "junction",
     "Junction": "simple_T_junction.junc",
@@ -1021,7 +713,7 @@
     "PacketLoss": 0,
     "SpawningChange": "side"
   },
-  "73": {
+  "51": {
     "RunUID": "ML_uneven_spawning_spawn_change_side_junction_simple_T_junction_seed_1774553582_spawn_rate_12.0cpm",
     "RunType": "junction",
     "Junction": "simple_T_junction.junc",
@@ -1035,7 +727,7 @@
     "PacketLoss": 0,
     "SpawningChange": "side"
   },
-  "74": {
+  "52": {
     "RunUID": "ML_uneven_spawning_spawn_change_side_junction_simple_T_junction_seed_1774553582_spawn_rate_15.0cpm",
     "RunType": "junction",
     "Junction": "simple_T_junction.junc",
@@ -1049,7 +741,7 @@
     "PacketLoss": 0,
     "SpawningChange": "side"
   },
-  "75": {
+  "53": {
     "RunUID": "ML_uneven_spawning_spawn_change_side_junction_simple_T_junction_seed_1774553582_spawn_rate_20.0cpm",
     "RunType": "junction",
     "Junction": "simple_T_junction.junc",
@@ -1063,7 +755,7 @@
     "PacketLoss": 0,
     "SpawningChange": "side"
   },
-  "76": {
+  "54": {
     "RunUID": "ML_uneven_spawning_spawn_change_side_junction_simple_T_junction_seed_1774553582_spawn_rate_30.0cpm",
     "RunType": "junction",
     "Junction": "simple_T_junction.junc",
@@ -1077,7 +769,7 @@
     "PacketLoss": 0,
     "SpawningChange": "side"
   },
-  "77": {
+  "55": {
     "RunUID": "ML_uneven_spawning_spawn_change_side_junction_simple_T_junction_seed_1490597230_spawn_rate_0.67cpm",
     "RunType": "junction",
     "Junction": "simple_T_junction.junc",
@@ -1091,7 +783,7 @@
     "PacketLoss": 0,
     "SpawningChange": "side"
   },
-  "78": {
+  "56": {
     "RunUID": "ML_uneven_spawning_spawn_change_side_junction_simple_T_junction_seed_1490597230_spawn_rate_1.0cpm",
     "RunType": "junction",
     "Junction": "simple_T_junction.junc",
@@ -1105,7 +797,7 @@
     "PacketLoss": 0,
     "SpawningChange": "side"
   },
-  "79": {
+  "57": {
     "RunUID": "ML_uneven_spawning_spawn_change_side_junction_simple_T_junction_seed_1490597230_spawn_rate_1.33cpm",
     "RunType": "junction",
     "Junction": "simple_T_junction.junc",
@@ -1119,7 +811,7 @@
     "PacketLoss": 0,
     "SpawningChange": "side"
   },
-  "80": {
+  "58": {
     "RunUID": "ML_uneven_spawning_spawn_change_side_junction_simple_T_junction_seed_1490597230_spawn_rate_2.0cpm",
     "RunType": "junction",
     "Junction": "simple_T_junction.junc",
@@ -1133,7 +825,7 @@
     "PacketLoss": 0,
     "SpawningChange": "side"
   },
-  "81": {
+  "59": {
     "RunUID": "ML_uneven_spawning_spawn_change_side_junction_simple_T_junction_seed_1490597230_spawn_rate_3.0cpm",
     "RunType": "junction",
     "Junction": "simple_T_junction.junc",
@@ -1147,7 +839,7 @@
     "PacketLoss": 0,
     "SpawningChange": "side"
   },
-  "82": {
+  "60": {
     "RunUID": "ML_uneven_spawning_spawn_change_side_junction_simple_T_junction_seed_1490597230_spawn_rate_4.0cpm",
     "RunType": "junction",
     "Junction": "simple_T_junction.junc",
@@ -1161,7 +853,7 @@
     "PacketLoss": 0,
     "SpawningChange": "side"
   },
-  "83": {
+  "61": {
     "RunUID": "ML_uneven_spawning_spawn_change_side_junction_simple_T_junction_seed_1490597230_spawn_rate_6.0cpm",
     "RunType": "junction",
     "Junction": "simple_T_junction.junc",
@@ -1175,7 +867,7 @@
     "PacketLoss": 0,
     "SpawningChange": "side"
   },
-  "84": {
+  "62": {
     "RunUID": "ML_uneven_spawning_spawn_change_side_junction_simple_T_junction_seed_1490597230_spawn_rate_12.0cpm",
     "RunType": "junction",
     "Junction": "simple_T_junction.junc",
@@ -1189,7 +881,7 @@
     "PacketLoss": 0,
     "SpawningChange": "side"
   },
-  "85": {
+  "63": {
     "RunUID": "ML_uneven_spawning_spawn_change_side_junction_simple_T_junction_seed_1490597230_spawn_rate_15.0cpm",
     "RunType": "junction",
     "Junction": "simple_T_junction.junc",
@@ -1203,7 +895,7 @@
     "PacketLoss": 0,
     "SpawningChange": "side"
   },
-  "86": {
+  "64": {
     "RunUID": "ML_uneven_spawning_spawn_change_side_junction_simple_T_junction_seed_1490597230_spawn_rate_20.0cpm",
     "RunType": "junction",
     "Junction": "simple_T_junction.junc",
@@ -1217,7 +909,7 @@
     "PacketLoss": 0,
     "SpawningChange": "side"
   },
-  "87": {
+  "65": {
     "RunUID": "ML_uneven_spawning_spawn_change_side_junction_simple_T_junction_seed_1490597230_spawn_rate_30.0cpm",
     "RunType": "junction",
     "Junction": "simple_T_junction.junc",
@@ -1231,312 +923,928 @@
     "PacketLoss": 0,
     "SpawningChange": "side"
   },
-  "88": {
-    "RunUID": "ML_uneven_spawning_spawn_change_side_junction_simple_T_junction_seed_997415346_spawn_rate_0.67cpm",
+  "66": {
+    "RunUID": "ML_uneven_spawning_spawn_change_single_junction_simple_X_junction_seed_1788621521_spawn_rate_0.67cpm",
     "RunType": "junction",
-    "Junction": "simple_T_junction.junc",
-    "SimulationConfig": "final_testing/uneven_spawning/simple_T/side/seed_997415346/0.67cpm.config",
-    "MachineLearningModel": "saved_model_simple_T_junction",
+    "Junction": "simple_X_junction.junc",
+    "SimulationConfig": "final_testing/uneven_spawning/simple_X/single/seed_1788621521/0.67cpm.config",
+    "MachineLearningModel": "saved_model_simple_X_junction",
     "Steps": 4500,
-    "RandomSeed": 997415346,
+    "RandomSeed": 1788621521,
     "CPM": 0.67,
     "HumanDriversVisible": true,
     "NetworkLatency": 0,
     "PacketLoss": 0,
-    "SpawningChange": "side"
+    "SpawningChange": "single"
+  },
+  "67": {
+    "RunUID": "ML_uneven_spawning_spawn_change_single_junction_simple_X_junction_seed_1788621521_spawn_rate_1.0cpm",
+    "RunType": "junction",
+    "Junction": "simple_X_junction.junc",
+    "SimulationConfig": "final_testing/uneven_spawning/simple_X/single/seed_1788621521/1.0cpm.config",
+    "MachineLearningModel": "saved_model_simple_X_junction",
+    "Steps": 4500,
+    "RandomSeed": 1788621521,
+    "CPM": 1.0,
+    "HumanDriversVisible": true,
+    "NetworkLatency": 0,
+    "PacketLoss": 0,
+    "SpawningChange": "single"
+  },
+  "68": {
+    "RunUID": "ML_uneven_spawning_spawn_change_single_junction_simple_X_junction_seed_1788621521_spawn_rate_1.33cpm",
+    "RunType": "junction",
+    "Junction": "simple_X_junction.junc",
+    "SimulationConfig": "final_testing/uneven_spawning/simple_X/single/seed_1788621521/1.33cpm.config",
+    "MachineLearningModel": "saved_model_simple_X_junction",
+    "Steps": 4500,
+    "RandomSeed": 1788621521,
+    "CPM": 1.33,
+    "HumanDriversVisible": true,
+    "NetworkLatency": 0,
+    "PacketLoss": 0,
+    "SpawningChange": "single"
+  },
+  "69": {
+    "RunUID": "ML_uneven_spawning_spawn_change_single_junction_simple_X_junction_seed_1788621521_spawn_rate_2.0cpm",
+    "RunType": "junction",
+    "Junction": "simple_X_junction.junc",
+    "SimulationConfig": "final_testing/uneven_spawning/simple_X/single/seed_1788621521/2.0cpm.config",
+    "MachineLearningModel": "saved_model_simple_X_junction",
+    "Steps": 4500,
+    "RandomSeed": 1788621521,
+    "CPM": 2.0,
+    "HumanDriversVisible": true,
+    "NetworkLatency": 0,
+    "PacketLoss": 0,
+    "SpawningChange": "single"
+  },
+  "70": {
+    "RunUID": "ML_uneven_spawning_spawn_change_single_junction_simple_X_junction_seed_1788621521_spawn_rate_3.0cpm",
+    "RunType": "junction",
+    "Junction": "simple_X_junction.junc",
+    "SimulationConfig": "final_testing/uneven_spawning/simple_X/single/seed_1788621521/3.0cpm.config",
+    "MachineLearningModel": "saved_model_simple_X_junction",
+    "Steps": 4500,
+    "RandomSeed": 1788621521,
+    "CPM": 3.0,
+    "HumanDriversVisible": true,
+    "NetworkLatency": 0,
+    "PacketLoss": 0,
+    "SpawningChange": "single"
+  },
+  "71": {
+    "RunUID": "ML_uneven_spawning_spawn_change_single_junction_simple_X_junction_seed_1788621521_spawn_rate_4.0cpm",
+    "RunType": "junction",
+    "Junction": "simple_X_junction.junc",
+    "SimulationConfig": "final_testing/uneven_spawning/simple_X/single/seed_1788621521/4.0cpm.config",
+    "MachineLearningModel": "saved_model_simple_X_junction",
+    "Steps": 4500,
+    "RandomSeed": 1788621521,
+    "CPM": 4.0,
+    "HumanDriversVisible": true,
+    "NetworkLatency": 0,
+    "PacketLoss": 0,
+    "SpawningChange": "single"
+  },
+  "72": {
+    "RunUID": "ML_uneven_spawning_spawn_change_single_junction_simple_X_junction_seed_1788621521_spawn_rate_6.0cpm",
+    "RunType": "junction",
+    "Junction": "simple_X_junction.junc",
+    "SimulationConfig": "final_testing/uneven_spawning/simple_X/single/seed_1788621521/6.0cpm.config",
+    "MachineLearningModel": "saved_model_simple_X_junction",
+    "Steps": 4500,
+    "RandomSeed": 1788621521,
+    "CPM": 6.0,
+    "HumanDriversVisible": true,
+    "NetworkLatency": 0,
+    "PacketLoss": 0,
+    "SpawningChange": "single"
+  },
+  "73": {
+    "RunUID": "ML_uneven_spawning_spawn_change_single_junction_simple_X_junction_seed_1788621521_spawn_rate_12.0cpm",
+    "RunType": "junction",
+    "Junction": "simple_X_junction.junc",
+    "SimulationConfig": "final_testing/uneven_spawning/simple_X/single/seed_1788621521/12.0cpm.config",
+    "MachineLearningModel": "saved_model_simple_X_junction",
+    "Steps": 4500,
+    "RandomSeed": 1788621521,
+    "CPM": 12.0,
+    "HumanDriversVisible": true,
+    "NetworkLatency": 0,
+    "PacketLoss": 0,
+    "SpawningChange": "single"
+  },
+  "74": {
+    "RunUID": "ML_uneven_spawning_spawn_change_single_junction_simple_X_junction_seed_1788621521_spawn_rate_15.0cpm",
+    "RunType": "junction",
+    "Junction": "simple_X_junction.junc",
+    "SimulationConfig": "final_testing/uneven_spawning/simple_X/single/seed_1788621521/15.0cpm.config",
+    "MachineLearningModel": "saved_model_simple_X_junction",
+    "Steps": 4500,
+    "RandomSeed": 1788621521,
+    "CPM": 15.0,
+    "HumanDriversVisible": true,
+    "NetworkLatency": 0,
+    "PacketLoss": 0,
+    "SpawningChange": "single"
+  },
+  "75": {
+    "RunUID": "ML_uneven_spawning_spawn_change_single_junction_simple_X_junction_seed_1788621521_spawn_rate_20.0cpm",
+    "RunType": "junction",
+    "Junction": "simple_X_junction.junc",
+    "SimulationConfig": "final_testing/uneven_spawning/simple_X/single/seed_1788621521/20.0cpm.config",
+    "MachineLearningModel": "saved_model_simple_X_junction",
+    "Steps": 4500,
+    "RandomSeed": 1788621521,
+    "CPM": 20.0,
+    "HumanDriversVisible": true,
+    "NetworkLatency": 0,
+    "PacketLoss": 0,
+    "SpawningChange": "single"
+  },
+  "76": {
+    "RunUID": "ML_uneven_spawning_spawn_change_single_junction_simple_X_junction_seed_1788621521_spawn_rate_30.0cpm",
+    "RunType": "junction",
+    "Junction": "simple_X_junction.junc",
+    "SimulationConfig": "final_testing/uneven_spawning/simple_X/single/seed_1788621521/30.0cpm.config",
+    "MachineLearningModel": "saved_model_simple_X_junction",
+    "Steps": 4500,
+    "RandomSeed": 1788621521,
+    "CPM": 30.0,
+    "HumanDriversVisible": true,
+    "NetworkLatency": 0,
+    "PacketLoss": 0,
+    "SpawningChange": "single"
+  },
+  "77": {
+    "RunUID": "ML_uneven_spawning_spawn_change_single_junction_simple_X_junction_seed_1774553582_spawn_rate_0.67cpm",
+    "RunType": "junction",
+    "Junction": "simple_X_junction.junc",
+    "SimulationConfig": "final_testing/uneven_spawning/simple_X/single/seed_1774553582/0.67cpm.config",
+    "MachineLearningModel": "saved_model_simple_X_junction",
+    "Steps": 4500,
+    "RandomSeed": 1774553582,
+    "CPM": 0.67,
+    "HumanDriversVisible": true,
+    "NetworkLatency": 0,
+    "PacketLoss": 0,
+    "SpawningChange": "single"
+  },
+  "78": {
+    "RunUID": "ML_uneven_spawning_spawn_change_single_junction_simple_X_junction_seed_1774553582_spawn_rate_1.0cpm",
+    "RunType": "junction",
+    "Junction": "simple_X_junction.junc",
+    "SimulationConfig": "final_testing/uneven_spawning/simple_X/single/seed_1774553582/1.0cpm.config",
+    "MachineLearningModel": "saved_model_simple_X_junction",
+    "Steps": 4500,
+    "RandomSeed": 1774553582,
+    "CPM": 1.0,
+    "HumanDriversVisible": true,
+    "NetworkLatency": 0,
+    "PacketLoss": 0,
+    "SpawningChange": "single"
+  },
+  "79": {
+    "RunUID": "ML_uneven_spawning_spawn_change_single_junction_simple_X_junction_seed_1774553582_spawn_rate_1.33cpm",
+    "RunType": "junction",
+    "Junction": "simple_X_junction.junc",
+    "SimulationConfig": "final_testing/uneven_spawning/simple_X/single/seed_1774553582/1.33cpm.config",
+    "MachineLearningModel": "saved_model_simple_X_junction",
+    "Steps": 4500,
+    "RandomSeed": 1774553582,
+    "CPM": 1.33,
+    "HumanDriversVisible": true,
+    "NetworkLatency": 0,
+    "PacketLoss": 0,
+    "SpawningChange": "single"
+  },
+  "80": {
+    "RunUID": "ML_uneven_spawning_spawn_change_single_junction_simple_X_junction_seed_1774553582_spawn_rate_2.0cpm",
+    "RunType": "junction",
+    "Junction": "simple_X_junction.junc",
+    "SimulationConfig": "final_testing/uneven_spawning/simple_X/single/seed_1774553582/2.0cpm.config",
+    "MachineLearningModel": "saved_model_simple_X_junction",
+    "Steps": 4500,
+    "RandomSeed": 1774553582,
+    "CPM": 2.0,
+    "HumanDriversVisible": true,
+    "NetworkLatency": 0,
+    "PacketLoss": 0,
+    "SpawningChange": "single"
+  },
+  "81": {
+    "RunUID": "ML_uneven_spawning_spawn_change_single_junction_simple_X_junction_seed_1774553582_spawn_rate_3.0cpm",
+    "RunType": "junction",
+    "Junction": "simple_X_junction.junc",
+    "SimulationConfig": "final_testing/uneven_spawning/simple_X/single/seed_1774553582/3.0cpm.config",
+    "MachineLearningModel": "saved_model_simple_X_junction",
+    "Steps": 4500,
+    "RandomSeed": 1774553582,
+    "CPM": 3.0,
+    "HumanDriversVisible": true,
+    "NetworkLatency": 0,
+    "PacketLoss": 0,
+    "SpawningChange": "single"
+  },
+  "82": {
+    "RunUID": "ML_uneven_spawning_spawn_change_single_junction_simple_X_junction_seed_1774553582_spawn_rate_4.0cpm",
+    "RunType": "junction",
+    "Junction": "simple_X_junction.junc",
+    "SimulationConfig": "final_testing/uneven_spawning/simple_X/single/seed_1774553582/4.0cpm.config",
+    "MachineLearningModel": "saved_model_simple_X_junction",
+    "Steps": 4500,
+    "RandomSeed": 1774553582,
+    "CPM": 4.0,
+    "HumanDriversVisible": true,
+    "NetworkLatency": 0,
+    "PacketLoss": 0,
+    "SpawningChange": "single"
+  },
+  "83": {
+    "RunUID": "ML_uneven_spawning_spawn_change_single_junction_simple_X_junction_seed_1774553582_spawn_rate_6.0cpm",
+    "RunType": "junction",
+    "Junction": "simple_X_junction.junc",
+    "SimulationConfig": "final_testing/uneven_spawning/simple_X/single/seed_1774553582/6.0cpm.config",
+    "MachineLearningModel": "saved_model_simple_X_junction",
+    "Steps": 4500,
+    "RandomSeed": 1774553582,
+    "CPM": 6.0,
+    "HumanDriversVisible": true,
+    "NetworkLatency": 0,
+    "PacketLoss": 0,
+    "SpawningChange": "single"
+  },
+  "84": {
+    "RunUID": "ML_uneven_spawning_spawn_change_single_junction_simple_X_junction_seed_1774553582_spawn_rate_12.0cpm",
+    "RunType": "junction",
+    "Junction": "simple_X_junction.junc",
+    "SimulationConfig": "final_testing/uneven_spawning/simple_X/single/seed_1774553582/12.0cpm.config",
+    "MachineLearningModel": "saved_model_simple_X_junction",
+    "Steps": 4500,
+    "RandomSeed": 1774553582,
+    "CPM": 12.0,
+    "HumanDriversVisible": true,
+    "NetworkLatency": 0,
+    "PacketLoss": 0,
+    "SpawningChange": "single"
+  },
+  "85": {
+    "RunUID": "ML_uneven_spawning_spawn_change_single_junction_simple_X_junction_seed_1774553582_spawn_rate_15.0cpm",
+    "RunType": "junction",
+    "Junction": "simple_X_junction.junc",
+    "SimulationConfig": "final_testing/uneven_spawning/simple_X/single/seed_1774553582/15.0cpm.config",
+    "MachineLearningModel": "saved_model_simple_X_junction",
+    "Steps": 4500,
+    "RandomSeed": 1774553582,
+    "CPM": 15.0,
+    "HumanDriversVisible": true,
+    "NetworkLatency": 0,
+    "PacketLoss": 0,
+    "SpawningChange": "single"
+  },
+  "86": {
+    "RunUID": "ML_uneven_spawning_spawn_change_single_junction_simple_X_junction_seed_1774553582_spawn_rate_20.0cpm",
+    "RunType": "junction",
+    "Junction": "simple_X_junction.junc",
+    "SimulationConfig": "final_testing/uneven_spawning/simple_X/single/seed_1774553582/20.0cpm.config",
+    "MachineLearningModel": "saved_model_simple_X_junction",
+    "Steps": 4500,
+    "RandomSeed": 1774553582,
+    "CPM": 20.0,
+    "HumanDriversVisible": true,
+    "NetworkLatency": 0,
+    "PacketLoss": 0,
+    "SpawningChange": "single"
+  },
+  "87": {
+    "RunUID": "ML_uneven_spawning_spawn_change_single_junction_simple_X_junction_seed_1774553582_spawn_rate_30.0cpm",
+    "RunType": "junction",
+    "Junction": "simple_X_junction.junc",
+    "SimulationConfig": "final_testing/uneven_spawning/simple_X/single/seed_1774553582/30.0cpm.config",
+    "MachineLearningModel": "saved_model_simple_X_junction",
+    "Steps": 4500,
+    "RandomSeed": 1774553582,
+    "CPM": 30.0,
+    "HumanDriversVisible": true,
+    "NetworkLatency": 0,
+    "PacketLoss": 0,
+    "SpawningChange": "single"
+  },
+  "88": {
+    "RunUID": "ML_uneven_spawning_spawn_change_single_junction_simple_X_junction_seed_1490597230_spawn_rate_0.67cpm",
+    "RunType": "junction",
+    "Junction": "simple_X_junction.junc",
+    "SimulationConfig": "final_testing/uneven_spawning/simple_X/single/seed_1490597230/0.67cpm.config",
+    "MachineLearningModel": "saved_model_simple_X_junction",
+    "Steps": 4500,
+    "RandomSeed": 1490597230,
+    "CPM": 0.67,
+    "HumanDriversVisible": true,
+    "NetworkLatency": 0,
+    "PacketLoss": 0,
+    "SpawningChange": "single"
   },
   "89": {
-    "RunUID": "ML_uneven_spawning_spawn_change_side_junction_simple_T_junction_seed_997415346_spawn_rate_1.0cpm",
+    "RunUID": "ML_uneven_spawning_spawn_change_single_junction_simple_X_junction_seed_1490597230_spawn_rate_1.0cpm",
     "RunType": "junction",
-    "Junction": "simple_T_junction.junc",
-    "SimulationConfig": "final_testing/uneven_spawning/simple_T/side/seed_997415346/1.0cpm.config",
-    "MachineLearningModel": "saved_model_simple_T_junction",
+    "Junction": "simple_X_junction.junc",
+    "SimulationConfig": "final_testing/uneven_spawning/simple_X/single/seed_1490597230/1.0cpm.config",
+    "MachineLearningModel": "saved_model_simple_X_junction",
     "Steps": 4500,
-    "RandomSeed": 997415346,
+    "RandomSeed": 1490597230,
     "CPM": 1.0,
     "HumanDriversVisible": true,
     "NetworkLatency": 0,
     "PacketLoss": 0,
-    "SpawningChange": "side"
+    "SpawningChange": "single"
   },
   "90": {
-    "RunUID": "ML_uneven_spawning_spawn_change_side_junction_simple_T_junction_seed_997415346_spawn_rate_1.33cpm",
+    "RunUID": "ML_uneven_spawning_spawn_change_single_junction_simple_X_junction_seed_1490597230_spawn_rate_1.33cpm",
     "RunType": "junction",
-    "Junction": "simple_T_junction.junc",
-    "SimulationConfig": "final_testing/uneven_spawning/simple_T/side/seed_997415346/1.33cpm.config",
-    "MachineLearningModel": "saved_model_simple_T_junction",
+    "Junction": "simple_X_junction.junc",
+    "SimulationConfig": "final_testing/uneven_spawning/simple_X/single/seed_1490597230/1.33cpm.config",
+    "MachineLearningModel": "saved_model_simple_X_junction",
     "Steps": 4500,
-    "RandomSeed": 997415346,
+    "RandomSeed": 1490597230,
     "CPM": 1.33,
     "HumanDriversVisible": true,
     "NetworkLatency": 0,
     "PacketLoss": 0,
-    "SpawningChange": "side"
+    "SpawningChange": "single"
   },
   "91": {
-    "RunUID": "ML_uneven_spawning_spawn_change_side_junction_simple_T_junction_seed_997415346_spawn_rate_2.0cpm",
+    "RunUID": "ML_uneven_spawning_spawn_change_single_junction_simple_X_junction_seed_1490597230_spawn_rate_2.0cpm",
     "RunType": "junction",
-    "Junction": "simple_T_junction.junc",
-    "SimulationConfig": "final_testing/uneven_spawning/simple_T/side/seed_997415346/2.0cpm.config",
-    "MachineLearningModel": "saved_model_simple_T_junction",
+    "Junction": "simple_X_junction.junc",
+    "SimulationConfig": "final_testing/uneven_spawning/simple_X/single/seed_1490597230/2.0cpm.config",
+    "MachineLearningModel": "saved_model_simple_X_junction",
     "Steps": 4500,
-    "RandomSeed": 997415346,
+    "RandomSeed": 1490597230,
     "CPM": 2.0,
     "HumanDriversVisible": true,
     "NetworkLatency": 0,
     "PacketLoss": 0,
-    "SpawningChange": "side"
+    "SpawningChange": "single"
   },
   "92": {
-    "RunUID": "ML_uneven_spawning_spawn_change_side_junction_simple_T_junction_seed_997415346_spawn_rate_3.0cpm",
+    "RunUID": "ML_uneven_spawning_spawn_change_single_junction_simple_X_junction_seed_1490597230_spawn_rate_3.0cpm",
     "RunType": "junction",
-    "Junction": "simple_T_junction.junc",
-    "SimulationConfig": "final_testing/uneven_spawning/simple_T/side/seed_997415346/3.0cpm.config",
-    "MachineLearningModel": "saved_model_simple_T_junction",
+    "Junction": "simple_X_junction.junc",
+    "SimulationConfig": "final_testing/uneven_spawning/simple_X/single/seed_1490597230/3.0cpm.config",
+    "MachineLearningModel": "saved_model_simple_X_junction",
     "Steps": 4500,
-    "RandomSeed": 997415346,
+    "RandomSeed": 1490597230,
     "CPM": 3.0,
     "HumanDriversVisible": true,
     "NetworkLatency": 0,
     "PacketLoss": 0,
-    "SpawningChange": "side"
+    "SpawningChange": "single"
   },
   "93": {
-    "RunUID": "ML_uneven_spawning_spawn_change_side_junction_simple_T_junction_seed_997415346_spawn_rate_4.0cpm",
+    "RunUID": "ML_uneven_spawning_spawn_change_single_junction_simple_X_junction_seed_1490597230_spawn_rate_4.0cpm",
     "RunType": "junction",
-    "Junction": "simple_T_junction.junc",
-    "SimulationConfig": "final_testing/uneven_spawning/simple_T/side/seed_997415346/4.0cpm.config",
-    "MachineLearningModel": "saved_model_simple_T_junction",
+    "Junction": "simple_X_junction.junc",
+    "SimulationConfig": "final_testing/uneven_spawning/simple_X/single/seed_1490597230/4.0cpm.config",
+    "MachineLearningModel": "saved_model_simple_X_junction",
     "Steps": 4500,
-    "RandomSeed": 997415346,
+    "RandomSeed": 1490597230,
     "CPM": 4.0,
     "HumanDriversVisible": true,
     "NetworkLatency": 0,
     "PacketLoss": 0,
-    "SpawningChange": "side"
+    "SpawningChange": "single"
   },
   "94": {
-    "RunUID": "ML_uneven_spawning_spawn_change_side_junction_simple_T_junction_seed_997415346_spawn_rate_6.0cpm",
+    "RunUID": "ML_uneven_spawning_spawn_change_single_junction_simple_X_junction_seed_1490597230_spawn_rate_6.0cpm",
     "RunType": "junction",
-    "Junction": "simple_T_junction.junc",
-    "SimulationConfig": "final_testing/uneven_spawning/simple_T/side/seed_997415346/6.0cpm.config",
-    "MachineLearningModel": "saved_model_simple_T_junction",
+    "Junction": "simple_X_junction.junc",
+    "SimulationConfig": "final_testing/uneven_spawning/simple_X/single/seed_1490597230/6.0cpm.config",
+    "MachineLearningModel": "saved_model_simple_X_junction",
     "Steps": 4500,
-    "RandomSeed": 997415346,
+    "RandomSeed": 1490597230,
     "CPM": 6.0,
     "HumanDriversVisible": true,
     "NetworkLatency": 0,
     "PacketLoss": 0,
-    "SpawningChange": "side"
+    "SpawningChange": "single"
   },
   "95": {
-    "RunUID": "ML_uneven_spawning_spawn_change_side_junction_simple_T_junction_seed_997415346_spawn_rate_12.0cpm",
+    "RunUID": "ML_uneven_spawning_spawn_change_single_junction_simple_X_junction_seed_1490597230_spawn_rate_12.0cpm",
     "RunType": "junction",
-    "Junction": "simple_T_junction.junc",
-    "SimulationConfig": "final_testing/uneven_spawning/simple_T/side/seed_997415346/12.0cpm.config",
-    "MachineLearningModel": "saved_model_simple_T_junction",
+    "Junction": "simple_X_junction.junc",
+    "SimulationConfig": "final_testing/uneven_spawning/simple_X/single/seed_1490597230/12.0cpm.config",
+    "MachineLearningModel": "saved_model_simple_X_junction",
     "Steps": 4500,
-    "RandomSeed": 997415346,
+    "RandomSeed": 1490597230,
     "CPM": 12.0,
     "HumanDriversVisible": true,
     "NetworkLatency": 0,
     "PacketLoss": 0,
-    "SpawningChange": "side"
+    "SpawningChange": "single"
   },
   "96": {
-    "RunUID": "ML_uneven_spawning_spawn_change_side_junction_simple_T_junction_seed_997415346_spawn_rate_15.0cpm",
+    "RunUID": "ML_uneven_spawning_spawn_change_single_junction_simple_X_junction_seed_1490597230_spawn_rate_15.0cpm",
     "RunType": "junction",
-    "Junction": "simple_T_junction.junc",
-    "SimulationConfig": "final_testing/uneven_spawning/simple_T/side/seed_997415346/15.0cpm.config",
-    "MachineLearningModel": "saved_model_simple_T_junction",
+    "Junction": "simple_X_junction.junc",
+    "SimulationConfig": "final_testing/uneven_spawning/simple_X/single/seed_1490597230/15.0cpm.config",
+    "MachineLearningModel": "saved_model_simple_X_junction",
     "Steps": 4500,
-    "RandomSeed": 997415346,
+    "RandomSeed": 1490597230,
     "CPM": 15.0,
     "HumanDriversVisible": true,
     "NetworkLatency": 0,
     "PacketLoss": 0,
-    "SpawningChange": "side"
+    "SpawningChange": "single"
   },
   "97": {
-    "RunUID": "ML_uneven_spawning_spawn_change_side_junction_simple_T_junction_seed_997415346_spawn_rate_20.0cpm",
+    "RunUID": "ML_uneven_spawning_spawn_change_single_junction_simple_X_junction_seed_1490597230_spawn_rate_20.0cpm",
     "RunType": "junction",
-    "Junction": "simple_T_junction.junc",
-    "SimulationConfig": "final_testing/uneven_spawning/simple_T/side/seed_997415346/20.0cpm.config",
-    "MachineLearningModel": "saved_model_simple_T_junction",
+    "Junction": "simple_X_junction.junc",
+    "SimulationConfig": "final_testing/uneven_spawning/simple_X/single/seed_1490597230/20.0cpm.config",
+    "MachineLearningModel": "saved_model_simple_X_junction",
     "Steps": 4500,
-    "RandomSeed": 997415346,
+    "RandomSeed": 1490597230,
     "CPM": 20.0,
     "HumanDriversVisible": true,
     "NetworkLatency": 0,
     "PacketLoss": 0,
-    "SpawningChange": "side"
+    "SpawningChange": "single"
   },
   "98": {
-    "RunUID": "ML_uneven_spawning_spawn_change_side_junction_simple_T_junction_seed_997415346_spawn_rate_30.0cpm",
+    "RunUID": "ML_uneven_spawning_spawn_change_single_junction_simple_X_junction_seed_1490597230_spawn_rate_30.0cpm",
     "RunType": "junction",
-    "Junction": "simple_T_junction.junc",
-    "SimulationConfig": "final_testing/uneven_spawning/simple_T/side/seed_997415346/30.0cpm.config",
-    "MachineLearningModel": "saved_model_simple_T_junction",
+    "Junction": "simple_X_junction.junc",
+    "SimulationConfig": "final_testing/uneven_spawning/simple_X/single/seed_1490597230/30.0cpm.config",
+    "MachineLearningModel": "saved_model_simple_X_junction",
     "Steps": 4500,
-    "RandomSeed": 997415346,
+    "RandomSeed": 1490597230,
     "CPM": 30.0,
     "HumanDriversVisible": true,
     "NetworkLatency": 0,
     "PacketLoss": 0,
-    "SpawningChange": "side"
+    "SpawningChange": "single"
   },
   "99": {
-    "RunUID": "ML_uneven_spawning_spawn_change_side_junction_simple_T_junction_seed_1433874439_spawn_rate_0.67cpm",
+    "RunUID": "ML_uneven_spawning_spawn_change_double_junction_simple_X_junction_seed_1788621521_spawn_rate_0.67cpm",
     "RunType": "junction",
-    "Junction": "simple_T_junction.junc",
-    "SimulationConfig": "final_testing/uneven_spawning/simple_T/side/seed_1433874439/0.67cpm.config",
-    "MachineLearningModel": "saved_model_simple_T_junction",
+    "Junction": "simple_X_junction.junc",
+    "SimulationConfig": "final_testing/uneven_spawning/simple_X/double/seed_1788621521/0.67cpm.config",
+    "MachineLearningModel": "saved_model_simple_X_junction",
     "Steps": 4500,
-    "RandomSeed": 1433874439,
+    "RandomSeed": 1788621521,
     "CPM": 0.67,
     "HumanDriversVisible": true,
     "NetworkLatency": 0,
     "PacketLoss": 0,
-    "SpawningChange": "side"
+    "SpawningChange": "double"
   },
   "100": {
-    "RunUID": "ML_uneven_spawning_spawn_change_side_junction_simple_T_junction_seed_1433874439_spawn_rate_1.0cpm",
+    "RunUID": "ML_uneven_spawning_spawn_change_double_junction_simple_X_junction_seed_1788621521_spawn_rate_1.0cpm",
     "RunType": "junction",
-    "Junction": "simple_T_junction.junc",
-    "SimulationConfig": "final_testing/uneven_spawning/simple_T/side/seed_1433874439/1.0cpm.config",
-    "MachineLearningModel": "saved_model_simple_T_junction",
+    "Junction": "simple_X_junction.junc",
+    "SimulationConfig": "final_testing/uneven_spawning/simple_X/double/seed_1788621521/1.0cpm.config",
+    "MachineLearningModel": "saved_model_simple_X_junction",
     "Steps": 4500,
-    "RandomSeed": 1433874439,
+    "RandomSeed": 1788621521,
     "CPM": 1.0,
     "HumanDriversVisible": true,
     "NetworkLatency": 0,
     "PacketLoss": 0,
-    "SpawningChange": "side"
+    "SpawningChange": "double"
   },
   "101": {
-    "RunUID": "ML_uneven_spawning_spawn_change_side_junction_simple_T_junction_seed_1433874439_spawn_rate_1.33cpm",
+    "RunUID": "ML_uneven_spawning_spawn_change_double_junction_simple_X_junction_seed_1788621521_spawn_rate_1.33cpm",
     "RunType": "junction",
-    "Junction": "simple_T_junction.junc",
-    "SimulationConfig": "final_testing/uneven_spawning/simple_T/side/seed_1433874439/1.33cpm.config",
-    "MachineLearningModel": "saved_model_simple_T_junction",
+    "Junction": "simple_X_junction.junc",
+    "SimulationConfig": "final_testing/uneven_spawning/simple_X/double/seed_1788621521/1.33cpm.config",
+    "MachineLearningModel": "saved_model_simple_X_junction",
     "Steps": 4500,
-    "RandomSeed": 1433874439,
+    "RandomSeed": 1788621521,
     "CPM": 1.33,
     "HumanDriversVisible": true,
     "NetworkLatency": 0,
     "PacketLoss": 0,
-    "SpawningChange": "side"
+    "SpawningChange": "double"
   },
   "102": {
-    "RunUID": "ML_uneven_spawning_spawn_change_side_junction_simple_T_junction_seed_1433874439_spawn_rate_2.0cpm",
+    "RunUID": "ML_uneven_spawning_spawn_change_double_junction_simple_X_junction_seed_1788621521_spawn_rate_2.0cpm",
     "RunType": "junction",
-    "Junction": "simple_T_junction.junc",
-    "SimulationConfig": "final_testing/uneven_spawning/simple_T/side/seed_1433874439/2.0cpm.config",
-    "MachineLearningModel": "saved_model_simple_T_junction",
+    "Junction": "simple_X_junction.junc",
+    "SimulationConfig": "final_testing/uneven_spawning/simple_X/double/seed_1788621521/2.0cpm.config",
+    "MachineLearningModel": "saved_model_simple_X_junction",
     "Steps": 4500,
-    "RandomSeed": 1433874439,
+    "RandomSeed": 1788621521,
     "CPM": 2.0,
     "HumanDriversVisible": true,
     "NetworkLatency": 0,
     "PacketLoss": 0,
-    "SpawningChange": "side"
+    "SpawningChange": "double"
   },
   "103": {
-    "RunUID": "ML_uneven_spawning_spawn_change_side_junction_simple_T_junction_seed_1433874439_spawn_rate_3.0cpm",
+    "RunUID": "ML_uneven_spawning_spawn_change_double_junction_simple_X_junction_seed_1788621521_spawn_rate_3.0cpm",
     "RunType": "junction",
-    "Junction": "simple_T_junction.junc",
-    "SimulationConfig": "final_testing/uneven_spawning/simple_T/side/seed_1433874439/3.0cpm.config",
-    "MachineLearningModel": "saved_model_simple_T_junction",
+    "Junction": "simple_X_junction.junc",
+    "SimulationConfig": "final_testing/uneven_spawning/simple_X/double/seed_1788621521/3.0cpm.config",
+    "MachineLearningModel": "saved_model_simple_X_junction",
     "Steps": 4500,
-    "RandomSeed": 1433874439,
+    "RandomSeed": 1788621521,
     "CPM": 3.0,
     "HumanDriversVisible": true,
     "NetworkLatency": 0,
     "PacketLoss": 0,
-    "SpawningChange": "side"
+    "SpawningChange": "double"
   },
   "104": {
-    "RunUID": "ML_uneven_spawning_spawn_change_side_junction_simple_T_junction_seed_1433874439_spawn_rate_4.0cpm",
+    "RunUID": "ML_uneven_spawning_spawn_change_double_junction_simple_X_junction_seed_1788621521_spawn_rate_4.0cpm",
     "RunType": "junction",
-    "Junction": "simple_T_junction.junc",
-    "SimulationConfig": "final_testing/uneven_spawning/simple_T/side/seed_1433874439/4.0cpm.config",
-    "MachineLearningModel": "saved_model_simple_T_junction",
+    "Junction": "simple_X_junction.junc",
+    "SimulationConfig": "final_testing/uneven_spawning/simple_X/double/seed_1788621521/4.0cpm.config",
+    "MachineLearningModel": "saved_model_simple_X_junction",
     "Steps": 4500,
-    "RandomSeed": 1433874439,
+    "RandomSeed": 1788621521,
     "CPM": 4.0,
     "HumanDriversVisible": true,
     "NetworkLatency": 0,
     "PacketLoss": 0,
-    "SpawningChange": "side"
+    "SpawningChange": "double"
   },
   "105": {
-    "RunUID": "ML_uneven_spawning_spawn_change_side_junction_simple_T_junction_seed_1433874439_spawn_rate_6.0cpm",
+    "RunUID": "ML_uneven_spawning_spawn_change_double_junction_simple_X_junction_seed_1788621521_spawn_rate_6.0cpm",
     "RunType": "junction",
-    "Junction": "simple_T_junction.junc",
-    "SimulationConfig": "final_testing/uneven_spawning/simple_T/side/seed_1433874439/6.0cpm.config",
-    "MachineLearningModel": "saved_model_simple_T_junction",
+    "Junction": "simple_X_junction.junc",
+    "SimulationConfig": "final_testing/uneven_spawning/simple_X/double/seed_1788621521/6.0cpm.config",
+    "MachineLearningModel": "saved_model_simple_X_junction",
     "Steps": 4500,
-    "RandomSeed": 1433874439,
+    "RandomSeed": 1788621521,
     "CPM": 6.0,
     "HumanDriversVisible": true,
     "NetworkLatency": 0,
     "PacketLoss": 0,
-    "SpawningChange": "side"
+    "SpawningChange": "double"
   },
   "106": {
-    "RunUID": "ML_uneven_spawning_spawn_change_side_junction_simple_T_junction_seed_1433874439_spawn_rate_12.0cpm",
+    "RunUID": "ML_uneven_spawning_spawn_change_double_junction_simple_X_junction_seed_1788621521_spawn_rate_12.0cpm",
     "RunType": "junction",
-    "Junction": "simple_T_junction.junc",
-    "SimulationConfig": "final_testing/uneven_spawning/simple_T/side/seed_1433874439/12.0cpm.config",
-    "MachineLearningModel": "saved_model_simple_T_junction",
+    "Junction": "simple_X_junction.junc",
+    "SimulationConfig": "final_testing/uneven_spawning/simple_X/double/seed_1788621521/12.0cpm.config",
+    "MachineLearningModel": "saved_model_simple_X_junction",
     "Steps": 4500,
-    "RandomSeed": 1433874439,
+    "RandomSeed": 1788621521,
     "CPM": 12.0,
     "HumanDriversVisible": true,
     "NetworkLatency": 0,
     "PacketLoss": 0,
-    "SpawningChange": "side"
+    "SpawningChange": "double"
   },
   "107": {
-    "RunUID": "ML_uneven_spawning_spawn_change_side_junction_simple_T_junction_seed_1433874439_spawn_rate_15.0cpm",
+    "RunUID": "ML_uneven_spawning_spawn_change_double_junction_simple_X_junction_seed_1788621521_spawn_rate_15.0cpm",
     "RunType": "junction",
-    "Junction": "simple_T_junction.junc",
-    "SimulationConfig": "final_testing/uneven_spawning/simple_T/side/seed_1433874439/15.0cpm.config",
-    "MachineLearningModel": "saved_model_simple_T_junction",
+    "Junction": "simple_X_junction.junc",
+    "SimulationConfig": "final_testing/uneven_spawning/simple_X/double/seed_1788621521/15.0cpm.config",
+    "MachineLearningModel": "saved_model_simple_X_junction",
     "Steps": 4500,
-    "RandomSeed": 1433874439,
+    "RandomSeed": 1788621521,
     "CPM": 15.0,
     "HumanDriversVisible": true,
     "NetworkLatency": 0,
     "PacketLoss": 0,
-    "SpawningChange": "side"
+    "SpawningChange": "double"
   },
   "108": {
-    "RunUID": "ML_uneven_spawning_spawn_change_side_junction_simple_T_junction_seed_1433874439_spawn_rate_20.0cpm",
+    "RunUID": "ML_uneven_spawning_spawn_change_double_junction_simple_X_junction_seed_1788621521_spawn_rate_20.0cpm",
     "RunType": "junction",
-    "Junction": "simple_T_junction.junc",
-    "SimulationConfig": "final_testing/uneven_spawning/simple_T/side/seed_1433874439/20.0cpm.config",
-    "MachineLearningModel": "saved_model_simple_T_junction",
+    "Junction": "simple_X_junction.junc",
+    "SimulationConfig": "final_testing/uneven_spawning/simple_X/double/seed_1788621521/20.0cpm.config",
+    "MachineLearningModel": "saved_model_simple_X_junction",
     "Steps": 4500,
-    "RandomSeed": 1433874439,
+    "RandomSeed": 1788621521,
     "CPM": 20.0,
     "HumanDriversVisible": true,
     "NetworkLatency": 0,
     "PacketLoss": 0,
-    "SpawningChange": "side"
+    "SpawningChange": "double"
   },
   "109": {
-    "RunUID": "ML_uneven_spawning_spawn_change_side_junction_simple_T_junction_seed_1433874439_spawn_rate_30.0cpm",
+    "RunUID": "ML_uneven_spawning_spawn_change_double_junction_simple_X_junction_seed_1788621521_spawn_rate_30.0cpm",
     "RunType": "junction",
-    "Junction": "simple_T_junction.junc",
-    "SimulationConfig": "final_testing/uneven_spawning/simple_T/side/seed_1433874439/30.0cpm.config",
-    "MachineLearningModel": "saved_model_simple_T_junction",
+    "Junction": "simple_X_junction.junc",
+    "SimulationConfig": "final_testing/uneven_spawning/simple_X/double/seed_1788621521/30.0cpm.config",
+    "MachineLearningModel": "saved_model_simple_X_junction",
     "Steps": 4500,
-    "RandomSeed": 1433874439,
+    "RandomSeed": 1788621521,
     "CPM": 30.0,
     "HumanDriversVisible": true,
     "NetworkLatency": 0,
     "PacketLoss": 0,
-    "SpawningChange": "side"
+    "SpawningChange": "double"
+  },
+  "110": {
+    "RunUID": "ML_uneven_spawning_spawn_change_double_junction_simple_X_junction_seed_1774553582_spawn_rate_0.67cpm",
+    "RunType": "junction",
+    "Junction": "simple_X_junction.junc",
+    "SimulationConfig": "final_testing/uneven_spawning/simple_X/double/seed_1774553582/0.67cpm.config",
+    "MachineLearningModel": "saved_model_simple_X_junction",
+    "Steps": 4500,
+    "RandomSeed": 1774553582,
+    "CPM": 0.67,
+    "HumanDriversVisible": true,
+    "NetworkLatency": 0,
+    "PacketLoss": 0,
+    "SpawningChange": "double"
+  },
+  "111": {
+    "RunUID": "ML_uneven_spawning_spawn_change_double_junction_simple_X_junction_seed_1774553582_spawn_rate_1.0cpm",
+    "RunType": "junction",
+    "Junction": "simple_X_junction.junc",
+    "SimulationConfig": "final_testing/uneven_spawning/simple_X/double/seed_1774553582/1.0cpm.config",
+    "MachineLearningModel": "saved_model_simple_X_junction",
+    "Steps": 4500,
+    "RandomSeed": 1774553582,
+    "CPM": 1.0,
+    "HumanDriversVisible": true,
+    "NetworkLatency": 0,
+    "PacketLoss": 0,
+    "SpawningChange": "double"
+  },
+  "112": {
+    "RunUID": "ML_uneven_spawning_spawn_change_double_junction_simple_X_junction_seed_1774553582_spawn_rate_1.33cpm",
+    "RunType": "junction",
+    "Junction": "simple_X_junction.junc",
+    "SimulationConfig": "final_testing/uneven_spawning/simple_X/double/seed_1774553582/1.33cpm.config",
+    "MachineLearningModel": "saved_model_simple_X_junction",
+    "Steps": 4500,
+    "RandomSeed": 1774553582,
+    "CPM": 1.33,
+    "HumanDriversVisible": true,
+    "NetworkLatency": 0,
+    "PacketLoss": 0,
+    "SpawningChange": "double"
+  },
+  "113": {
+    "RunUID": "ML_uneven_spawning_spawn_change_double_junction_simple_X_junction_seed_1774553582_spawn_rate_2.0cpm",
+    "RunType": "junction",
+    "Junction": "simple_X_junction.junc",
+    "SimulationConfig": "final_testing/uneven_spawning/simple_X/double/seed_1774553582/2.0cpm.config",
+    "MachineLearningModel": "saved_model_simple_X_junction",
+    "Steps": 4500,
+    "RandomSeed": 1774553582,
+    "CPM": 2.0,
+    "HumanDriversVisible": true,
+    "NetworkLatency": 0,
+    "PacketLoss": 0,
+    "SpawningChange": "double"
+  },
+  "114": {
+    "RunUID": "ML_uneven_spawning_spawn_change_double_junction_simple_X_junction_seed_1774553582_spawn_rate_3.0cpm",
+    "RunType": "junction",
+    "Junction": "simple_X_junction.junc",
+    "SimulationConfig": "final_testing/uneven_spawning/simple_X/double/seed_1774553582/3.0cpm.config",
+    "MachineLearningModel": "saved_model_simple_X_junction",
+    "Steps": 4500,
+    "RandomSeed": 1774553582,
+    "CPM": 3.0,
+    "HumanDriversVisible": true,
+    "NetworkLatency": 0,
+    "PacketLoss": 0,
+    "SpawningChange": "double"
+  },
+  "115": {
+    "RunUID": "ML_uneven_spawning_spawn_change_double_junction_simple_X_junction_seed_1774553582_spawn_rate_4.0cpm",
+    "RunType": "junction",
+    "Junction": "simple_X_junction.junc",
+    "SimulationConfig": "final_testing/uneven_spawning/simple_X/double/seed_1774553582/4.0cpm.config",
+    "MachineLearningModel": "saved_model_simple_X_junction",
+    "Steps": 4500,
+    "RandomSeed": 1774553582,
+    "CPM": 4.0,
+    "HumanDriversVisible": true,
+    "NetworkLatency": 0,
+    "PacketLoss": 0,
+    "SpawningChange": "double"
+  },
+  "116": {
+    "RunUID": "ML_uneven_spawning_spawn_change_double_junction_simple_X_junction_seed_1774553582_spawn_rate_6.0cpm",
+    "RunType": "junction",
+    "Junction": "simple_X_junction.junc",
+    "SimulationConfig": "final_testing/uneven_spawning/simple_X/double/seed_1774553582/6.0cpm.config",
+    "MachineLearningModel": "saved_model_simple_X_junction",
+    "Steps": 4500,
+    "RandomSeed": 1774553582,
+    "CPM": 6.0,
+    "HumanDriversVisible": true,
+    "NetworkLatency": 0,
+    "PacketLoss": 0,
+    "SpawningChange": "double"
+  },
+  "117": {
+    "RunUID": "ML_uneven_spawning_spawn_change_double_junction_simple_X_junction_seed_1774553582_spawn_rate_12.0cpm",
+    "RunType": "junction",
+    "Junction": "simple_X_junction.junc",
+    "SimulationConfig": "final_testing/uneven_spawning/simple_X/double/seed_1774553582/12.0cpm.config",
+    "MachineLearningModel": "saved_model_simple_X_junction",
+    "Steps": 4500,
+    "RandomSeed": 1774553582,
+    "CPM": 12.0,
+    "HumanDriversVisible": true,
+    "NetworkLatency": 0,
+    "PacketLoss": 0,
+    "SpawningChange": "double"
+  },
+  "118": {
+    "RunUID": "ML_uneven_spawning_spawn_change_double_junction_simple_X_junction_seed_1774553582_spawn_rate_15.0cpm",
+    "RunType": "junction",
+    "Junction": "simple_X_junction.junc",
+    "SimulationConfig": "final_testing/uneven_spawning/simple_X/double/seed_1774553582/15.0cpm.config",
+    "MachineLearningModel": "saved_model_simple_X_junction",
+    "Steps": 4500,
+    "RandomSeed": 1774553582,
+    "CPM": 15.0,
+    "HumanDriversVisible": true,
+    "NetworkLatency": 0,
+    "PacketLoss": 0,
+    "SpawningChange": "double"
+  },
+  "119": {
+    "RunUID": "ML_uneven_spawning_spawn_change_double_junction_simple_X_junction_seed_1774553582_spawn_rate_20.0cpm",
+    "RunType": "junction",
+    "Junction": "simple_X_junction.junc",
+    "SimulationConfig": "final_testing/uneven_spawning/simple_X/double/seed_1774553582/20.0cpm.config",
+    "MachineLearningModel": "saved_model_simple_X_junction",
+    "Steps": 4500,
+    "RandomSeed": 1774553582,
+    "CPM": 20.0,
+    "HumanDriversVisible": true,
+    "NetworkLatency": 0,
+    "PacketLoss": 0,
+    "SpawningChange": "double"
+  },
+  "120": {
+    "RunUID": "ML_uneven_spawning_spawn_change_double_junction_simple_X_junction_seed_1774553582_spawn_rate_30.0cpm",
+    "RunType": "junction",
+    "Junction": "simple_X_junction.junc",
+    "SimulationConfig": "final_testing/uneven_spawning/simple_X/double/seed_1774553582/30.0cpm.config",
+    "MachineLearningModel": "saved_model_simple_X_junction",
+    "Steps": 4500,
+    "RandomSeed": 1774553582,
+    "CPM": 30.0,
+    "HumanDriversVisible": true,
+    "NetworkLatency": 0,
+    "PacketLoss": 0,
+    "SpawningChange": "double"
+  },
+  "121": {
+    "RunUID": "ML_uneven_spawning_spawn_change_double_junction_simple_X_junction_seed_1490597230_spawn_rate_0.67cpm",
+    "RunType": "junction",
+    "Junction": "simple_X_junction.junc",
+    "SimulationConfig": "final_testing/uneven_spawning/simple_X/double/seed_1490597230/0.67cpm.config",
+    "MachineLearningModel": "saved_model_simple_X_junction",
+    "Steps": 4500,
+    "RandomSeed": 1490597230,
+    "CPM": 0.67,
+    "HumanDriversVisible": true,
+    "NetworkLatency": 0,
+    "PacketLoss": 0,
+    "SpawningChange": "double"
+  },
+  "122": {
+    "RunUID": "ML_uneven_spawning_spawn_change_double_junction_simple_X_junction_seed_1490597230_spawn_rate_1.0cpm",
+    "RunType": "junction",
+    "Junction": "simple_X_junction.junc",
+    "SimulationConfig": "final_testing/uneven_spawning/simple_X/double/seed_1490597230/1.0cpm.config",
+    "MachineLearningModel": "saved_model_simple_X_junction",
+    "Steps": 4500,
+    "RandomSeed": 1490597230,
+    "CPM": 1.0,
+    "HumanDriversVisible": true,
+    "NetworkLatency": 0,
+    "PacketLoss": 0,
+    "SpawningChange": "double"
+  },
+  "123": {
+    "RunUID": "ML_uneven_spawning_spawn_change_double_junction_simple_X_junction_seed_1490597230_spawn_rate_1.33cpm",
+    "RunType": "junction",
+    "Junction": "simple_X_junction.junc",
+    "SimulationConfig": "final_testing/uneven_spawning/simple_X/double/seed_1490597230/1.33cpm.config",
+    "MachineLearningModel": "saved_model_simple_X_junction",
+    "Steps": 4500,
+    "RandomSeed": 1490597230,
+    "CPM": 1.33,
+    "HumanDriversVisible": true,
+    "NetworkLatency": 0,
+    "PacketLoss": 0,
+    "SpawningChange": "double"
+  },
+  "124": {
+    "RunUID": "ML_uneven_spawning_spawn_change_double_junction_simple_X_junction_seed_1490597230_spawn_rate_2.0cpm",
+    "RunType": "junction",
+    "Junction": "simple_X_junction.junc",
+    "SimulationConfig": "final_testing/uneven_spawning/simple_X/double/seed_1490597230/2.0cpm.config",
+    "MachineLearningModel": "saved_model_simple_X_junction",
+    "Steps": 4500,
+    "RandomSeed": 1490597230,
+    "CPM": 2.0,
+    "HumanDriversVisible": true,
+    "NetworkLatency": 0,
+    "PacketLoss": 0,
+    "SpawningChange": "double"
+  },
+  "125": {
+    "RunUID": "ML_uneven_spawning_spawn_change_double_junction_simple_X_junction_seed_1490597230_spawn_rate_3.0cpm",
+    "RunType": "junction",
+    "Junction": "simple_X_junction.junc",
+    "SimulationConfig": "final_testing/uneven_spawning/simple_X/double/seed_1490597230/3.0cpm.config",
+    "MachineLearningModel": "saved_model_simple_X_junction",
+    "Steps": 4500,
+    "RandomSeed": 1490597230,
+    "CPM": 3.0,
+    "HumanDriversVisible": true,
+    "NetworkLatency": 0,
+    "PacketLoss": 0,
+    "SpawningChange": "double"
+  },
+  "126": {
+    "RunUID": "ML_uneven_spawning_spawn_change_double_junction_simple_X_junction_seed_1490597230_spawn_rate_4.0cpm",
+    "RunType": "junction",
+    "Junction": "simple_X_junction.junc",
+    "SimulationConfig": "final_testing/uneven_spawning/simple_X/double/seed_1490597230/4.0cpm.config",
+    "MachineLearningModel": "saved_model_simple_X_junction",
+    "Steps": 4500,
+    "RandomSeed": 1490597230,
+    "CPM": 4.0,
+    "HumanDriversVisible": true,
+    "NetworkLatency": 0,
+    "PacketLoss": 0,
+    "SpawningChange": "double"
+  },
+  "127": {
+    "RunUID": "ML_uneven_spawning_spawn_change_double_junction_simple_X_junction_seed_1490597230_spawn_rate_6.0cpm",
+    "RunType": "junction",
+    "Junction": "simple_X_junction.junc",
+    "SimulationConfig": "final_testing/uneven_spawning/simple_X/double/seed_1490597230/6.0cpm.config",
+    "MachineLearningModel": "saved_model_simple_X_junction",
+    "Steps": 4500,
+    "RandomSeed": 1490597230,
+    "CPM": 6.0,
+    "HumanDriversVisible": true,
+    "NetworkLatency": 0,
+    "PacketLoss": 0,
+    "SpawningChange": "double"
+  },
+  "128": {
+    "RunUID": "ML_uneven_spawning_spawn_change_double_junction_simple_X_junction_seed_1490597230_spawn_rate_12.0cpm",
+    "RunType": "junction",
+    "Junction": "simple_X_junction.junc",
+    "SimulationConfig": "final_testing/uneven_spawning/simple_X/double/seed_1490597230/12.0cpm.config",
+    "MachineLearningModel": "saved_model_simple_X_junction",
+    "Steps": 4500,
+    "RandomSeed": 1490597230,
+    "CPM": 12.0,
+    "HumanDriversVisible": true,
+    "NetworkLatency": 0,
+    "PacketLoss": 0,
+    "SpawningChange": "double"
+  },
+  "129": {
+    "RunUID": "ML_uneven_spawning_spawn_change_double_junction_simple_X_junction_seed_1490597230_spawn_rate_15.0cpm",
+    "RunType": "junction",
+    "Junction": "simple_X_junction.junc",
+    "SimulationConfig": "final_testing/uneven_spawning/simple_X/double/seed_1490597230/15.0cpm.config",
+    "MachineLearningModel": "saved_model_simple_X_junction",
+    "Steps": 4500,
+    "RandomSeed": 1490597230,
+    "CPM": 15.0,
+    "HumanDriversVisible": true,
+    "NetworkLatency": 0,
+    "PacketLoss": 0,
+    "SpawningChange": "double"
+  },
+  "130": {
+    "RunUID": "ML_uneven_spawning_spawn_change_double_junction_simple_X_junction_seed_1490597230_spawn_rate_20.0cpm",
+    "RunType": "junction",
+    "Junction": "simple_X_junction.junc",
+    "SimulationConfig": "final_testing/uneven_spawning/simple_X/double/seed_1490597230/20.0cpm.config",
+    "MachineLearningModel": "saved_model_simple_X_junction",
+    "Steps": 4500,
+    "RandomSeed": 1490597230,
+    "CPM": 20.0,
+    "HumanDriversVisible": true,
+    "NetworkLatency": 0,
+    "PacketLoss": 0,
+    "SpawningChange": "double"
+  },
+  "131": {
+    "RunUID": "ML_uneven_spawning_spawn_change_double_junction_simple_X_junction_seed_1490597230_spawn_rate_30.0cpm",
+    "RunType": "junction",
+    "Junction": "simple_X_junction.junc",
+    "SimulationConfig": "final_testing/uneven_spawning/simple_X/double/seed_1490597230/30.0cpm.config",
+    "MachineLearningModel": "saved_model_simple_X_junction",
+    "Steps": 4500,
+    "RandomSeed": 1490597230,
+    "CPM": 30.0,
+    "HumanDriversVisible": true,
+    "NetworkLatency": 0,
+    "PacketLoss": 0,
+    "SpawningChange": "double"
   }
 }

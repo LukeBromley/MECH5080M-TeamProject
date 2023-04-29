@@ -146,9 +146,9 @@ class SimulationManager:
         # TODO: Use max values for normalisation from config
         return [
             vehicle.get_route_uid(),
-            vehicle.get_route_distance_travelled() / 50,
-            vehicle.get_speed() / 15,
-            simulation.model.get_delay(vehicle.uid) / 120
+            vehicle.get_route_distance_travelled(),
+            vehicle.get_speed(),
+            simulation.model.get_delay(vehicle.uid)
             # x,
             # y
             # vehicle.wait_time,

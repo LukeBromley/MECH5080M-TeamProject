@@ -623,7 +623,7 @@ def main(junction_name: str = "simple_T_junction", enable_graph: bool = False, t
 
     configuration_file_path = os.path.join(
         os.path.dirname(os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))))), "configurations",
-        "simulation_config/final_testing/even_spawning/autonomous/seed_997415346", "30cpm.config")
+        "simulation_config/final_testing/even_spawning/autonomous/seed_997415346", "12.0cpm.config")
 
     # Settings
     scale = 50

@@ -6,7 +6,7 @@ save_plan_file_name = "../testing_plans/legacy_control_even_spawning.plan"
 
 control_methods = ["fixed timings", "demand scheduling"]
 junctions = ["simple_Y_junction.junc", "simple_T_junction.junc", "simple_X_junction.junc", "scale_library_pub_junction.junc"]
-random_seed_values = [1788621521, 1774553582, 1490597230, 997415346, 1433874439]
+random_seed_values = [1788621521, 1774553582, 1490597230]
 spawn_time_delta_values = [90, 60, 45, 30, 20, 15, 10, 5, 4, 3, 2]
 steps = 4500
 
@@ -66,7 +66,7 @@ control_methods = ["fixed timings", "demand scheduling"]
 junctions = ["simple_T_junction.junc", "simple_X_junction.junc"]
 config_folders = [["simple_T/bottom/", "simple_T/side/"], ["simple_X/single/", "simple_X/double/"]]
 spawning_change = [["bottom", "side"], ["single", "double"]]
-random_seed_values = [1788621521, 1774553582, 1490597230, 997415346, 1433874439]
+random_seed_values = [1788621521, 1774553582, 1490597230]
 spawn_time_delta_values = [90, 60, 45, 30, 20, 15, 10, 5, 4, 3, 2]
 steps = 4500
 
