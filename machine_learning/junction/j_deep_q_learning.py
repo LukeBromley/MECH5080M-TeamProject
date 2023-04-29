@@ -99,9 +99,9 @@ class MachineLearning:
         #  curve is much steering during exploration as compared to exploitation.
 
         # Number of steps of just random actions before the network can make some decisions
-        self.number_of_steps_of_required_exploration = 3000
+        self.number_of_steps_of_required_exploration = 5000
         # Number of steps over which epsilon greedy decays
-        self.number_of_steps_of_exploration_reduction = 30000
+        self.number_of_steps_of_exploration_reduction = 50000
         # Train the model after 4 actions
         self.update_after_actions = 4
         # How often to update the target network
@@ -144,7 +144,7 @@ class MachineLearning:
 
         # MACHINE LEARNING MODELS
         n = len(self.simulation_manager.action_table)
-        self.ml_model_hidden_layers = [32, 16]
+        self.ml_model_hidden_layers = [128, 64]
         # Change configurations to ones supplied in machine_learning_config
         if machine_learning_config is not None:
             self.apply_ML_configurations(machine_learning_config)
@@ -290,7 +290,7 @@ class MachineLearning:
                     print(f'{tm.strftime("%H:%M:%S", tm.localtime())}  -  {self.get_mean_reward():.2f} / {self.solved_mean_reward:.2f} at episode {self.episode_count}; frame count: {self.number_of_steps_taken}.')
                     if self.get_mean_reward() > self.max_mean_reward_solved:
                         self.max_mean_reward_solved = self.get_mean_reward()
-                        self.ml_model_target.save("saved_model_scape" + str(round(self.get_mean_reward())))
+                        self.ml_model_target.save("saved_model_scape_128" + str(round(self.get_mean_reward())))
                         print(f'{tm.strftime("%H:%M:%S", tm.localtime())}  -  SavedModel recorded.')
                 # Delete old buffer values
                 self.delete_old_replay_buffer_values()
@@ -530,7 +530,7 @@ class MachineLearning:
     def test(self):
         episode = 1
 
-        model = keras.models.load_model("saved_model_nd-51959")
+        model = keras.models.load_model("saved_model_nd-31921")
         # model = None
         for episode in range(1, episode + 1):
 
@@ -594,7 +594,7 @@ if __name__ == "__main__":
     configuration_file_path = os.path.join(os.path.dirname(os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))))), "configurations", "simulation_config", "cross_road.config")
 
     # Settings
-    scale = 30
+    scale = 50
     # Visualiser Init
     visualiser = JunctionVisualiser()
     visualiser_update_function = visualiser.update
