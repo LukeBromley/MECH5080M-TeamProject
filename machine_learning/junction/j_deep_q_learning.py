@@ -352,8 +352,7 @@ class MachineLearning:
                     # Log details
                     if self.enable_graph:
                         self.graph.update(self.number_of_actions_taken, self.get_mean_reward())
-                    print(
-                        f'{tm.strftime("%H:%M:%S", tm.localtime())}  ({junction_name})  -  {self.get_mean_reward():.2f} / {self.solved_mean_reward:.2f} at ε: {round(self.epsilon_greedy, 2)}; E: {self.episode_count}; A: {self.number_of_actions_taken}.')
+                    print(f'{tm.strftime("%H:%M:%S", tm.localtime())}  ({junction_name})  -  {self.get_mean_reward():.2f} / {self.solved_mean_reward:.2f} at ε: {round(self.epsilon_greedy, 2)}; E: {self.episode_count}; A: {self.number_of_actions_taken}.')
 
                 # Delete old buffer values
                 self.delete_old_replay_buffer_values()
@@ -626,7 +625,7 @@ def main(junction_name: str = "simple_T_junction", enable_graph: bool = False, t
         "simulation_config/final_testing/even_spawning/autonomous/seed_997415346", "12.0cpm.config")
 
     # Settings
-    scale = 50
+    scale = 35
 
     if train:
         simulation = SimulationManager(junction_file_path, configuration_file_path, None)
@@ -639,7 +638,7 @@ def main(junction_name: str = "simple_T_junction", enable_graph: bool = False, t
         simulation = SimulationManager(junction_file_path, configuration_file_path, visualiser_update_function)
         machine_learning = MachineLearning(simulation, machine_learning_config=None, enable_graph=False)
         # Visualiser Setup
-        visualiser.define_main(partial(machine_learning.test, 10000, "saved_model_" + junction_name))
+        visualiser.define_main(partial(machine_learning.test, 4500, "saved_model_" + junction_name))
         visualiser.load_junction(junction_file_path)
         visualiser.set_scale(scale)
         #
@@ -648,4 +647,4 @@ def main(junction_name: str = "simple_T_junction", enable_graph: bool = False, t
 
 
 if __name__ == "__main__":
-    main(junction_name="simple_T_junction", enable_graph=True, train=False)
+    main(junction_name="scale_library_pub_junction", enable_graph=True, train=False)

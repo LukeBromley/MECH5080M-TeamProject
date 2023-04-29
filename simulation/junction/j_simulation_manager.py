@@ -46,8 +46,8 @@ class SimulationManager:
         # Inputs / States
         self.features_per_vehicle_state = 4
         self.features_per_traffic_light_state = 0
-        self.number_of_tracked_vehicles_per_light_controlled_path = 4
-        self.number_of_tracked_vehicles_per_light_path = 1
+        self.number_of_tracked_vehicles_per_light_controlled_path = 6
+        self.number_of_tracked_vehicles_per_light_path = 2
         self.observation_space_size = self.features_per_vehicle_state * (
                 len(self.light_controlled_path_uids) * self.number_of_tracked_vehicles_per_light_controlled_path +
                 len(self.light_path_uids) * self.number_of_tracked_vehicles_per_light_path
@@ -70,7 +70,7 @@ class SimulationManager:
     def reset(self, change_spawning: bool = False):
         self.step_index = 0
         if change_spawning:
-            self.cars_per_minute = random.choice([48])
+            self.cars_per_minute = random.choice([3.0, 6.0, 12.0, 24.0, 48.0])
             config_file_path = os.path.join(
                 os.path.dirname(os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))))),
                 "configurations",

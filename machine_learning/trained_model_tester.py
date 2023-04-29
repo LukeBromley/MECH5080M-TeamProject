@@ -8,6 +8,7 @@ import os
 import json
 import csv
 from statistics import mean, stdev
+import time as tm
 
 from simulation.junction.j_simulation_manager import SimulationManager as JunctionSimulationManager
 # from simulation.lane_changing.lc_simulation_manager import SimulationManager as LaneChangingSimulationManager
@@ -95,6 +96,7 @@ class TrainedModelTester:
                         "Kinetic Energy Waste Maximum": kinetic_energy_waste_maximum
                         })
             self.make_results_directory(run, delays, backup, kinetic_energy)
+            print(f'{tm.strftime("%H:%M:%S", tm.localtime())}  -  Run completed.')
         time_taken = time.perf_counter() - time_begin
         # MEGAMAINTEST - Add any results you want printed to terminal as required.
         print("\n\n================================================\nALL ITERATIONS COMPLETE\n    Total Time: " + str(time_taken) + "\n    Total Testing Runs: " + str(len(self.testing_runs)) + "\n    Results Directory: " + self.output_directory_path + "\n================================================")
